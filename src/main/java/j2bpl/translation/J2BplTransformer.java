@@ -69,6 +69,7 @@ public class J2BplTransformer extends BodyTransformer {
         final SootMethod sootMethod = invokeExpr.getMethod();
         final SootClass sootClass = sootMethod.getDeclaringClass();
         final Class theClass = new Class(sootClass);
+        classes.add(theClass);
         methodsMap.put(sootMethod, Method.create(theClass, sootMethod));
     }
 

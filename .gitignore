@@ -1,0 +1,28 @@
+# Java class files
+*.class
+
+# Mac OS X finder
+.DS_Store
+
+# Vim swap files
+*~
+
+# Gradle files
+.gradle
+/build
+gradle-app.setting
+
+# Intellij IDEA (see https://intellij-support.jetbrains.com/entries/23393067)
+/.idea
+*.iml
+*.iml.bak
+
+# Jimple dumps
+*.jimple
+
+# Corral output
+corral_out*
+
+# Temporal files
+TODO
+output.bpl

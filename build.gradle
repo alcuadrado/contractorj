@@ -1,0 +1,28 @@
+apply plugin: 'java'
+apply plugin: 'application'
+apply plugin: 'idea'
+
+mainClassName = 'j2bpl.Main'
+
+repositories {
+    jcenter()
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '3.0'
+}
+
+run {
+    if (System.getProperty("exec.args") != null) {
+        args System.getProperty("exec.args").split()
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.+'
+    compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.+'
+    compile 'com.google.guava:guava:19.0'
+
+    testCompile 'junit:junit:4.12'
+}

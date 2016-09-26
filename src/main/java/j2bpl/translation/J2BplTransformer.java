@@ -28,8 +28,6 @@ public class J2BplTransformer extends BodyTransformer {
 
     private final Set<Class> classes = new HashSet<>();
 
-    private final Set<Method> methods = new HashSet<>();
-
     private final Map<SootMethod, Method> methodsMap = new HashMap<>();
 
     @Override
@@ -138,7 +136,7 @@ public class J2BplTransformer extends BodyTransformer {
 
         }
 
-        for (Method method : methods) {
+        for (Method method : methodsMap.values()) {
 
             if (method.isClassInitializer()) {
 

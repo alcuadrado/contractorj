@@ -7,7 +7,8 @@ public class TypeTranslator {
     public static String translate(Type type) {
         if (type == IntType.v()
                 || type == ShortType.v()
-                || type == ByteType.v()) {
+                || type == ByteType.v()
+                || type == LongType.v()) {
             return "int";
         }
 

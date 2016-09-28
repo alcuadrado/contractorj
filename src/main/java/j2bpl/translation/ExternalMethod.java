@@ -37,11 +37,6 @@ public class ExternalMethod extends Method {
     }
 
     @Override
-    public boolean isExternalMethod() {
-        return true;
-    }
-
-    @Override
     public boolean isClassInitializer() {
         return false;
     }

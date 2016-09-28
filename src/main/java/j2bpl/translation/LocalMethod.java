@@ -164,11 +164,6 @@ public class LocalMethod extends Method {
     }
 
     @Override
-    public boolean isExternalMethod() {
-        return false;
-    }
-
-    @Override
     public boolean isClassInitializer() {
         return sootMethod.isEntryMethod() && !sootMethod.isMain();
     }

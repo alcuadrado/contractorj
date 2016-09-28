@@ -97,8 +97,6 @@ public abstract class Method {
 
     public abstract String getTranslatedProcedure();
 
-    public abstract boolean isExternalMethod();
-
     public abstract boolean isClassInitializer();
 
     protected Method(Class theClass, SootMethod sootMethod) {

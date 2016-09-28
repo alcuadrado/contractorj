@@ -21,7 +21,12 @@ public abstract class Method {
     public static Method create(Class theClass, SootMethod sootMethod) {
 
         if (!theClass.isApplicationClass()) {
-            return new ExternalMethod(theClass, sootMethod);
+
+            final ExternalMethod externalMethod = new ExternalMethod(theClass, sootMethod);
+
+            theClass.addMethod(externalMethod);
+
+            return externalMethod;
         }
 
         final String translatedMethodName = getTranslatedMethodName(theClass, sootMethod);
@@ -30,6 +35,8 @@ public abstract class Method {
 
             final JimpleBody jimpleBody = (JimpleBody) sootMethod.getActiveBody();
             final LocalMethod localMethod = new LocalMethod(theClass, jimpleBody);
+
+            theClass.addMethod(localMethod);
 
             localMethodsFactoryCache.put(translatedMethodName, localMethod);
         }

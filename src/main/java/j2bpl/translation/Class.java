@@ -2,10 +2,13 @@ package j2bpl.translation;
 
 import soot.SootClass;
 import soot.SootField;
+import soot.SootMethod;
 
 import java.util.*;
 
 public class Class {
+
+    private static Map<SootClass, Class> classes = new HashMap<>();
 
     private final SootClass sootClass;
 
@@ -63,6 +66,14 @@ public class Class {
         }
 
         return instanceFields;
+    }
+
+    public void addMethod(Method method) {
+        methods.add(method);
+    }
+
+    public Set<Method> getMethods() {
+        return methods;
     }
 
     @Override

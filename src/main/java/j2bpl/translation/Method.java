@@ -26,16 +26,15 @@ public abstract class Method {
 
         final String translatedMethodName = getTranslatedMethodName(theClass, sootMethod);
 
-        if (localMethodsFactoryCache.containsKey(translatedMethodName)) {
-            return localMethodsFactoryCache.get(translatedMethodName);
+        if (!localMethodsFactoryCache.containsKey(translatedMethodName)) {
+
+            final JimpleBody jimpleBody = (JimpleBody) sootMethod.getActiveBody();
+            final LocalMethod localMethod = new LocalMethod(theClass, jimpleBody);
+
+            localMethodsFactoryCache.put(translatedMethodName, localMethod);
         }
 
-        final JimpleBody jimpleBody = (JimpleBody) sootMethod.getActiveBody();
-        final LocalMethod localMethod = new LocalMethod(theClass, jimpleBody);
-
-        localMethodsFactoryCache.put(translatedMethodName, localMethod);
-
-        return localMethod;
+        return localMethodsFactoryCache.get(translatedMethodName);
     }
 
     /**

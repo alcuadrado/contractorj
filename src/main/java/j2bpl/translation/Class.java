@@ -9,7 +9,18 @@ public class Class {
 
     private final SootClass sootClass;
 
-    public Class(SootClass sootClass) {
+    private final HashSet<Method> methods = new HashSet<>();
+
+    public static Class create(SootClass sootClass) {
+
+        if (!classes.containsKey(sootClass)) {
+            classes.put(sootClass, new Class(sootClass));
+        }
+
+        return classes.get(sootClass);
+    }
+
+    private Class(SootClass sootClass) {
         this.sootClass = sootClass;
     }
 

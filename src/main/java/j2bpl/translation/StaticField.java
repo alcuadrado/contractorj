@@ -15,7 +15,7 @@ public class StaticField {
     }
 
     public StaticField(SootField sootField) {
-        this(new Class(sootField.getDeclaringClass()), sootField);
+        this(Class.create(sootField.getDeclaringClass()), sootField);
     }
 
     public String getTranslatedName() {

@@ -1,7 +1,12 @@
 package j2bpl.translation;
 
 import com.google.common.base.Joiner;
-import soot.*;
+import soot.Local;
+import soot.SootMethod;
+import soot.Type;
+import soot.Unit;
+import soot.Value;
+import soot.VoidType;
 import soot.jimple.IdentityStmt;
 import soot.jimple.InvokeStmt;
 import soot.jimple.JimpleBody;
@@ -9,7 +14,10 @@ import soot.jimple.ParameterRef;
 import soot.toolkits.graph.Block;
 import soot.toolkits.graph.ExceptionalBlockGraph;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 
 public class LocalMethod extends Method {
 
@@ -20,6 +28,7 @@ public class LocalMethod extends Method {
     private final JimpleBody body;
 
     protected LocalMethod(Class theClass, JimpleBody jimpleBody) {
+
         super(theClass, jimpleBody.getMethod());
         this.body = jimpleBody;
         generateNamesForReturnVariables();
@@ -43,6 +52,7 @@ public class LocalMethod extends Method {
     }
 
     private List<String> getTranslatedParametersList() {
+
         final LinkedList<String> parameters = new LinkedList<>();
 
         if (!isStatic()) {
@@ -113,58 +123,61 @@ public class LocalMethod extends Method {
                 .append("\n")
                 .append("}");
 
-
-        final List<String> translatedParametersNames = new ArrayList<>(translatedParametersList.size());
-
-        for (String translation : translatedParametersList) {
-            final String[] parts = translation.split(":");
-            translatedParametersNames.add(parts[0]);
-        }
-
-        stringBuilder
-                .append("\n\n")
-
-                .append("procedure ")
-                .append(getTranslatedName() + "_instrumented")
-                .append("(")
-                .append(Joiner.on(", ").join(translatedParametersList))
-                .append(")\n")
-
-                .append("{\n");
-
-        if (sootMethod.getReturnType() != VoidType.v()) {
-            stringBuilder
-                    .append(StringUtils.indent("var ret : "))
-                    .append(TypeTranslator.translate(sootMethod.getReturnType()))
-                    .append(";\n");
-        }
-
-        stringBuilder
-                .append(StringUtils.indent("call initialize_globals();"))
-                .append("\n")
-
-                .append(StringUtils.indent("call "));
-
-        if (sootMethod.getReturnType() != VoidType.v()) {
-            stringBuilder.append("ret := ");
-        }
-
-        stringBuilder
-                .append(getTranslatedName())
-                .append("(")
-                .append(Joiner.on(", ").join(translatedParametersNames))
-                .append(");\n")
-
-                .append(StringUtils.indent("assert $Exception == null;"))
-                .append("\n")
-
-                .append("}");
-
         return stringBuilder.toString();
+
+//
+//        final List<String> translatedParametersNames = new ArrayList<>(translatedParametersList.size());
+//
+//        for (String translation : translatedParametersList) {
+//            final String[] parts = translation.split(":");
+//            translatedParametersNames.add(parts[0]);
+//        }
+//
+//        stringBuilder
+//                .append("\n\n")
+//
+//                .append("procedure ")
+//                .append(getTranslatedName() + "_instrumented")
+//                .append("(")
+//                .append(Joiner.on(", ").join(translatedParametersList))
+//                .append(")\n")
+//
+//                .append("{\n");
+//
+//        if (sootMethod.getReturnType() != VoidType.v()) {
+//            stringBuilder
+//                    .append(StringUtils.indent("var ret : "))
+//                    .append(TypeTranslator.translate(sootMethod.getReturnType()))
+//                    .append(";\n");
+//        }
+//
+//        stringBuilder
+//                .append(StringUtils.indent("call initialize_globals();"))
+//                .append("\n")
+//
+//                .append(StringUtils.indent("call "));
+//
+//        if (sootMethod.getReturnType() != VoidType.v()) {
+//            stringBuilder.append("ret := ");
+//        }
+//
+//        stringBuilder
+//                .append(getTranslatedName())
+//                .append("(")
+//                .append(Joiner.on(", ").join(translatedParametersNames))
+//                .append(");\n")
+//
+//                .append(StringUtils.indent("assert $Exception == null;"))
+//                .append("\n")
+//
+//                .append("}");
+//
+//        return stringBuilder.toString();
     }
 
     @Override
     public boolean isClassInitializer() {
+
         return sootMethod.isEntryMethod() && !sootMethod.isMain();
     }
 
@@ -184,6 +197,7 @@ public class LocalMethod extends Method {
     }
 
     private List<String> getTranslatedLocalDeclarationsList() {
+
         final ArrayList<String> translatedLocals = new ArrayList<>();
 
         for (final Local local : body.getLocals()) {
@@ -199,14 +213,17 @@ public class LocalMethod extends Method {
     }
 
     private String translateLocalDeclaration(Local local) {
+
         return "var " + local.getName() + " : " + TypeTranslator.translate(local.getType()) + ";";
     }
 
     public String getGeneratedReturnVariableName(InvokeStmt invokeStmt) {
+
         return generatedReturnVariableNames.get(invokeStmt);
     }
 
     private List<String> getGeneratedLocalDeclarationsList() {
+
         final LinkedList<String> declarations = new LinkedList<>();
 
         for (InvokeStmt invokeStmt : generatedReturnVariableNames.keySet()) {

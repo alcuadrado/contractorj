@@ -1,8 +1,38 @@
 package j2bpl.translation;
 
 import com.google.common.base.Joiner;
-import soot.*;
-import soot.jimple.*;
+import soot.BooleanType;
+import soot.Local;
+import soot.SootField;
+import soot.SootMethod;
+import soot.Value;
+import soot.jimple.AbstractJimpleValueSwitch;
+import soot.jimple.AddExpr;
+import soot.jimple.AndExpr;
+import soot.jimple.ArrayRef;
+import soot.jimple.CastExpr;
+import soot.jimple.ClassConstant;
+import soot.jimple.DivExpr;
+import soot.jimple.DynamicInvokeExpr;
+import soot.jimple.EqExpr;
+import soot.jimple.GeExpr;
+import soot.jimple.GtExpr;
+import soot.jimple.InstanceFieldRef;
+import soot.jimple.InstanceInvokeExpr;
+import soot.jimple.IntConstant;
+import soot.jimple.InvokeExpr;
+import soot.jimple.LeExpr;
+import soot.jimple.LengthExpr;
+import soot.jimple.LtExpr;
+import soot.jimple.MulExpr;
+import soot.jimple.NeExpr;
+import soot.jimple.NewExpr;
+import soot.jimple.NullConstant;
+import soot.jimple.SpecialInvokeExpr;
+import soot.jimple.StaticFieldRef;
+import soot.jimple.StaticInvokeExpr;
+import soot.jimple.SubExpr;
+import soot.jimple.VirtualInvokeExpr;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,16 +43,19 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
 
     @Override
     public void caseLocal(Local v) {
+
         stringBuilder.append(v.getName());
     }
 
     @Override
     public void caseIntConstant(IntConstant v) {
+
         stringBuilder.append(v.value);
     }
 
     @Override
     public void caseAddExpr(AddExpr v) {
+
         v.getOp1().apply(this);
         stringBuilder.append(" + ");
         v.getOp2().apply(this);
@@ -30,6 +63,7 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
 
     @Override
     public void caseSubExpr(SubExpr v) {
+
         v.getOp1().apply(this);
         stringBuilder.append(" - ");
         v.getOp2().apply(this);
@@ -37,6 +71,7 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
 
     @Override
     public void caseMulExpr(MulExpr v) {
+
         v.getOp1().apply(this);
         stringBuilder.append(" * ");
         v.getOp2().apply(this);
@@ -44,6 +79,7 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
 
     @Override
     public void caseDivExpr(DivExpr v) {
+
         stringBuilder.append("division(");
         v.getOp1().apply(this);
         stringBuilder.append(", ");
@@ -73,6 +109,7 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
 
     @Override
     public void caseGtExpr(GtExpr v) {
+
         v.getOp1().apply(this);
         stringBuilder.append(" > ");
         v.getOp2().apply(this);
@@ -80,6 +117,7 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
 
     @Override
     public void caseGeExpr(GeExpr v) {
+
         v.getOp1().apply(this);
         stringBuilder.append(" >= ");
         v.getOp2().apply(this);
@@ -87,6 +125,7 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
 
     @Override
     public void caseLeExpr(LeExpr v) {
+
         v.getOp1().apply(this);
         stringBuilder.append(" <= ");
         v.getOp2().apply(this);
@@ -94,6 +133,7 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
 
     @Override
     public void caseEqExpr(EqExpr v) {
+
         if (v.getOp2().getType() == BooleanType.v() && v.getOp1() instanceof IntConstant) {
             final int value = ((IntConstant) v.getOp1()).value;
             stringBuilder.append(value == 0 ? "false" : "true");
@@ -113,6 +153,7 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
 
     @Override
     public void caseLtExpr(LtExpr v) {
+
         v.getOp1().apply(this);
         stringBuilder.append(" < ");
         v.getOp2().apply(this);
@@ -120,32 +161,38 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
 
     @Override
     public void caseVirtualInvokeExpr(VirtualInvokeExpr v) {
+
         translateInvokeExpr(v);
     }
 
     @Override
     public void caseStaticInvokeExpr(StaticInvokeExpr v) {
+
         translateInvokeExpr(v);
     }
 
     @Override
     public void caseNewExpr(NewExpr v) {
+
         stringBuilder.append("Alloc()");
     }
 
     @Override
     public void caseNullConstant(NullConstant v) {
+
         stringBuilder.append("null");
     }
 
     @Override
     public void caseStaticFieldRef(StaticFieldRef v) {
+
         final StaticField staticField = new StaticField(v.getField());
         stringBuilder.append(staticField.getTranslatedName());
     }
 
     @Override
     public void caseClassConstant(ClassConstant v) {
+
         final String qualifiedClassName = v.getValue().replace("/", ".");
         final String escaped = StringUtils.scapeIllegalIdentifierCharacters(qualifiedClassName);
         stringBuilder.append(escaped);
@@ -153,6 +200,7 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
 
     @Override
     public void caseArrayRef(ArrayRef v) {
+
         final String translatedType = TypeTranslator.translate(v.getType());
         final String translatedRef = translateValue(v.getBase());
         final String translatedIndex = translateValue(v.getIndex());
@@ -190,7 +238,6 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
         final InstanceField instanceField = new InstanceField(sootField);
         final String translatedType = TypeTranslator.translate(sootField.getType());
         final String refTranslation = translateValue(v.getBase());
-
 
         if (translatedType.equals("int")) {
 
@@ -230,6 +277,7 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
 
     @Override
     public void caseLengthExpr(LengthExpr v) {
+
         final String refTranslation = translateValue(v.getOp());
 
         stringBuilder.append("$ArrayLength(")
@@ -238,13 +286,31 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
     }
 
     @Override
+    public void caseCastExpr(CastExpr v) {
+
+        v.getOp().apply(this);
+    }
+
+    @Override
+    public void caseAndExpr(final AndExpr v) {
+
+        final String op1Translated = translateValue(v.getOp1());
+        final String op2Translated = translateValue(v.getOp2());
+
+        stringBuilder.append(op1Translated)
+                .append(" && ")
+                .append(op2Translated);
+    }
+
+    @Override
     public void defaultCase(Object v) {
+
         throw new UnsupportedOperationException("Unsupported value type " + v.getClass().getName());
     }
 
-
     @Override
     public void caseSpecialInvokeExpr(SpecialInvokeExpr v) {
+
         translateInvokeExpr(v);
     }
 
@@ -275,10 +341,12 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
     }
 
     public String getTranslation() {
+
         return stringBuilder.toString();
     }
 
     private String translateValue(Value value) {
+
         final ValueTranslator translator = new ValueTranslator();
         value.apply(translator);
         return translator.getTranslation();

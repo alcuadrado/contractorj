@@ -35,6 +35,7 @@ public class CombinationsGenerator<E> {
     }
 
     private List<E> listWithoutI(List<E> asList, int i) {
+
         final ArrayList<E> copy = Lists.newArrayList(asList);
         copy.remove(i);
         return copy;

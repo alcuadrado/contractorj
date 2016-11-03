@@ -1,10 +1,18 @@
 package j2bpl.translation;
 
-import soot.*;
+import soot.ArrayType;
+import soot.BooleanType;
+import soot.ByteType;
+import soot.IntType;
+import soot.LongType;
+import soot.RefType;
+import soot.ShortType;
+import soot.Type;
 
 public class TypeTranslator {
 
     public static String translate(Type type) {
+
         if (type == IntType.v()
                 || type == ShortType.v()
                 || type == ByteType.v()

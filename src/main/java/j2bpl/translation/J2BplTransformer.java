@@ -1,8 +1,13 @@
 package j2bpl.translation;
 
+import com.google.common.collect.Lists;
 import com.google.common.io.Resources;
 import j2bpl.Main;
-import soot.*;
+import soot.Body;
+import soot.BodyTransformer;
+import soot.SootClass;
+import soot.SootMethod;
+import soot.Unit;
 import soot.jimple.InvokeExpr;
 import soot.jimple.JimpleBody;
 import soot.jimple.Stmt;
@@ -10,8 +15,13 @@ import soot.jimple.Stmt;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -20,10 +30,12 @@ public class J2BplTransformer extends BodyTransformer {
     private static J2BplTransformer instance = new J2BplTransformer();
 
     public static J2BplTransformer getInstance() {
+
         return instance;
     }
 
     private J2BplTransformer() {
+
     }
 
     private final Set<Class> classes = new HashSet<>();
@@ -86,11 +98,33 @@ public class J2BplTransformer extends BodyTransformer {
         }
     }
 
+    public Class getClass(String className) {
+
+        for (Class aClass : classes) {
+            if (aClass.getQualifiedJavaName().equals(className)) {
+                return aClass;
+            }
+        }
+
+        return null;
+    }
+
     public String getTranslation() {
 
         final StringBuilder stringBuilder = new StringBuilder();
 
         stringBuilder.append(getPrelude());
+
+        final ArrayList<Class> classes = Lists.newArrayList(this.classes);
+
+        Collections.sort(classes, new Comparator<Class>() {
+
+            @Override
+            public int compare(Class o1, Class o2) {
+
+                return o1.getTranslatedName().compareTo(o2.getTranslatedName());
+            }
+        });
 
         for (Class aClass : classes) {
             stringBuilder.append("\n")
@@ -114,7 +148,7 @@ public class J2BplTransformer extends BodyTransformer {
                 .append(getGlobalInitializationProcedure())
                 .append("\n");
 
-        for (Method method : methodsMap.values()) {
+        for (Method method : getMethodsInOrder()) {
             stringBuilder.append("\n")
                     .append(method.getTranslatedProcedure())
                     .append("\n");
@@ -124,6 +158,7 @@ public class J2BplTransformer extends BodyTransformer {
     }
 
     private String getGlobalInitializationProcedure() {
+
         final StringBuilder stringBuilder = new StringBuilder();
 
         stringBuilder.append("procedure initialize_globals() {\n")
@@ -137,7 +172,7 @@ public class J2BplTransformer extends BodyTransformer {
 
         }
 
-        for (Method method : methodsMap.values()) {
+        for (Method method : getMethodsInOrder()) {
 
             if (method.isClassInitializer()) {
 
@@ -154,7 +189,24 @@ public class J2BplTransformer extends BodyTransformer {
         return stringBuilder.toString();
     }
 
+    private List<Method> getMethodsInOrder() {
+
+        final Collection<Method> values = methodsMap.values();
+        final ArrayList<Method> methods = Lists.newArrayList(values);
+        Collections.sort(methods, new Comparator<Method>() {
+
+            @Override
+            public int compare(Method o1, Method o2) {
+
+                return o1.getTranslatedName().compareTo(o2.getTranslatedName());
+            }
+        });
+
+        return methods;
+    }
+
     public Method getMethod(SootMethod sootMethod) {
+
         return methodsMap.get(sootMethod);
     }
 

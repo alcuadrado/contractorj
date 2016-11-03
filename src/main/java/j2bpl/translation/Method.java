@@ -1,12 +1,14 @@
 package j2bpl.translation;
 
 import soot.RefType;
-import soot.SootClass;
 import soot.SootMethod;
 import soot.Type;
+import soot.VoidType;
 import soot.jimple.JimpleBody;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
@@ -74,10 +76,9 @@ public abstract class Method {
             final String paramTypeName;
 
             if (parameterType instanceof RefType) {
-
                 final RefType refType = (RefType) parameterType;
-                paramTypeName = getQualifiedClassName(refType.getSootClass());
-
+                final Class aClass = Class.create(refType.getSootClass());
+                paramTypeName = aClass.getQualifiedJavaName();
             } else {
                 paramTypeName = TypeTranslator.translate(parameterType);
             }
@@ -90,16 +91,9 @@ public abstract class Method {
         return stringBuilder.toString();
     }
 
-    /**
-     * Returns the java qualified name of the class.
-     */
-    private static String getQualifiedClassName(SootClass sootClass) {
+    public List<Type> getParameterTypes() {
 
-        final String packageName = sootClass.getJavaPackageName();
-
-        return sootClass.getJavaPackageName() +
-                (packageName.isEmpty() ? "" : ".") +
-                sootClass.getJavaStyleName();
+        return sootMethod.getParameterTypes();
     }
 
     public abstract String getTranslatedProcedure();
@@ -107,16 +101,58 @@ public abstract class Method {
     public abstract boolean isClassInitializer();
 
     protected Method(Class theClass, SootMethod sootMethod) {
+
         this.theClass = theClass;
         this.sootMethod = sootMethod;
     }
 
     public String getTranslatedName() {
+
         return getTranslatedMethodName(theClass, sootMethod);
     }
 
+    public String getJavaName() {
+
+        return theClass.getQualifiedJavaName() + (isStatic() ? "." : "#") + sootMethod.getName();
+    }
+
+    public String getBaseJavaName() {
+
+        return sootMethod.getName();
+    }
+
     public boolean isStatic() {
+
         return sootMethod.isStatic();
+    }
+
+    public boolean hasReturnType() {
+
+        return sootMethod.getReturnType() != VoidType.v();
+    }
+
+    public String getTranslatedReturnType() {
+
+        return TypeTranslator.translate(sootMethod.getReturnType());
+    }
+
+    public List<String> getTranslatedArgumentTypes() {
+
+        final ArrayList<String> translatedArguments = new ArrayList<>();
+
+        if (!isStatic()) {
+            translatedArguments.add("Ref");
+        }
+
+        @SuppressWarnings("unchecked")
+        final Iterator<Type> iterator = sootMethod.getParameterTypes().iterator();
+
+        while (iterator.hasNext()) {
+            final Type type = iterator.next();
+            translatedArguments.add(TypeTranslator.translate(type));
+        }
+
+        return translatedArguments;
     }
 
     @Override
@@ -137,11 +173,13 @@ public abstract class Method {
 
     @Override
     public int hashCode() {
+
         return Objects.hash(getTranslatedName());
     }
 
     @Override
     public String toString() {
+
         return getClass().getSimpleName() + "<" + getTranslatedName() + ">";
     }
 }

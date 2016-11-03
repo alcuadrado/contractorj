@@ -12,6 +12,7 @@ public class StringUtils {
      * Indents a list of strings (@see #indent) and joins them with '\n' in between.
      */
     public static String indentList(List<String> lines) {
+
         return indent(Joiner.on("\n").join(lines));
     }
 
@@ -19,6 +20,7 @@ public class StringUtils {
      * Indents a string, adding 4 spaces before every line.
      */
     public static String indent(String str) {
+
         final Iterable<String> lines = Splitter.on("\n")
                 .split(str);
 
@@ -32,12 +34,13 @@ public class StringUtils {
     }
 
     /**
-     * Replace all illegal identifier characters with '?'.
+     * Replace all illegal identifier characters with '?'. This method is idempotent.
      * <p>
      * <p>Note that this method can have collisions, which should be extremely rare in real java.</p>
      */
     public static String scapeIllegalIdentifierCharacters(String name) {
-        return name.replaceAll("[<>]", "?");
+
+        return name.replaceAll("[<>{},]", "?");
     }
 
 }

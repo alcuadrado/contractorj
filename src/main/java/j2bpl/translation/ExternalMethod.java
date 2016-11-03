@@ -11,6 +11,7 @@ import java.util.List;
 public class ExternalMethod extends Method {
 
     public ExternalMethod(Class theClass, SootMethod sootMethod) {
+
         super(theClass, sootMethod);
     }
 
@@ -38,6 +39,7 @@ public class ExternalMethod extends Method {
 
     @Override
     public boolean isClassInitializer() {
+
         return false;
     }
 

@@ -1,5 +1,8 @@
 package j2bpl;
 
+import j2bpl.epas.Epa;
+import j2bpl.epas.gen.ExponentialEpaGenerator;
+import j2bpl.translation.Class;
 import j2bpl.translation.J2BplTransformer;
 import soot.Pack;
 import soot.PackManager;
@@ -7,38 +10,44 @@ import soot.Transform;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintStream;
+import java.nio.file.Files;
 
 public class Main {
 
     public static void main(String[] args) throws IOException {
 
-        if (args.length == 0) {
-            System.err.println("Missing arguments: class-files-dir [output-file]");
+        final String implementationVersion = Runtime.class.getPackage().getImplementationVersion();
+
+        if (implementationVersion.startsWith("1.8")) {
+            System.err.println("You are using Java 8, which is not supported by Soot.");
+            System.exit(1);
+        }
+
+        if (args.length != 3) {
+            System.err.println("Missing arguments: class-files-dir qualified-name-of-class dot-file");
             System.exit(1);
         }
 
         final String pathToClassFilesFolder = args[0];
-
-        final PrintStream outputStream;
-
-        if (args.length > 1) {
-            final File file = new File(args[1]);
-
-            if (!file.exists()) {
-                assert file.createNewFile();
-            }
-
-            outputStream = new PrintStream(file);
-        } else {
-            outputStream = System.out;
-        }
+        final String className = args[1];
+        final File outputFile = new File(args[2]);
 
         final J2BplTransformer j2BplTransformer = J2BplTransformer.getInstance();
 
         runTranslation(j2BplTransformer, pathToClassFilesFolder);
 
-        outputStream.print(j2BplTransformer.getTranslation());
+        final Class classToMakeEpa = j2BplTransformer.getClass(className);
+
+        if (classToMakeEpa == null) {
+            throw new IllegalArgumentException("Can't find class " + className);
+        }
+
+        final ExponentialEpaGenerator exponentialEpaGenerator =
+                new ExponentialEpaGenerator(classToMakeEpa, j2BplTransformer.getTranslation());
+
+        final Epa epa = exponentialEpaGenerator.generateEpa();
+
+        Files.write(outputFile.toPath(), epa.toDot().getBytes());
     }
 
     private static void runTranslation(J2BplTransformer j2BplTransformer, String pathToClassFilesFolder) {

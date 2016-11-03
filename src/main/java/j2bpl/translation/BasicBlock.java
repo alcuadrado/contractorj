@@ -1,9 +1,13 @@
 package j2bpl.translation;
 
- import soot.Unit;
+import soot.Unit;
 import soot.toolkits.graph.Block;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 public class BasicBlock {
 
@@ -26,11 +30,13 @@ public class BasicBlock {
     }
 
     private BasicBlock(LocalMethod method, Block block) {
+
         this.method = method;
         this.block = block;
     }
 
     public String getLabel() {
+
         final String methodName = method.getTranslatedName();
         return methodName + "_" + block.getIndexInMethod();
     }
@@ -60,10 +66,10 @@ public class BasicBlock {
             final UnitTranslator unitTranslator = new UnitTranslator(method, this);
 
             unit.apply(unitTranslator);
-            final String translation = unitTranslator.getTranslation();
+            final List<String> translation = unitTranslator.getTranslation();
 
-            if (!translation.isEmpty()) {
-                translations.add(StringUtils.indent(translation));
+            for (String statement : translation) {
+                translations.add(StringUtils.indent(statement));
             }
         }
 

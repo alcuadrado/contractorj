@@ -4,7 +4,28 @@ import soot.BooleanType;
 import soot.SootField;
 import soot.Type;
 import soot.Value;
-import soot.jimple.*;
+import soot.jimple.AbstractStmtSwitch;
+import soot.jimple.ArrayRef;
+import soot.jimple.AssignStmt;
+import soot.jimple.CaughtExceptionRef;
+import soot.jimple.DivExpr;
+import soot.jimple.GotoStmt;
+import soot.jimple.IdentityStmt;
+import soot.jimple.IfStmt;
+import soot.jimple.InstanceFieldRef;
+import soot.jimple.IntConstant;
+import soot.jimple.InvokeExpr;
+import soot.jimple.InvokeStmt;
+import soot.jimple.NewArrayExpr;
+import soot.jimple.NewExpr;
+import soot.jimple.ParameterRef;
+import soot.jimple.ReturnStmt;
+import soot.jimple.ReturnVoidStmt;
+import soot.jimple.ThisRef;
+import soot.jimple.ThrowStmt;
+
+import java.util.LinkedList;
+import java.util.List;
 
 public class UnitTranslator extends AbstractStmtSwitch {
 
@@ -14,7 +35,10 @@ public class UnitTranslator extends AbstractStmtSwitch {
 
     private final BasicBlock basicBlock;
 
+    private final List<String> translation = new LinkedList<>();
+
     public UnitTranslator(LocalMethod method, BasicBlock basicBlock) {
+
         this.method = method;
         this.basicBlock = basicBlock;
     }
@@ -40,11 +64,13 @@ public class UnitTranslator extends AbstractStmtSwitch {
             return;
         }
 
+        final StringBuilder stringBuilder = new StringBuilder();
+
         if (rightOp instanceof NewExpr || rightOp instanceof InvokeExpr || rightOp instanceof DivExpr) {
             stringBuilder.append("call ");
         }
 
-        String rightOptTranslation = translateValue(rightOp);
+        final String rightOptTranslation;
 
         // We need a special case for booleans because they are 0 and 1 in jimple, but that doesn't
         // type check in boogie.
@@ -52,6 +78,8 @@ public class UnitTranslator extends AbstractStmtSwitch {
         if (leftOp.getType() == BooleanType.v() && rightOp instanceof IntConstant) {
             final int value = ((IntConstant) rightOp).value;
             rightOptTranslation = value == 0 ? "false" : "true";
+        } else {
+            rightOptTranslation = translateValue(rightOp);
         }
 
         final String translatedLeftOp = translateValue(leftOp);
@@ -61,12 +89,12 @@ public class UnitTranslator extends AbstractStmtSwitch {
                 .append(rightOptTranslation)
                 .append(";");
 
+        translation.add(stringBuilder.toString());
+
         if (rightOp instanceof InvokeExpr || rightOp instanceof DivExpr) {
-            stringBuilder.append("\n")
-                    .append("if ($Exception != null) {\n")
-                    .append(StringUtils.indent("return;"))
-                    .append("\n")
-                    .append("}");
+            translation.add("if ($Exception != null) {");
+            translation.add(StringUtils.indent("return;"));
+            translation.add("}");
         }
     }
 
@@ -75,17 +103,12 @@ public class UnitTranslator extends AbstractStmtSwitch {
         final String translatedRef = translateValue(leftOp);
         final String translatedSize = translateValue(newArrayExpr.getSize());
 
-        stringBuilder.append("call ")
-                .append(translatedRef)
-                .append(" := Alloc();\n")
-                .append("assume $ArrayLength(")
-                .append(translatedRef)
-                .append(") == ")
-                .append(translatedSize)
-                .append(";");
+        translation.add("call " + translatedRef + " := Alloc();");
+        translation.add("assume $ArrayLength(" + translatedRef + ") == " + translatedSize + ";");
     }
 
     private void translateAssignmentToArray(ArrayRef arrayRef, Value value) {
+
         final String translatedValue = translateValue(value);
         final String translatedIndex = translateValue(arrayRef.getIndex());
         final String translatedRef = translateValue(arrayRef.getBase());
@@ -93,21 +116,13 @@ public class UnitTranslator extends AbstractStmtSwitch {
         translateTransformationToUnion(arrayRef.getType(), value, translatedValue);
         final String toUnion = getToUnion(arrayRef.getType(), value, translatedValue);
 
-        stringBuilder.append("assert ")
-                .append(translatedRef)
-                .append(" != null;\n")
-                .append("$ArrayContents := $ArrayContents[")
-                .append(translatedRef)
-                .append(" := $ArrayContents[")
-                .append(translatedRef)
-                .append("][")
-                .append(translatedIndex)
-                .append(" := ")
-                .append(toUnion)
-                .append("]];");
+        translation.add("assert " + translatedRef + " != null;");
+        translation.add("$ArrayContents := $ArrayContents[" + translatedRef + " := $ArrayContents[" + translatedRef
+                + "][" + translatedIndex + " := " + toUnion + "]];");
     }
 
     private String translateValue(Value value) {
+
         final ValueTranslator translator = new ValueTranslator();
         value.apply(translator);
         return translator.getTranslation();
@@ -119,25 +134,14 @@ public class UnitTranslator extends AbstractStmtSwitch {
 
         if (translateType.equals("int")) {
 
-            stringBuilder.append("assume Union2Int(Int2Union(")
-                    .append(translatedValue)
-                    .append(")) == ")
-                    .append(translatedValue)
-                    .append(";\n");
-
+            translation.add("assume Union2Int(Int2Union(" + translatedValue + ")) == " + translatedValue + ";");
             return;
         }
 
-
         if (type == BooleanType.v() && value instanceof IntConstant) {
+
             final boolean booleanValue = ((IntConstant) value).value != 0;
-
-            stringBuilder.append("assume Union2Bool(Bool2Union(")
-                    .append(booleanValue)
-                    .append(")) == ")
-                    .append(booleanValue)
-                    .append(";\n");
-
+            translation.add("assume Union2Bool(Bool2Union(" + booleanValue + ")) == " + booleanValue + ";");
             return;
         }
 
@@ -150,6 +154,7 @@ public class UnitTranslator extends AbstractStmtSwitch {
     }
 
     private String getToUnion(Type type, Value value, String translatedValue) {
+
         final String translateType = TypeTranslator.translate(type);
 
         if (translateType.equals("int")) {
@@ -183,42 +188,44 @@ public class UnitTranslator extends AbstractStmtSwitch {
 
         translateTransformationToUnion(type, value, translatedValue);
 
-        stringBuilder.append("$Heap := Write($Heap, ")
-                .append(translatedRef)
-                .append(", ")
-                .append(instanceField.getTranslatedName())
-                .append(", ")
-                .append(getToUnion(type, value, translatedValue))
-                .append(");");
+        translation.add("$Heap := Write($Heap, " + translatedRef + ", " + instanceField.getTranslatedName() + ", " +
+                getToUnion(type, value, translatedValue) + ");");
     }
 
     @Override
     public void caseThrowStmt(ThrowStmt stmt) {
-        stringBuilder.append("$Exception := ")
-                .append(translateValue(stmt.getOp()))
-                .append(";\n")
-                .append("return;");
+
+        final String translatedValue = translateValue(stmt.getOp());
+
+        translation.add("$Exception := " + translatedValue + ";");
+        translation.add("return;");
     }
 
     @Override
     public void caseIfStmt(IfStmt stmt) {
 
         final BasicBlock successorBasicBlock = basicBlock.getSuccessorBasicBlock(stmt.getTarget());
+        final String translatedValue = translateValue(stmt.getCondition());
 
-        stringBuilder.append("if (")
-                .append(translateValue(stmt.getCondition()))
-                .append(") {\n")
-                .append(StringUtils.indent("goto " + successorBasicBlock.getLabel() + ";"))
-                .append("\n")
-                .append("}");
+        translation.add("if (" + translatedValue + ") {");
+        translation.add(StringUtils.indent("goto " + successorBasicBlock.getLabel() + ";"));
+        translation.add("}");
     }
 
     @Override
     public void caseReturnStmt(ReturnStmt stmt) {
-        stringBuilder.append("r := ")
-                .append(translateValue(stmt.getOp()))
-                .append(";\n")
-                .append("return;");
+
+        final Value value = stmt.getOp();
+
+        if (method.getTranslatedReturnType().equals("bool") && value instanceof IntConstant) {
+            final IntConstant intValue = (IntConstant) value;
+            translation.add("r := " + (intValue.value == 0 ? "false" : "true") + ";");
+        } else {
+            final String translatedValue = translateValue(value);
+            translation.add("r := " + translatedValue + ";");
+        }
+
+        translation.add("return;");
     }
 
     @Override
@@ -228,23 +235,16 @@ public class UnitTranslator extends AbstractStmtSwitch {
         final Value rightOp = stmt.getRightOp();
 
         if (rightOp instanceof ThisRef) {
-            stringBuilder.append(translatedLeftOp)
-                    .append(" := ")
-                    .append("$this")
-                    .append(";");
 
+            translation.add(translatedLeftOp + " := $this;");
             return;
         }
 
         if (rightOp instanceof CaughtExceptionRef) {
-            stringBuilder.append(translatedLeftOp)
-                    .append(" := ")
-                    .append("$Exception")
-                    .append(";");
 
+            translation.add(translatedLeftOp + " := $Exception;");
             return;
         }
-
 
         if (rightOp instanceof ParameterRef) {
             // Do nothing: this is translated as a parameter.
@@ -257,17 +257,15 @@ public class UnitTranslator extends AbstractStmtSwitch {
 
     @Override
     public void caseReturnVoidStmt(ReturnVoidStmt stmt) {
-        stringBuilder.append("return;");
+
+        translation.add("return;");
     }
 
     @Override
     public void caseGotoStmt(GotoStmt stmt) {
 
         final BasicBlock successorBasicBlock = basicBlock.getSuccessorBasicBlock(stmt.getTarget());
-
-        stringBuilder.append("goto ")
-                .append(successorBasicBlock.getLabel())
-                .append(";");
+        translation.add("goto " + successorBasicBlock.getLabel() + ";");
     }
 
     @Override
@@ -277,30 +275,32 @@ public class UnitTranslator extends AbstractStmtSwitch {
 
         final InvokeExpr invokeExpr = stmt.getInvokeExpr();
 
-        stringBuilder.append("call ");
+        String callInstruction = "call ";
 
         if (returnVariableName != null) {
-            stringBuilder.append(returnVariableName)
-                    .append(" := ");
+            callInstruction += returnVariableName + " := ";
         }
 
-        stringBuilder.append(translateValue(invokeExpr))
-                .append(";\n")
-                .append("if ($Exception != null) {\n")
-                .append(StringUtils.indent("return;"))
-                .append("\n")
-                .append("}");
+        callInstruction += translateValue(invokeExpr) + ";";
+
+        translation.add(callInstruction);
+        translation.add("if ($Exception != null) {");
+        translation.add(StringUtils.indent("return;"));
+        translation.add("}");
     }
 
     @Override
     public void defaultCase(Object obj) {
+
         throw new UnsupportedOperationException("Unsupported statement of type "
                 + obj.getClass().getName() + " in basic block " + basicBlock.getLabel());
     }
 
-    public String getTranslation() {
-        return stringBuilder.toString();
+    public List<String> getTranslation() {
+
+        return translation;
     }
+
 }
 
 

@@ -2,9 +2,14 @@ package j2bpl.translation;
 
 import soot.SootClass;
 import soot.SootField;
-import soot.SootMethod;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 public class Class {
 
@@ -24,10 +29,16 @@ public class Class {
     }
 
     private Class(SootClass sootClass) {
+
         this.sootClass = sootClass;
     }
 
     public String getTranslatedName() {
+
+        return StringUtils.scapeIllegalIdentifierCharacters(getQualifiedJavaName());
+    }
+
+    public String getQualifiedJavaName() {
 
         final String packageName = sootClass.getJavaPackageName();
         final String className = sootClass.getJavaStyleName();
@@ -36,10 +47,11 @@ public class Class {
             return className;
         }
 
-        return StringUtils.scapeIllegalIdentifierCharacters(sootClass.getJavaPackageName() + "." + className);
+        return packageName + "." + className;
     }
 
     public boolean isApplicationClass() {
+
         return sootClass.isApplicationClass();
     }
 
@@ -57,6 +69,7 @@ public class Class {
     }
 
     public Collection<InstanceField> getInstanceFields() {
+
         final LinkedList<InstanceField> instanceFields = new LinkedList<>();
 
         for (SootField sootField : sootClass.getFields()) {
@@ -69,10 +82,12 @@ public class Class {
     }
 
     public void addMethod(Method method) {
+
         methods.add(method);
     }
 
     public Set<Method> getMethods() {
+
         return methods;
     }
 
@@ -94,10 +109,12 @@ public class Class {
 
     @Override
     public int hashCode() {
+
         return Objects.hash(getTranslatedName());
     }
 
     public String getTranslation() {
+
         return "var " + getTranslatedName() + " : Ref;";
     }
 }

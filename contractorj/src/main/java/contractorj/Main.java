@@ -1,11 +1,9 @@
 package contractorj;
 
 import contractorj.epas.Epa;
-
 import contractorj.epas.gen.ExponentialEpaGenerator;
-import j2bpl.translation.Class;
-import j2bpl.translation.InstanceField;
-import j2bpl.translation.J2BplTransformer;
+import j2bpl.Class;
+import j2bpl.Translator;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -13,9 +11,6 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import soot.Pack;
-import soot.PackManager;
-import soot.Transform;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,9 +18,36 @@ import java.nio.file.Files;
 
 public class Main {
 
+    private static String pathToClassPath;
+
+    private static String className;
+
+    private static File outputFile;
+    
+    private static int numberOfThreads = Runtime.getRuntime().availableProcessors();
+
     public static void main(String[] args) throws IOException {
 
-        ensureJava7();
+        parseArguments(args);
+
+        final Translator translator = new Translator();
+        translator.translate(pathToClassPath);
+
+        final Class classToMakeEpa = translator.getTranslatedClass(className);
+
+        if (classToMakeEpa == null) {
+            throw new IllegalArgumentException("Can't find class " + className);
+        }
+
+        final ExponentialEpaGenerator exponentialEpaGenerator = new ExponentialEpaGenerator(classToMakeEpa,
+                translator.getTranslation(), numberOfThreads);
+
+        final Epa epa = exponentialEpaGenerator.generateEpa();
+
+        Files.write(outputFile.toPath(), epa.toDot().getBytes());
+    }
+
+    private static void parseArguments(final String[] args) {
 
         Options options = new Options();
 
@@ -52,8 +74,6 @@ public class Main {
 
         final CommandLine cmd;
 
-
-
         try {
             cmd = parser.parse(options, args);
             cmd.getParsedOptionValue("t");
@@ -64,67 +84,13 @@ public class Main {
             return;
         }
 
-        final String pathToClassPath = cmd.getOptionValue("cp");
-        final String className = cmd.getOptionValue("c");
-        final File outputFile = new File(cmd.getOptionValue("d"));
+        pathToClassPath = cmd.getOptionValue("cp");
+        className = cmd.getOptionValue("c");
+        outputFile = new File(cmd.getOptionValue("d"));
 
-        final Integer defaultThreads = Runtime.getRuntime().availableProcessors();
-        final int numberOfThreads = Integer.valueOf(cmd.getOptionValue("t", defaultThreads.toString()));
-
-        final J2BplTransformer j2BplTransformer = J2BplTransformer.getInstance();
-
-        runTranslation(j2BplTransformer, pathToClassPath);
-
-        final Class classToMakeEpa = j2BplTransformer.getClass(className);
-
-        if (classToMakeEpa == null) {
-            throw new IllegalArgumentException("Can't find class " + className);
+        if (cmd.hasOption('t')) {
+            numberOfThreads = Integer.valueOf(cmd.getOptionValue('t'));
         }
-
-        final ExponentialEpaGenerator exponentialEpaGenerator =
-                new ExponentialEpaGenerator(classToMakeEpa, j2BplTransformer.getTranslation(), numberOfThreads);
-
-        final Epa epa = exponentialEpaGenerator.generateEpa();
-
-        Files.write(outputFile.toPath(), epa.toDot().getBytes());
-    }
-
-    private static void ensureJava7() {
-
-        final String implementationVersion = Runtime.class.getPackage().getImplementationVersion();
-
-        if (!implementationVersion.startsWith("1.7")) {
-            System.err.println("ContractorJ cant be run with your jre because Soot doesn't support java >= 8.");
-            System.exit(1);
-        }
-    }
-
-    private static void runTranslation(J2BplTransformer j2BplTransformer, String pathToClassPath) {
-
-        Pack pack = PackManager.v().getPack("jtp");
-
-        pack.add(new Transform("jtp.bpl", j2BplTransformer));
-
-        final String javaHome = System.getProperty("java.home");
-
-        final File rtFile = new File(new File(javaHome, "lib"), "rt.jar");
-
-        final String[] args = {
-                "-keep-line-number",
-                "-pp",
-                "-cp",
-                rtFile.getAbsolutePath() + ":" + pathToClassPath,
-                "-f",
-                "jimple",
-                "-d",
-                "./dump",
-                "-src-prec",
-                "class",
-                "-process-path",
-                pathToClassPath
-        };
-
-        soot.Main.main(args);
     }
 
 }

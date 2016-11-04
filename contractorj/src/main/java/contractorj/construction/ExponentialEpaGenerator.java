@@ -43,9 +43,9 @@ public class ExponentialEpaGenerator {
 
         final long timeTrack0 = System.nanoTime();
 
-        final ContractsExtractor contractsExtractor = new ContractsExtractor(theClass);
-        final Set<Action> actions = contractsExtractor.getActions();
-        final Method invariant = contractsExtractor.getInvariant();
+        final ActionsExtractor actionsExtractor = new ActionsExtractor(theClass);
+        final Set<Action> actions = actionsExtractor.getActions();
+        final Method invariant = actionsExtractor.getInvariant();
 
         CombinationsGenerator<Action> combinationsGenerator = new CombinationsGenerator<>();
 

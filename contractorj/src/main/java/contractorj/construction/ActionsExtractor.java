@@ -9,7 +9,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class ContractsExtractor {
+public class ActionsExtractor {
 
     private final static String INVARIANT_METHOD_NAME = "inv";
 
@@ -29,17 +29,17 @@ public class ContractsExtractor {
         return invariant;
     }
 
-    public ContractsExtractor(Class theClass) {
+    public ActionsExtractor(Class theClass) {
 
         this.theClass = theClass;
 
         final Map<String, Set<Method>> instanceMethodsMap = getInstanceMethodsMap();
 
         searchInvariant(instanceMethodsMap);
-        generateContacts(instanceMethodsMap);
+        generateActions(instanceMethodsMap);
     }
 
-    private void generateContacts(Map<String, Set<Method>> instanceMethodsMap) {
+    private void generateActions(Map<String, Set<Method>> instanceMethodsMap) {
 
         for (String methodName : instanceMethodsMap.keySet()) {
 

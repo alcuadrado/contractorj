@@ -10,6 +10,7 @@
 # Gradle files
 .gradle
 /build
+*/build
 gradle-app.setting
 
 # Intellij IDEA (see https://intellij-support.jetbrains.com/entries/23393067)
@@ -22,6 +23,10 @@ gradle-app.setting
 
 # Corral output
 corral_out*
+
+# dot output
+*.dot
+*.png
 
 # Temporal files
 TODO

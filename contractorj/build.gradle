@@ -1,0 +1,16 @@
+apply plugin: 'java'
+apply plugin: 'application'
+
+mainClassName = 'contractorj.Main'
+
+run {
+    if (System.getProperty("exec.args") != null) {
+        args System.getProperty("exec.args").split()
+    }
+}
+
+dependencies {
+    compile project(":j2bpl")
+    compile 'com.google.guava:guava:19.0'
+    testCompile 'junit:junit:4.12'
+}

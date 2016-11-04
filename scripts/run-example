@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+cd "$( dirname "${BASH_SOURCE[0]}" )/.."
+
+./gradlew :examples:classes
+./gradlew :contractorj:installDist
+
+contractorj/build/install/contractorj/bin/contractorj examples/build/classes/main "$1" "$1.dot"
+dot "$1.dot" -T png -o "$1.png"
+

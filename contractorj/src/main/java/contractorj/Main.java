@@ -1,7 +1,7 @@
 package contractorj;
 
-import contractorj.epas.Epa;
-import contractorj.epas.gen.ExponentialEpaGenerator;
+import contractorj.model.Epa;
+import contractorj.construction.ExponentialEpaGenerator;
 import j2bpl.Class;
 import j2bpl.Translator;
 import org.apache.commons.cli.CommandLine;
@@ -23,7 +23,7 @@ public class Main {
     private static String className;
 
     private static File outputFile;
-    
+
     private static int numberOfThreads = Runtime.getRuntime().availableProcessors();
 
     public static void main(String[] args) throws IOException {

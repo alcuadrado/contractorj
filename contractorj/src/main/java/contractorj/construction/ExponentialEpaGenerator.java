@@ -1,9 +1,9 @@
-package contractorj.epas.gen;
+package contractorj.construction;
 
-import contractorj.corral.QueryRunner;
-import contractorj.epas.Action;
-import contractorj.epas.Epa;
-import contractorj.epas.State;
+import contractorj.construction.corral.QueryRunner;
+import contractorj.model.Action;
+import contractorj.model.Epa;
+import contractorj.model.State;
 import j2bpl.Class;
 import j2bpl.Method;
 import contractorj.util.CombinationsGenerator;

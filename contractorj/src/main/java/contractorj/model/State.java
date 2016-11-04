@@ -1,4 +1,4 @@
-package contractorj.epas;
+package contractorj.model;
 
 import com.google.common.base.Joiner;
 

@@ -1,4 +1,4 @@
-package contractorj.corral;
+package contractorj.construction.corral;
 
 public enum Result {
     NO_BUG,

@@ -1,4 +1,4 @@
-package contractorj.epas;
+package contractorj.model;
 
 public class Transition {
 

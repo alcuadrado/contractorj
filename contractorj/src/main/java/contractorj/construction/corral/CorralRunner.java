@@ -1,4 +1,4 @@
-package contractorj.corral;
+package contractorj.construction.corral;
 
 import com.google.common.collect.Lists;
 import com.google.common.io.CharStreams;

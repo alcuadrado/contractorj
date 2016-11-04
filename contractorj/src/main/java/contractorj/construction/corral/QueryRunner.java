@@ -1,8 +1,8 @@
-package contractorj.corral;
+package contractorj.construction.corral;
 
-import contractorj.epas.Transition;
-import contractorj.epas.Epa;
-import contractorj.epas.gen.Query;
+import contractorj.model.Transition;
+import contractorj.model.Epa;
+import contractorj.construction.Query;
 
 import java.io.BufferedWriter;
 import java.io.File;

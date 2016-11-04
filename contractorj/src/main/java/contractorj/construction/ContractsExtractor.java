@@ -1,6 +1,6 @@
-package contractorj.epas.gen;
+package contractorj.construction;
 
-import contractorj.epas.Action;
+import contractorj.model.Action;
 import j2bpl.Class;
 import j2bpl.Method;
 

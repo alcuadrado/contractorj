@@ -1,8 +1,8 @@
-package contractorj.epas.gen;
+package contractorj.construction;
 
 import com.google.common.base.Joiner;
-import contractorj.epas.Action;
-import contractorj.epas.State;
+import contractorj.model.Action;
+import contractorj.model.State;
 import j2bpl.Method;
 import j2bpl.StringUtils;
 

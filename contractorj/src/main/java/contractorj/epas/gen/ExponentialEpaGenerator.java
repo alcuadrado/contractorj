@@ -18,23 +18,25 @@ import java.util.concurrent.TimeUnit;
 
 public class ExponentialEpaGenerator {
 
-    private static final int THREADS = 1;//Runtime.getRuntime().availableProcessors();
 
     private final Class theClass;
 
     private final String baseTranslation;
 
-    private final ExecutorService executorService = Executors.newFixedThreadPool(THREADS);
+    private final int numberOfThreads;
+
+    private final ExecutorService executorService;
 
     private final BlockingQueue<Query> queriesQueue = new LinkedBlockingQueue<>();
 
     private final Epa epa;
 
-    public ExponentialEpaGenerator(Class theClass, String baseTranslation) {
-
+    public ExponentialEpaGenerator(Class theClass, String baseTranslation, int numberOfThreads) {
         this.theClass = theClass;
         epa = new Epa(theClass.getQualifiedJavaName());
         this.baseTranslation = baseTranslation;
+        this.numberOfThreads = numberOfThreads;
+        executorService = Executors.newFixedThreadPool(numberOfThreads);
     }
 
     public Epa generateEpa() {
@@ -101,8 +103,7 @@ public class ExponentialEpaGenerator {
     }
 
     private void startRunners() {
-
-        for (int i = 0; i < THREADS; i++) {
+        for (int i = 0; i < numberOfThreads; i++) {
             final QueryRunner queryRunner = new QueryRunner(baseTranslation, epa, queriesQueue);
             executorService.execute(queryRunner);
         }

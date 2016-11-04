@@ -1,9 +1,14 @@
 #!/usr/bin/env bash
 cd "$( dirname "${BASH_SOURCE[0]}" )/.."
 
+if [ -f /usr/libexec/java_home ]; then
+    export JAVA_HOME="`/usr/libexec/java_home -v '1.7'`"
+fi
+
 ./gradlew :examples:classes
 ./gradlew :contractorj:installDist
 
-contractorj/build/install/contractorj/bin/contractorj examples/build/classes/main "$1" "$1.dot"
+contractorj/build/install/contractorj/bin/contractorj --classpath examples/build/classes/main --class "$1" --dot "$1.dot" "${@:2}"
+
 dot "$1.dot" -T png -o "$1.png"
 

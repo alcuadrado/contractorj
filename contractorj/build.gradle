@@ -12,5 +12,6 @@ run {
 dependencies {
     compile project(":j2bpl")
     compile 'com.google.guava:guava:19.0'
+    compile group: 'commons-cli', name: 'commons-cli', version: '1.3.1'
     testCompile 'junit:junit:4.12'
 }

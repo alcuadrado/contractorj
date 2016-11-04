@@ -1,7 +1,7 @@
 package contractorj.epas;
 
 import com.google.common.base.Joiner;
-import j2bpl.translation.Method;
+import j2bpl.Method;
 
 import java.util.ArrayList;
 import java.util.Collections;

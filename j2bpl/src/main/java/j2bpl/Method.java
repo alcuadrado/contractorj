@@ -1,4 +1,4 @@
-package j2bpl.translation;
+package j2bpl;
 
 import soot.RefType;
 import soot.SootMethod;

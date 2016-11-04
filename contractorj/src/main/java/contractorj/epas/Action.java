@@ -1,6 +1,6 @@
 package contractorj.epas;
 
-import j2bpl.translation.Method;
+import j2bpl.Method;
 
 public class Action {
 

@@ -4,8 +4,8 @@ import contractorj.corral.QueryRunner;
 import contractorj.epas.Action;
 import contractorj.epas.Epa;
 import contractorj.epas.State;
-import j2bpl.translation.Class;
-import j2bpl.translation.Method;
+import j2bpl.Class;
+import j2bpl.Method;
 import contractorj.util.CombinationsGenerator;
 
 import java.util.HashSet;

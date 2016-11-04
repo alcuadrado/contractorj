@@ -1,4 +1,4 @@
-package j2bpl.translation;
+package j2bpl;
 
 import com.google.common.collect.Lists;
 import com.google.common.io.Resources;

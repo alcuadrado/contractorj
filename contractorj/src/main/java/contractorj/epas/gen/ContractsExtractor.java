@@ -1,8 +1,8 @@
 package contractorj.epas.gen;
 
 import contractorj.epas.Action;
-import j2bpl.translation.Class;
-import j2bpl.translation.Method;
+import j2bpl.Class;
+import j2bpl.Method;
 
 import java.util.HashMap;
 import java.util.HashSet;

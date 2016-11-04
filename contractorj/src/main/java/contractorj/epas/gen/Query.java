@@ -3,8 +3,8 @@ package contractorj.epas.gen;
 import com.google.common.base.Joiner;
 import contractorj.epas.Action;
 import contractorj.epas.State;
-import j2bpl.translation.Method;
-import j2bpl.translation.StringUtils;
+import j2bpl.Method;
+import j2bpl.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;

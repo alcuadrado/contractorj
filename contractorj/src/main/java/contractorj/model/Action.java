@@ -2,6 +2,9 @@ package contractorj.model;
 
 import j2bpl.Method;
 
+/**
+ * An actions models a method with its precondition.
+ */
 public class Action {
 
     public final Method precondition;

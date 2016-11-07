@@ -11,6 +11,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * A query to check if a transition must be present in the EPA.
+ */
 public class Query {
 
     private final Collection<Action> actions;
@@ -23,12 +26,21 @@ public class Query {
 
     private final Action transition;
 
-    public Query(Collection<Action> actions, Method invariant, State from, State to, Action transition) {
+    /**
+     * Creates a query.
+     *
+     * @param actions All the actions of the class.
+     * @param invariant The class' invariant.
+     * @param source The source state.
+     * @param target The target state.
+     * @param transition The transition to test.
+     */
+    public Query(Collection<Action> actions, Method invariant, State source, State target, Action transition) {
 
         this.actions = actions;
         this.invariant = invariant;
-        this.from = from;
-        this.to = to;
+        this.from = source;
+        this.to = target;
         this.transition = transition;
     }
 

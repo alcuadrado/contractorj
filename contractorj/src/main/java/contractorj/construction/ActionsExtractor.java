@@ -9,6 +9,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Extracts all the actions of a class and its invariant.
+ */
 public class ActionsExtractor {
 
     private final static String INVARIANT_METHOD_NAME = "inv";

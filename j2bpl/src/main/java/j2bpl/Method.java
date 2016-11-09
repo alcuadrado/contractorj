@@ -1,5 +1,6 @@
 package j2bpl;
 
+import com.google.common.base.Joiner;
 import soot.RefType;
 import soot.SootMethod;
 import soot.Type;
@@ -119,6 +120,21 @@ public abstract class Method {
     public String getBaseJavaName() {
 
         return sootMethod.getName();
+    }
+
+    public String getJavaNameWithArgumentTypes() {
+
+
+        final List<Type> parameterTypes = sootMethod.getParameterTypes();
+        final ArrayList<String> typeNames = new ArrayList<>(parameterTypes.size());
+
+        for (final Type parameterType : parameterTypes) {
+            typeNames.add(parameterType.toString());
+        }
+
+        final String baseName = sootMethod.isConstructor() ? theClass.getBaseJavaName() : sootMethod.getName();
+
+        return  baseName + "(" + Joiner.on(", ").join(typeNames) + ")";
     }
 
     public boolean isStatic() {

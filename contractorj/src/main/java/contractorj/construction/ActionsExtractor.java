@@ -10,21 +10,30 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Extracts all the actions of a class and its invariant.
+ * Extracts all the instanceActions of a class and its invariant.
  */
 public class ActionsExtractor {
 
-    private final static String INVARIANT_METHOD_NAME = "inv";
+    private final static String INVARIANT_METHOD_NAME = "inv()";
 
     private final Class theClass;
 
-    private final Set<Action> actions = new HashSet<>();
+    private final Map<String, Set<Method>> methodsMap;
+
+    private final Set<Action> instanceActions = new HashSet<>();
+
+    private final Set<Action> constructorActions = new HashSet<>();
 
     private Method invariant;
 
-    public Set<Action> getActions() {
+    public Set<Action> getInstanceActions() {
 
-        return actions;
+        return instanceActions;
+    }
+
+    public Set<Action> getConstructorActions() {
+
+        return constructorActions;
     }
 
     public Method getInvariant() {
@@ -36,27 +45,27 @@ public class ActionsExtractor {
 
         this.theClass = theClass;
 
-        final Map<String, Set<Method>> instanceMethodsMap = getInstanceMethodsMap();
+        methodsMap = getMethodsMap();
 
-        searchInvariant(instanceMethodsMap);
-        generateActions(instanceMethodsMap);
+        searchInvariant();
+        generateActions();
     }
 
-    private void generateActions(Map<String, Set<Method>> instanceMethodsMap) {
+    private void generateActions() {
 
-        for (String methodName : instanceMethodsMap.keySet()) {
+        for (String methodName : methodsMap.keySet()) {
 
             final String preconditionMethodName = getPreconditionMethodName(methodName);
 
-            if (!instanceMethodsMap.containsKey(preconditionMethodName)) {
+            if (!methodsMap.containsKey(preconditionMethodName)) {
                 continue;
             }
 
-            final Set<Method> methods = instanceMethodsMap.get(methodName);
-            final Set<Method> preconditions = instanceMethodsMap.get(preconditionMethodName);
+            final Set<Method> methods = methodsMap.get(methodName);
+            final Set<Method> preconditions = methodsMap.get(preconditionMethodName);
 
             if (methods.size() != 1 || preconditions.size() != 1) {
-                throw new UnsupportedOperationException("Overload is not supported in EPA methods.");
+                throw new IllegalStateException("More than one method or precondition with same name and arguments");
             }
 
             final Method method = methods.iterator().next();
@@ -72,24 +81,27 @@ public class ActionsExtractor {
             }
 
             final Action action = new Action(precondition, method);
-            actions.add(action);
+
+            if (method.isConstructor()) {
+                constructorActions.add(action);
+            } else {
+                instanceActions.add(action);
+            }
         }
     }
 
-    private void searchInvariant(Map<String, Set<Method>> instanceMethodsMap) {
+    private void searchInvariant() {
 
-        final String qualifiedInvariantMethodName = theClass.getQualifiedJavaName() + "#" + INVARIANT_METHOD_NAME;
-
-        if (!instanceMethodsMap.containsKey(qualifiedInvariantMethodName)) {
+        if (!methodsMap.containsKey(INVARIANT_METHOD_NAME)) {
             throw new UnsupportedOperationException("Invariant method name missing. It must be named: "
-                    + qualifiedInvariantMethodName);
+                    + INVARIANT_METHOD_NAME);
         }
 
-        if (instanceMethodsMap.get(qualifiedInvariantMethodName).size() != 1) {
+        if (methodsMap.get(INVARIANT_METHOD_NAME).size() != 1) {
             throw new UnsupportedOperationException("Exactly one invariant method is needed");
         }
 
-        invariant = instanceMethodsMap.get(qualifiedInvariantMethodName).iterator().next();
+        invariant = methodsMap.get(INVARIANT_METHOD_NAME).iterator().next();
 
         if (!invariant.getTranslatedReturnType().equals("bool")) {
             throw new IllegalArgumentException("Invariant method must return a boolean");
@@ -102,27 +114,31 @@ public class ActionsExtractor {
 
     private String getPreconditionMethodName(String methodName) {
 
-        return methodName + "_pre";
+        return methodName.replace("(", "_pre(");
     }
 
-    private Map<String, Set<Method>> getInstanceMethodsMap() {
+    private Map<String, Set<Method>> getMethodsMap() {
 
         final Map<String, Set<Method>> instanceMethodsMap = new HashMap<>();
 
         for (Method method : theClass.getMethods()) {
 
-            if (method.isStatic()) {
-                continue;
+            final String methodName = method.getJavaNameWithArgumentTypes();
+
+            if (!instanceMethodsMap.containsKey(methodName)) {
+                instanceMethodsMap.put(methodName, new HashSet<Method>());
             }
 
-            if (!instanceMethodsMap.containsKey(method.getJavaName())) {
-                instanceMethodsMap.put(method.getJavaName(), new HashSet<Method>());
-            }
-
-            instanceMethodsMap.get(method.getJavaName()).add(method);
+            instanceMethodsMap.get(methodName).add(method);
         }
 
         return instanceMethodsMap;
+    }
+
+    private boolean isConstructorPrecondition(final Method method) {
+
+        final String name = getPreconditionMethodName(theClass.getBaseJavaName());
+        return method.isStatic() && method.getBaseJavaName().equals(name);
     }
 
 }

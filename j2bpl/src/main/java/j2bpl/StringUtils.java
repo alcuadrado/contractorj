@@ -40,7 +40,7 @@ public class StringUtils {
      */
     public static String scapeIllegalIdentifierCharacters(String name) {
 
-        return name.replaceAll("[<>{},]", "?");
+        return name.replaceAll("[<>{},\\(\\)]", "?").replace(" ", "");
     }
 
 }

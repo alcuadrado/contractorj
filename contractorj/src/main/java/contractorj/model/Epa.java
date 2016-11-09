@@ -53,7 +53,7 @@ public class Epa {
                 startingInFrom.put(to, new LinkedList<String>());
             }
 
-            final String name = transitionMethod.getBaseJavaName();
+            final String name = transitionMethod.getJavaNameWithArgumentTypes();
             startingInFrom.get(to).add(name + (transition.isUncertain ? "?" : ""));
         }
 
@@ -67,7 +67,7 @@ public class Epa {
 
         for (State usedState : usedStates) {
             stringBuilder.append("\t")
-                    .append("n" + usedState.hashCode())
+                    .append("n" + Math.abs(usedState.hashCode()))
                     .append("[label=\"")
                     .append(getStateDotName(usedState))
                     .append("\",style=filled,color=\"")
@@ -86,9 +86,9 @@ public class Epa {
                 final String color = getDarkishColor();
 
                 stringBuilder.append("\t")
-                        .append("n" + from.hashCode())
+                        .append("n" + Math.abs(from.hashCode()))
                         .append(" -> ")
-                        .append("n" + to.hashCode())
+                        .append("n" + Math.abs(to.hashCode()))
                         .append("[label=\"")
                         .append(Joiner.on("\\n").join(methodNames))
                         .append("\",color=\"")
@@ -106,14 +106,14 @@ public class Epa {
 
     private String getStateDotName(State state) {
 
-        if (state.actions.isEmpty()) {
+        if (state.enabledActions.isEmpty()) {
             return "EMPTY";
         }
 
-        final ArrayList<String> names = new ArrayList<>(state.actions.size());
+        final ArrayList<String> names = new ArrayList<>(state.enabledActions.size());
 
-        for (Action action : state.actions) {
-            names.add(action.method.getBaseJavaName());
+        for (Action action : state.enabledActions) {
+            names.add(action.method.getJavaNameWithArgumentTypes());
         }
 
         Collections.sort(names);

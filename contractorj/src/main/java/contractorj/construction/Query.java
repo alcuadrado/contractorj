@@ -1,57 +1,72 @@
 package contractorj.construction;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
 import contractorj.model.Action;
 import contractorj.model.State;
 import j2bpl.Method;
 import j2bpl.StringUtils;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
-/**
- * A query to check if a transition must be present in the EPA.
- */
 public class Query {
 
-    private final Collection<Action> actions;
+    private static final String TARGET_ARGS_SUFFIX = "After";
 
-    private final Method invariant;
-
-    private final State from;
-
-    private final State to;
+    private final State source;
 
     private final Action transition;
 
-    /**
-     * Creates a query.
-     *
-     * @param actions All the actions of the class.
-     * @param invariant The class' invariant.
-     * @param source The source state.
-     * @param target The target state.
-     * @param transition The transition to test.
-     */
-    public Query(Collection<Action> actions, Method invariant, State source, State target, Action transition) {
+    private final State target;
 
-        this.actions = actions;
-        this.invariant = invariant;
-        this.from = source;
-        this.to = target;
+    private final Method invariant;
+
+    public Query(State source, Action transition, State target, Method invariant) {
+        this.source = source;
         this.transition = transition;
+        this.target = target;
+        this.invariant = invariant;
+
+        if (!source.enabledActions.contains(transition)) {
+            throw new IllegalArgumentException("Invalid query: transition must be in source's enabled actions.");
+        }
     }
 
-    public State getFrom() {
+    public String getName() {
 
-        return from;
+        final String baseName = "from__________" + getStateName(source) + "__________to__________"
+                + getStateName(target) + "__________via__________"
+                + transition.method.getJavaNameWithArgumentTypes();
+
+        return StringUtils.scapeIllegalIdentifierCharacters(baseName);
     }
 
-    public State getTo() {
+    private String getStateName(State state) {
 
-        return to;
+        final ArrayList<String> names = new ArrayList<>(state.enabledActions.size());
+
+        for (Action action : state.enabledActions) {
+            names.add(action.method.getJavaNameWithArgumentTypes());
+        }
+
+        Collections.sort(names);
+
+        return Joiner.on("___").join(names);
+    }
+
+    public State getSource() {
+
+        return source;
+    }
+
+    public State getTarget() {
+
+        return target;
     }
 
     public Action getTransition() {
@@ -59,231 +74,292 @@ public class Query {
         return transition;
     }
 
-    public String getName() {
-
-        final String baseName = "from_" + getStateName(from) + "_to_" + getStateName(to) + "_via_"
-                + transition.method.getBaseJavaName();
-
-        return StringUtils.scapeIllegalIdentifierCharacters(baseName);
-    }
-
-    private String getStateName(State state) {
-
-        final ArrayList<String> names = new ArrayList<>(state.actions.size());
-
-        for (Action action : state.actions) {
-            names.add(action.method.getBaseJavaName());
-        }
-
-        Collections.sort(names);
-
-        return "#" + Joiner.on("~").join(names) + "#";
-    }
-
     public String getBoogieCode() {
 
         final StringBuilder query = new StringBuilder();
 
-        query.append("procedure ")
-                .append(getName())
-                .append("(")
-                .append(getArgumentsDeclarationsList())
-                .append(") {\n")
-
+        query.append("procedure ").append(getName()).append("(").append(getQueryArgumentsDeclaration()).append(") {\n")
                 .append("\n")
-
-                .append(StringUtils.indentList(getVariablesDeclarations()))
+                .append(StringUtils.indent(getLocalVariablesDeclaration())).append("\n")
                 .append("\n")
-
+                .append(StringUtils.indent("call initialize_globals();")).append("\n")
                 .append("\n")
-
-                .append(StringUtils.indent("call initialize_globals();"))
+                .append(StringUtils.indent(getStateGuardCalls(source, ""))).append("\n")
                 .append("\n")
+                .append(StringUtils.indent("if (")).append(getStateGuard(source)).append(") {").append("\n")
+                .append("\n");
 
+        final StringBuilder ifBody = new StringBuilder();
+
+        ifBody.append(StringUtils.indent(getCall(transition, "", false))).append("\n")
                 .append("\n")
-
-                .append(StringUtils.indentList(getInvariantAndPreconditionsCalls(false)))
-
+                .append(StringUtils.indent(getStateGuardCalls(target, TARGET_ARGS_SUFFIX))).append("\n")
                 .append("\n")
-
+                .append(StringUtils.indent("if (")).append(getStateGuard(target)).append(") {").append("\n")
                 .append("\n")
-
-                .append(StringUtils.indent("if ("))
-                .append(getStateIfGuard(from))
-                .append(") {\n")
-
-                .append(StringUtils.indent(StringUtils.indent(getInnerIfBody())))
-
+                .append(StringUtils.indent("query_assertion:")).append("\n")
+                .append(StringUtils.indent(StringUtils.indent("assert false;"))).append("\n")
                 .append("\n")
+                .append("}").append("\n");
 
-                .append(StringUtils.indent("}"))
-                .append("\n")
+        query.append(StringUtils.indent(ifBody.toString())).append("\n");
 
-                .append("\n")
-                .append(StringUtils.indent("assert $Exception == null;"))
-                .append("\n")
-
+        query.append(StringUtils.indent("}")).append("\n")
+                .append(StringUtils.indent("assert $Exception == null;")).append("\n")
                 .append("}");
 
         return query.toString();
     }
 
-    private List<String> getVariablesDeclarations() {
+    private String getLocalVariablesDeclaration() {
 
-        final ArrayList<String> variablesDeclarations = new ArrayList<>(actions.size() + 1);
+        final Set<Variable> variables = getLocalVariables();
+        final ArrayList<String> declarations = new ArrayList<>(variables.size());
 
-        variablesDeclarations.add("var retInv : bool;");
-
-        for (Action action : actions) {
-            variablesDeclarations.add("var " + getLocalVariableForContract(action) + " : bool;");
+        for (final Variable argument : variables) {
+            declarations.add("var " + argument.name + " : " + argument.translatedType + ";");
         }
 
-        if (transition.method.hasReturnType()) {
-            final String declarations = "var " + getLocalVariableForMethod(transition.method) + " : "
-                    + transition.method.getTranslatedReturnType() + ";";
-            variablesDeclarations.add(declarations);
-        }
-
-        return variablesDeclarations;
+        return Joiner.on("\n").join(declarations);
     }
 
-    private String getStateIfGuard(State state) {
+    private Set<Variable> getLocalVariables() {
 
-        final ArrayList<String> conditions = new ArrayList<>(actions.size() + 1);
+        final HashSet<Variable> variables = new HashSet<>();
 
-        conditions.add("retInv");
-
-        for (Action action : actions) {
-
-            final String conditionVar = "ret_" + action.precondition.getTranslatedName();
-
-            if (state.actions.contains(action)) {
-                conditions.add(conditionVar);
-            } else {
-                conditions.add("!" + conditionVar);
-            }
+        if (!isThisVariableAnArgument()) {
+            variables.add(getThisVariable());
         }
 
-        return Joiner.on(" && ").join(conditions);
+        variables.add(getVariableForMethodResult(invariant).get());
+
+        final Optional<Variable> transitionResultVariable = getVariableForMethodResult(transition.method);
+        if (transitionResultVariable.isPresent()) {
+            variables.add(transitionResultVariable.get());
+        }
+
+        for (final Action action : source.getAllActions()) {
+            variables.add(getVariableForMethodResult(action.precondition).get());
+        }
+
+        for (final Action action : target.getAllActions()) {
+            variables.add(getVariableForMethodResult(action.precondition).get());
+        }
+
+        return variables;
     }
 
-    private String getTransitionCall() {
+    private Optional<Variable> getVariableForMethodResult(Method method) {
+
+        if (!method.hasReturnType()) {
+            return Optional.absent();
+        }
+
+        return Optional.of(new Variable(method.getTranslatedReturnType(), "ret_" + method.getTranslatedName()));
+    }
+
+    private List<Variable> getArgumentListForMethod(Method method, String nameSuffix) {
+
+        final List<String> translatedArgumentTypes = method.getTranslatedArgumentTypes();
+
+        final List<Variable> arguments = new ArrayList<>(translatedArgumentTypes.size());
+
+        if (!method.isStatic()) {
+            translatedArgumentTypes.remove(0);
+            arguments.add(getThisVariable());
+        }
+
+        for (int i = 0; i < translatedArgumentTypes.size(); i++) {
+            final Variable variable = new Variable(
+                    translatedArgumentTypes.get(i),
+                    method.getTranslatedName() + "$arg" + i + nameSuffix
+            );
+            arguments.add(variable);
+        }
+
+        return arguments;
+    }
+
+    private String getCall(Method method, List<Variable> arguments) {
+        final Optional<Variable> returnVariable = getVariableForMethodResult(method);
 
         final StringBuilder stringBuilder = new StringBuilder();
+
+        if (method.isConstructor()) {
+            stringBuilder.append("call $this := Alloc();\n");
+        }
 
         stringBuilder.append("call ");
 
-        if (transition.method.hasReturnType()) {
-            stringBuilder.append(getLocalVariableForMethod(transition.method))
+        if (returnVariable.isPresent()) {
+            stringBuilder.append(returnVariable.get().name)
                     .append(" := ");
         }
 
-        return stringBuilder.append(transition.method.getTranslatedName())
+        stringBuilder.append(method.getTranslatedName())
                 .append("(")
-                .append(Joiner.on(", ").join(getArgumentNames(transition, false)))
-                .append(");")
-                .toString();
-    }
-
-    private List<String> getInvariantAndPreconditionsCalls(boolean isAfterCallingTransition) {
-
-        final ArrayList<String> calls = new ArrayList<>(actions.size() + 1);
-
-        calls.add("call retInv := " + invariant.getTranslatedName() + "($this);");
-
-        for (Action action : actions) {
-
-            final String call = "call " + getLocalVariableForContract(action) + " := "
-                    + action.precondition.getTranslatedName() + "("
-                    + Joiner.on(", ").join(getArgumentNames(action, isAfterCallingTransition))
-                    + ");";
-
-            calls.add(call);
-        }
-
-        return calls;
-    }
-
-    private String getLocalVariableForContract(Action action) {
-
-        return getLocalVariableForMethod(action.precondition);
-    }
-
-    private String getLocalVariableForMethod(Method method) {
-
-        return "ret_" + method.getTranslatedName();
-    }
-
-    private String getArgumentsDeclarationsList() {
-
-        final StringBuilder stringBuilder = new StringBuilder();
-
-        stringBuilder.append("$this : Ref");
-
-        for (Action action : actions) {
-
-            final List<String> translatedArgumentTypes = action.method.getTranslatedArgumentTypes();
-
-            for (int i = 1; i < translatedArgumentTypes.size(); i++) {
-
-                stringBuilder.append(", ")
-                        .append(getArgumentNameForContract(action, i, false))
-                        .append(" : ")
-                        .append(translatedArgumentTypes.get(i));
-
-                stringBuilder.append(", ")
-                        .append(getArgumentNameForContract(action, i, true))
-                        .append(" : ")
-                        .append(translatedArgumentTypes.get(i));
-            }
-        }
+                .append(Joiner.on(", ").join(getNames(arguments)))
+                .append(");");
 
         return stringBuilder.toString();
     }
 
-    private String getArgumentNameForContract(Action action, int argumentIndex, boolean isAfterCallingTransition) {
+    private String getCall(Action action, String argumentNamesSuffix, boolean callPre) {
+        final List<Variable> arguments = getArgumentListForMethod(action.method, argumentNamesSuffix);
 
-        return action.method.getBaseJavaName() + argumentIndex + (isAfterCallingTransition ? "After" : "");
+        if (callPre) {
+
+            if (!action.method.isStatic() && action.precondition.isStatic()) {
+                arguments.remove(0);
+            }
+
+            return getCall(action.precondition, arguments);
+        }
+
+        return getCall(action.method, arguments);
     }
 
-    private List<String> getArgumentNames(Action action, boolean isAfterCallingTransition) {
+    private List<Variable> getQueryArguments() {
 
-        final ArrayList<String> names = new ArrayList<>(action.method.getTranslatedArgumentTypes().size() + 1);
-        names.add("$this");
+        final List<Variable> arguments = new ArrayList<>();
 
-        for (int i = 1; i < action.method.getTranslatedArgumentTypes().size(); i++) {
-            names.add(getArgumentNameForContract(action, i, isAfterCallingTransition));
+        if (transition.method.isConstructor()) {
+            int i = 0;
         }
+
+        if (isThisVariableAnArgument()) {
+            arguments.add(getThisVariable());
+        }
+
+        for (final Action action : source.getAllActions()) {
+            final List<Variable> actionArguments = getArgumentListForMethod(action.method, "");
+
+            if (!action.method.isStatic()) {
+                actionArguments.remove(0);
+            }
+
+            arguments.addAll(actionArguments);
+        }
+
+        for (final Action action : target.getAllActions()) {
+            final List<Variable> actionArguments = getArgumentListForMethod(
+                    action.method,
+                    TARGET_ARGS_SUFFIX
+            );
+
+            if (!action.method.isStatic()) {
+                actionArguments.remove(0);
+            }
+
+            arguments.addAll(actionArguments);
+        }
+
+        return arguments;
+    }
+
+    private Variable getThisVariable() {
+
+        return new Variable("Ref", "$this");
+    }
+
+    private boolean isThisVariableAnArgument() {
+
+        return !transition.method.isConstructor();
+    }
+
+    private String getQueryArgumentsDeclaration() {
+
+        final List<Variable> queryArguments = getQueryArguments();
+        final ArrayList<String> declarations = new ArrayList<>(queryArguments.size());
+
+        for (final Variable argument : queryArguments) {
+            declarations.add(argument.name + " : " + argument.translatedType);
+        }
+
+        return Joiner.on(", ").join(declarations);
+    }
+
+    private List<String> getNames(List<Variable> variables) {
+
+        final ArrayList<String> names = new ArrayList<>(variables.size());
+        for (final Variable variable : variables) {
+            names.add(variable.name);
+        }
+
         return names;
     }
 
-    private String getInnerIfBody() {
+    private String getStateGuardCalls(State state, String argumentNamesSuffix) {
 
-        final StringBuilder stringBuilder = new StringBuilder();
+        final List<String> calls = new ArrayList<>();
 
-        stringBuilder.append("\n")
+        if (!state.isConstructorsState()) {
+            calls.add(getInvariantCall());
+        }
 
-                .append(getTransitionCall())
-                .append("\n")
+        for (final Action action : state.getAllActions()) {
+            calls.add(getCall(action, argumentNamesSuffix, true));
+        }
 
-                .append("\n")
+        return Joiner.on("\n").join(calls);
+    }
 
-                .append(Joiner.on("\n").join(getInvariantAndPreconditionsCalls(true)))
-                .append("\n")
+    private String getInvariantCall() {
 
-                .append("\n")
+        final ArrayList<Variable> arguments = new ArrayList<>();
+        arguments.add(getThisVariable());
+        return getCall(invariant, arguments);
+    }
 
-                .append("if (")
-                .append(getStateIfGuard(to))
-                .append(") {\n")
+    private String getStateGuard(final State state) {
 
-                .append(StringUtils.indent("query_assertion:"))
-                .append("\n")
-                .append(StringUtils.indent(StringUtils.indent("assert false;")))
-                .append("\n")
+        final List<String> atoms = new ArrayList<>();
 
-                .append("}");
+        if (!state.isConstructorsState()) {
+            atoms.add(getVariableForMethodResult(invariant).get().name);
+        }
 
-        return stringBuilder.toString();
+        for (final Action action : state.enabledActions) {
+            atoms.add(getVariableForMethodResult(action.precondition).get().name);
+        }
+
+        for (final Action action : state.disabledActions) {
+            atoms.add("!" + getVariableForMethodResult(action.precondition).get().name);
+        }
+
+        return Joiner.on(" && ").join(atoms);
+    }
+
+    private static class Variable {
+
+        public final String translatedType;
+
+        public final String name;
+
+        private Variable(final String translatedType, final String name) {
+
+            this.translatedType = translatedType;
+            this.name = name;
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof Variable)) {
+                return false;
+            }
+            final Variable variable = (Variable) o;
+            return Objects.equals(translatedType, variable.translatedType) &&
+                    Objects.equals(name, variable.name);
+        }
+
+        @Override
+        public int hashCode() {
+
+            return Objects.hash(translatedType, name);
+        }
     }
 }

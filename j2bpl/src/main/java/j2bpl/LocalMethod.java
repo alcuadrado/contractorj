@@ -124,55 +124,6 @@ public class LocalMethod extends Method {
                 .append("}");
 
         return stringBuilder.toString();
-
-//
-//        final List<String> translatedParametersNames = new ArrayList<>(translatedParametersList.size());
-//
-//        for (String translation : translatedParametersList) {
-//            final String[] parts = translation.split(":");
-//            translatedParametersNames.add(parts[0]);
-//        }
-//
-//        stringBuilder
-//                .append("\n\n")
-//
-//                .append("procedure ")
-//                .append(getTranslatedName() + "_instrumented")
-//                .append("(")
-//                .append(Joiner.on(", ").join(translatedParametersList))
-//                .append(")\n")
-//
-//                .append("{\n");
-//
-//        if (sootMethod.getReturnType() != VoidType.v()) {
-//            stringBuilder
-//                    .append(StringUtils.indent("var ret : "))
-//                    .append(TypeTranslator.translate(sootMethod.getReturnType()))
-//                    .append(";\n");
-//        }
-//
-//        stringBuilder
-//                .append(StringUtils.indent("call initialize_globals();"))
-//                .append("\n")
-//
-//                .append(StringUtils.indent("call "));
-//
-//        if (sootMethod.getReturnType() != VoidType.v()) {
-//            stringBuilder.append("ret := ");
-//        }
-//
-//        stringBuilder
-//                .append(getTranslatedName())
-//                .append("(")
-//                .append(Joiner.on(", ").join(translatedParametersNames))
-//                .append(");\n")
-//
-//                .append(StringUtils.indent("assert $Exception == null;"))
-//                .append("\n")
-//
-//                .append("}");
-//
-//        return stringBuilder.toString();
     }
 
     @Override

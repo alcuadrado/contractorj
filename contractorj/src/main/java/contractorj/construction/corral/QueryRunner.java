@@ -61,7 +61,7 @@ public class QueryRunner implements Runnable {
                 final Result result = corralRunner.run(boogieFile.getAbsolutePath(), queryName);
 
                 if (result.equals(Result.TRUE_BUG)) {
-                    final Transition transition = new Transition(query.getFrom(), query.getTo(), query.getTransition(), false);
+                    final Transition transition = new Transition(query.getSource(), query.getTarget(), query.getTransition(), false);
                     epa.addEdge(transition);
                 }
 

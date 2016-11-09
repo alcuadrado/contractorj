@@ -1,5 +1,6 @@
 package contractorj.construction;
 
+import com.google.common.collect.Sets;
 import contractorj.construction.corral.QueryRunner;
 import contractorj.model.Action;
 import contractorj.model.Epa;
@@ -47,7 +48,7 @@ public class ExponentialEpaGenerator {
         final long timeTrack0 = System.nanoTime();
 
         final ActionsExtractor actionsExtractor = new ActionsExtractor(theClass);
-        final Set<Action> actions = actionsExtractor.getActions();
+        final Set<Action> actions = actionsExtractor.getInstanceActions();
         final Method invariant = actionsExtractor.getInvariant();
 
         CombinationsGenerator<Action> combinationsGenerator = new CombinationsGenerator<>();
@@ -55,7 +56,7 @@ public class ExponentialEpaGenerator {
         final Set<State> allStates = new HashSet<>();
 
         for (Set<Action> actionSet : combinationsGenerator.combinations(actions)) {
-            final State state = new State(actionSet);
+            final State state = new State(actionSet, Sets.difference(actions, actionSet));
             allStates.add(state);
         }
 
@@ -67,12 +68,19 @@ public class ExponentialEpaGenerator {
                     continue;
                 }
 
-                generateQueriesForPairOfStates(actions, invariant, from, to);
+                generateQueriesForPairOfStates(invariant, from, to);
             }
         }
 
-        for (State from : allStates) {
-            generateQueriesForPairOfStates(actions, invariant, from, from);
+        final State constructorsState = new State(actionsExtractor.getConstructorActions(), new HashSet<Action>());
+
+        for (State state : allStates) {
+
+            for (final Action action : constructorsState.enabledActions) {
+                queriesQueue.add(new Query(constructorsState, action, state, invariant));
+            }
+
+            generateQueriesForPairOfStates(invariant, state, state);
         }
 
         final long timeTrack1 = System.nanoTime();
@@ -112,12 +120,10 @@ public class ExponentialEpaGenerator {
         }
     }
 
-    private void generateQueriesForPairOfStates(Set<Action> actions, Method invariant, State from, State to) {
+    private void generateQueriesForPairOfStates(Method invariant, State from, State to) {
 
-        for (Action transition : from.actions) {
-
-            final Query query = new Query(actions, invariant, from, to, transition);
-            queriesQueue.add(query);
+        for (Action transition : from.enabledActions) {
+            queriesQueue.add(new Query(from, transition, to, invariant));
         }
     }
 

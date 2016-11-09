@@ -5,10 +5,19 @@ public class FiniteStack {
     public int Max;
     public int Next;
 
+    public static boolean FiniteStack_pre() {
+        return true;
+    }
+
     public FiniteStack()
     {
         Max = 5;
         Next = -1;
+    }
+
+    public static boolean FiniteStack_pre(int size)
+    {
+        return size > 0;
     }
 
     public FiniteStack(int size)

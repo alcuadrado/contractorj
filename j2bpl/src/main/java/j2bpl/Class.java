@@ -33,6 +33,10 @@ public class Class {
         this.sootClass = sootClass;
     }
 
+    public String getBaseJavaName() {
+        return sootClass.getJavaStyleName();
+    }
+
     public String getTranslatedName() {
 
         return StringUtils.scapeIllegalIdentifierCharacters(getQualifiedJavaName());

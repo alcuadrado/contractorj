@@ -126,6 +126,11 @@ public abstract class Method {
         return sootMethod.isStatic();
     }
 
+    public boolean isConstructor() {
+
+        return sootMethod.isConstructor();
+    }
+
     public boolean hasReturnType() {
 
         return sootMethod.getReturnType() != VoidType.v();

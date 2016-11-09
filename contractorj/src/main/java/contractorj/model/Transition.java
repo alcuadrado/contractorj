@@ -12,12 +12,13 @@ public class Transition {
 
     public Transition(State source, State target, Action transition, boolean isUncertain) {
 
-        assert source.actions.contains(transition);
+        assert source.enabledActions.contains(transition);
 
         this.source = source;
         this.target = target;
         this.transition = transition;
         this.isUncertain = isUncertain;
     }
+
 
 }

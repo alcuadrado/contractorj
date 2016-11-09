@@ -10,7 +10,7 @@ fi
 
 ./gradlew :examples:classes
 
-./gradlew :contractorj:run --debug-jvm -Dexec.args="--classpath ../examples/build/classes/main --class \"$1\" --dot \"$1.dot\" \"${@:2}\""
+./gradlew :contractorj:run --debug-jvm -Dexec.args="--classpath ../examples/build/classes/main --class \"$1\" --dot \"$1.dot\" -t 1 \"${@:2}\""
 
 dot "$1.dot" -T png -o "$1.png"
 

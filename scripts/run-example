@@ -4,10 +4,6 @@ set -e
 
 cd "$( dirname "${BASH_SOURCE[0]}" )/.."
 
-if [ -f /usr/libexec/java_home ]; then
-    export JAVA_HOME="`/usr/libexec/java_home -v '1.7'`"
-fi
-
 ./gradlew :examples:classes
 ./gradlew :contractorj:installDist
 

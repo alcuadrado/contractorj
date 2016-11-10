@@ -16,7 +16,15 @@ import java.util.Set;
 
 public class Query {
 
+    public static final String QUERY_ASSERTION_LABEL = "query_assertion";
+
+    public static final String APPLICATION_BUG_LABEL = "application_bug";
+
+    public static final String UNHANDLED_EXCEPTION_LABEL = "unhandled_exception";
+
     private static final String TARGET_ARGS_SUFFIX = "After";
+
+    private final String namePrefix;
 
     private final State source;
 
@@ -26,7 +34,10 @@ public class Query {
 
     private final Method invariant;
 
-    public Query(State source, Action transition, State target, Method invariant) {
+    public Query(final String namePrefix, State source, Action transition, State target, Method invariant) {
+
+        this.namePrefix = namePrefix;
+
         this.source = source;
         this.transition = transition;
         this.target = target;
@@ -39,8 +50,8 @@ public class Query {
 
     public String getName() {
 
-        final String baseName = "from__________" + getStateName(source) + "__________to__________"
-                + getStateName(target) + "__________via__________"
+        final String baseName = namePrefix + "from__________" + getStateName(source)
+                + "__________to__________" + getStateName(target) + "__________via__________"
                 + transition.method.getJavaNameWithArgumentTypes();
 
         return StringUtils.scapeIllegalIdentifierCharacters(baseName);
@@ -48,15 +59,30 @@ public class Query {
 
     private String getStateName(State state) {
 
-        final ArrayList<String> names = new ArrayList<>(state.enabledActions.size());
+        final String joiner = "____";
 
-        for (Action action : state.enabledActions) {
+        if (!state.enabledActions.isEmpty()) {
+            return getJoinedActionNames(state.enabledActions, joiner);
+        }
+
+        if (!state.disabledActions.isEmpty()) {
+            return "NOT_" + getJoinedActionNames(state.disabledActions, joiner);
+        }
+
+        return "EMPTY_STATE";
+    }
+
+    private String getJoinedActionNames(Set<Action> actions, String joiner) {
+
+        final ArrayList<String> names = new ArrayList<>(actions.size());
+
+        for (Action action : actions) {
             names.add(action.method.getJavaNameWithArgumentTypes());
         }
 
         Collections.sort(names);
 
-        return Joiner.on("___").join(names);
+        return Joiner.on(joiner).join(names);
     }
 
     public State getSource() {
@@ -76,36 +102,57 @@ public class Query {
 
     public String getBoogieCode() {
 
+        final StringBuilder queryBody = new StringBuilder();
+
+        final String invariantResultVariableName = getVariableForMethodResult(invariant).get().name;
+
+        queryBody
+                .append(getLocalVariablesDeclaration()).append("\n")
+                .append("\n")
+                .append("\n")
+
+                .append("call initialize_globals();\n")
+                .append("\n")
+                .append("\n")
+
+                .append(getStateGuardCalls(source, "")).append("\n")
+                .append("\n")
+                .append("\n");
+
+        if (!source.isConstructorsState()) {
+            queryBody
+                    .append("assume ").append(getVariableForMethodResult(invariant).get().name).append(";\n");
+        }
+
+        queryBody
+                .append("assume (").append(getStateGuard(source)).append(");\n")
+                .append("\n")
+                .append("\n")
+
+                .append(getCall(transition, "", false)).append("\n")
+                .append("\n")
+                .append("\n")
+
+                .append(getStateGuardCalls(target, TARGET_ARGS_SUFFIX)).append("\n")
+                .append("\n")
+                .append("\n")
+
+                .append(APPLICATION_BUG_LABEL + ":\n")
+                .append(StringUtils.indent("assert ")).append(invariantResultVariableName).append(";\n")
+                .append("\n")
+
+                .append(QUERY_ASSERTION_LABEL + ":\n")
+                .append(StringUtils.indent("assert !(")).append(getStateGuard(target)).append(");\n")
+                .append("\n")
+
+                .append(UNHANDLED_EXCEPTION_LABEL + ":\n")
+                .append(StringUtils.indent("assert $Exception == null;")).append("\n");
+
         final StringBuilder query = new StringBuilder();
 
         query.append("procedure ").append(getName()).append("(").append(getQueryArgumentsDeclaration()).append(") {\n")
                 .append("\n")
-                .append(StringUtils.indent(getLocalVariablesDeclaration())).append("\n")
-                .append("\n")
-                .append(StringUtils.indent("call initialize_globals();")).append("\n")
-                .append("\n")
-                .append(StringUtils.indent(getStateGuardCalls(source, ""))).append("\n")
-                .append("\n")
-                .append(StringUtils.indent("if (")).append(getStateGuard(source)).append(") {").append("\n")
-                .append("\n");
-
-        final StringBuilder ifBody = new StringBuilder();
-
-        ifBody.append(StringUtils.indent(getCall(transition, "", false))).append("\n")
-                .append("\n")
-                .append(StringUtils.indent(getStateGuardCalls(target, TARGET_ARGS_SUFFIX))).append("\n")
-                .append("\n")
-                .append(StringUtils.indent("if (")).append(getStateGuard(target)).append(") {").append("\n")
-                .append("\n")
-                .append(StringUtils.indent("query_assertion:")).append("\n")
-                .append(StringUtils.indent(StringUtils.indent("assert false;"))).append("\n")
-                .append("\n")
-                .append("}").append("\n");
-
-        query.append(StringUtils.indent(ifBody.toString())).append("\n");
-
-        query.append(StringUtils.indent("}")).append("\n")
-                .append(StringUtils.indent("assert $Exception == null;")).append("\n")
+                .append(StringUtils.indent(queryBody.toString())).append("\n")
                 .append("}");
 
         return query.toString();
@@ -181,6 +228,7 @@ public class Query {
     }
 
     private String getCall(Method method, List<Variable> arguments) {
+
         final Optional<Variable> returnVariable = getVariableForMethodResult(method);
 
         final StringBuilder stringBuilder = new StringBuilder();
@@ -199,12 +247,14 @@ public class Query {
         stringBuilder.append(method.getTranslatedName())
                 .append("(")
                 .append(Joiner.on(", ").join(getNames(arguments)))
-                .append(");");
+                .append(");\n")
+                .append("if ($Exception != null) { goto ").append(UNHANDLED_EXCEPTION_LABEL).append(" ; }");
 
         return stringBuilder.toString();
     }
 
     private String getCall(Action action, String argumentNamesSuffix, boolean callPre) {
+
         final List<Variable> arguments = getArgumentListForMethod(action.method, argumentNamesSuffix);
 
         if (callPre) {
@@ -301,7 +351,7 @@ public class Query {
             calls.add(getCall(action, argumentNamesSuffix, true));
         }
 
-        return Joiner.on("\n").join(calls);
+        return Joiner.on("\n\n").join(calls);
     }
 
     private String getInvariantCall() {
@@ -314,10 +364,6 @@ public class Query {
     private String getStateGuard(final State state) {
 
         final List<String> atoms = new ArrayList<>();
-
-        if (!state.isConstructorsState()) {
-            atoms.add(getVariableForMethodResult(invariant).get().name);
-        }
 
         for (final Action action : state.enabledActions) {
             atoms.add(getVariableForMethodResult(action.precondition).get().name);

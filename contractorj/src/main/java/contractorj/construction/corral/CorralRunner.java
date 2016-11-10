@@ -2,6 +2,7 @@ package contractorj.construction.corral;
 
 import com.google.common.collect.Lists;
 import com.google.common.io.CharStreams;
+import contractorj.construction.Query;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -89,19 +90,25 @@ public class CorralRunner {
         }
 
         if (processOutput.contains("Program has no bugs")) {
-            return Result.NO_BUG;
+            return Result.NO;
         }
 
         if (processOutput.contains("True bug")) {
 
-            if (processOutput.contains("query_assertion")) {
-                return Result.TRUE_BUG;
+            if (processOutput.contains(Query.QUERY_ASSERTION_LABEL)) {
+                return Result.YES;
             }
 
-            return Result.APPLICATION_BUG;
+            if (processOutput.contains(Query.APPLICATION_BUG_LABEL)) {
+                return Result.APPLICATION_BUG;
+            }
+
+            if (processOutput.contains(Query.UNHANDLED_EXCEPTION_LABEL)) {
+                return Result.UNHANDLED_EXCEPTION;
+            }
         }
 
-        return Result.MAYBE_BUG;
+        return Result.MAYBE;
     }
 
     public long getLastRunTime() {

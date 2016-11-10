@@ -81,12 +81,12 @@ public class QueryRunner implements Runnable {
 
                 final Result result = corralRunner.run(boogieFile.getAbsolutePath(), queryName);
 
-                if (result.equals(Result.TRUE_BUG)) {
+                if (result.equals(Result.YES)) {
                     final Transition transition = new Transition(query.getSource(), query.getTarget(), query.getTransition(), false);
                     epa.addEdge(transition);
                 }
 
-                if (result.equals(Result.MAYBE_BUG)) {
+                if (result.equals(Result.MAYBE)) {
                     final Transition transition = new Transition(query.getSource(), query.getTarget(), query.getTransition(), true);
                     epa.addEdge(transition);
                 }
@@ -119,15 +119,15 @@ public class QueryRunner implements Runnable {
 
                 switch (result) {
 
-                    case TRUE_BUG:
+                    case YES:
                         System.out.println(ANSI_GREEN + logBuilder.toString() + ANSI_RESET);
                         break;
 
-                    case MAYBE_BUG:
+                    case MAYBE:
                         System.out.println(ANSI_BLUE + logBuilder.toString() + ANSI_RESET);
                         break;
 
-                    case APPLICATION_BUG:
+                    case UNHANDLED_EXCEPTION:
                         System.out.println(ANSI_RED + logBuilder.toString() + ANSI_RESET);
                         break;
 

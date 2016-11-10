@@ -51,7 +51,7 @@ public class ExponentialEpaGenerator {
         final Set<Action> actions = actionsExtractor.getInstanceActions();
         final Method invariant = actionsExtractor.getInvariant();
 
-        CombinationsGenerator<Action> combinationsGenerator = new CombinationsGenerator<>();
+        final CombinationsGenerator<Action> combinationsGenerator = new CombinationsGenerator<>();
 
         final Set<State> allStates = new HashSet<>();
 
@@ -77,7 +77,7 @@ public class ExponentialEpaGenerator {
         for (State state : allStates) {
 
             for (final Action action : constructorsState.enabledActions) {
-                queriesQueue.add(new Query(constructorsState, action, state, invariant));
+                queriesQueue.add(new Query("TRANSITION_", constructorsState, action, state, invariant));
             }
 
             generateQueriesForPairOfStates(invariant, state, state);
@@ -123,7 +123,7 @@ public class ExponentialEpaGenerator {
     private void generateQueriesForPairOfStates(Method invariant, State from, State to) {
 
         for (Action transition : from.enabledActions) {
-            queriesQueue.add(new Query(from, transition, to, invariant));
+            queriesQueue.add(new Query("TRANSITION_", from, transition, to, invariant));
         }
     }
 

@@ -17,7 +17,7 @@ public class FiniteStack {
 
     public static boolean FiniteStack_pre(int size)
     {
-        return size > 0;
+        return size > 2;
     }
 
     public FiniteStack(int size)

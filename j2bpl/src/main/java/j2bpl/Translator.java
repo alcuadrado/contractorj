@@ -8,6 +8,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Optional;
 
 public class Translator {
 
@@ -40,7 +41,7 @@ public class Translator {
 
     }
 
-    public Class getTranslatedClass(String className) {
+    public Optional<Class> getTranslatedClass(String className) {
 
         return J2BplTransformer.getInstance().getClass(className);
     }

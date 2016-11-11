@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public abstract class Method {
 
@@ -77,9 +78,11 @@ public abstract class Method {
             final String paramTypeName;
 
             if (parameterType instanceof RefType) {
+
                 final RefType refType = (RefType) parameterType;
                 final Class aClass = Class.create(refType.getSootClass());
                 paramTypeName = aClass.getQualifiedJavaName();
+
             } else {
                 paramTypeName = TypeTranslator.translate(parameterType);
             }
@@ -92,6 +95,7 @@ public abstract class Method {
         return stringBuilder.toString();
     }
 
+    @SuppressWarnings("unchecked")
     public List<Type> getParameterTypes() {
 
         return sootMethod.getParameterTypes();
@@ -124,17 +128,15 @@ public abstract class Method {
 
     public String getJavaNameWithArgumentTypes() {
 
-
+        @SuppressWarnings("unckeched")
         final List<Type> parameterTypes = sootMethod.getParameterTypes();
-        final ArrayList<String> typeNames = new ArrayList<>(parameterTypes.size());
-
-        for (final Type parameterType : parameterTypes) {
-            typeNames.add(parameterType.toString());
-        }
+        final List<String> typeNames = parameterTypes.stream()
+                .map(Type::toString)
+                .collect(Collectors.toList());
 
         final String baseName = sootMethod.isConstructor() ? theClass.getBaseJavaName() : sootMethod.getName();
 
-        return  baseName + "(" + Joiner.on(", ").join(typeNames) + ")";
+        return baseName + "(" + Joiner.on(", ").join(typeNames) + ")";
     }
 
     public boolean isStatic() {

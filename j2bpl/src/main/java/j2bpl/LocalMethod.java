@@ -18,6 +18,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class LocalMethod extends Method {
 
@@ -83,15 +85,10 @@ public class LocalMethod extends Method {
 
     private List<IdentityStmt> getIdentityStatements() {
 
-        final LinkedList<IdentityStmt> statements = new LinkedList<>();
-
-        for (Unit unit : body.getUnits()) {
-            if (unit instanceof IdentityStmt) {
-                statements.add((IdentityStmt) unit);
-            }
-        }
-
-        return statements;
+        return body.getUnits().stream()
+                .filter(unit -> unit instanceof IdentityStmt)
+                .map(unit -> (IdentityStmt) unit)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -149,18 +146,10 @@ public class LocalMethod extends Method {
 
     private List<String> getTranslatedLocalDeclarationsList() {
 
-        final ArrayList<String> translatedLocals = new ArrayList<>();
-
-        for (final Local local : body.getLocals()) {
-
-            if (localsUsedAsParameters.contains(local)) {
-                continue;
-            }
-
-            translatedLocals.add(translateLocalDeclaration(local));
-        }
-
-        return translatedLocals;
+        return body.getLocals().stream()
+                .filter(local -> !localsUsedAsParameters.contains(local))
+                .map(this::translateLocalDeclaration)
+                .collect(Collectors.toList());
     }
 
     private String translateLocalDeclaration(Local local) {
@@ -168,9 +157,9 @@ public class LocalMethod extends Method {
         return "var " + local.getName() + " : " + TypeTranslator.translate(local.getType()) + ";";
     }
 
-    public String getGeneratedReturnVariableName(InvokeStmt invokeStmt) {
+    public Optional<String> getGeneratedReturnVariableName(InvokeStmt invokeStmt) {
 
-        return generatedReturnVariableNames.get(invokeStmt);
+        return Optional.ofNullable(generatedReturnVariableNames.get(invokeStmt));
     }
 
     private List<String> getGeneratedLocalDeclarationsList() {
@@ -180,7 +169,7 @@ public class LocalMethod extends Method {
         for (InvokeStmt invokeStmt : generatedReturnVariableNames.keySet()) {
             final Type returnType = invokeStmt.getInvokeExpr().getMethod().getReturnType();
             declarations.add(
-                    "var " + getGeneratedReturnVariableName(invokeStmt) + " : " + TypeTranslator.translate(returnType)
+                    "var " + generatedReturnVariableNames.get(invokeStmt) + " : " + TypeTranslator.translate(returnType)
                             + ";"
             );
         }

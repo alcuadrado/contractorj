@@ -7,9 +7,11 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Class {
 
@@ -61,28 +63,18 @@ public class Class {
 
     public Collection<StaticField> getStaticFields() {
 
-        final LinkedList<StaticField> staticFields = new LinkedList<>();
-
-        for (SootField sootField : sootClass.getFields()) {
-            if (sootField.isStatic()) {
-                staticFields.add(new StaticField(this, sootField));
-            }
-        }
-
-        return staticFields;
+        return sootClass.getFields().stream()
+                .filter(SootField::isStatic)
+                .map(sootField -> new StaticField(this, sootField))
+                .collect(Collectors.toList());
     }
 
     public Collection<InstanceField> getInstanceFields() {
 
-        final LinkedList<InstanceField> instanceFields = new LinkedList<>();
-
-        for (SootField sootField : sootClass.getFields()) {
-            if (!sootField.isStatic()) {
-                instanceFields.add(new InstanceField(this, sootField));
-            }
-        }
-
-        return instanceFields;
+        return sootClass.getFields().stream()
+                .filter(sootField -> !sootField.isStatic())
+                .map(sootField -> new InstanceField(this, sootField))
+                .collect(Collectors.toList());
     }
 
     public void addMethod(Method method) {

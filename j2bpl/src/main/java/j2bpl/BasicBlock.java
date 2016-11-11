@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class BasicBlock {
 
@@ -43,11 +44,12 @@ public class BasicBlock {
 
     public BasicBlock getSuccessorBasicBlock(Unit headOfSuccessor) {
 
-        for (final Block successorBlock : block.getSuccs()) {
+        final Optional<Block> successor = block.getSuccs().stream()
+                .filter(block -> block.getHead() == headOfSuccessor)
+                .findFirst();
 
-            if (successorBlock.getHead() == headOfSuccessor) {
-                return create(method, successorBlock);
-            }
+        if (successor.isPresent()) {
+            return create(method, successor.get());
         }
 
         throw new IllegalArgumentException("headOfSuccessor not found in any successor block");
@@ -68,9 +70,7 @@ public class BasicBlock {
             unit.apply(unitTranslator);
             final List<String> translation = unitTranslator.getTranslation();
 
-            for (String statement : translation) {
-                translations.add(StringUtils.indent(statement));
-            }
+            translations.add(StringUtils.indentList(translation));
         }
 
         return translations;

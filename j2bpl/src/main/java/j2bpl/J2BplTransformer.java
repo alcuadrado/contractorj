@@ -17,11 +17,11 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 public class J2BplTransformer extends BodyTransformer {
@@ -63,7 +63,10 @@ public class J2BplTransformer extends BodyTransformer {
             if (unit instanceof Stmt) {
                 try {
                     final Stmt stmt = (Stmt) unit;
-                    addCalledMethod(stmt.getInvokeExpr());
+                    final InvokeExpr invokeExpr = stmt.getInvokeExpr();
+                    if (invokeExpr != null) {
+                        addCalledMethod(invokeExpr);
+                    }
                 } catch (RuntimeException e) {
                     // Do nothing: this just means that no invoke expr was present
                 }
@@ -72,11 +75,6 @@ public class J2BplTransformer extends BodyTransformer {
     }
 
     private void addCalledMethod(InvokeExpr invokeExpr) {
-
-        if (invokeExpr == null) {
-            return;
-        }
-
         final SootMethod sootMethod = invokeExpr.getMethod();
         final SootClass sootClass = sootMethod.getDeclaringClass();
         final Class theClass = Class.create(sootClass);
@@ -97,15 +95,11 @@ public class J2BplTransformer extends BodyTransformer {
         }
     }
 
-    public Class getClass(String className) {
+    public Optional<Class> getClass(String className) {
 
-        for (Class aClass : classes) {
-            if (aClass.getQualifiedJavaName().equals(className)) {
-                return aClass;
-            }
-        }
-
-        return null;
+        return classes.stream()
+                .filter(aClass -> aClass.getQualifiedJavaName().equals(className))
+                .findFirst();
     }
 
     public String getTranslation() {
@@ -116,14 +110,7 @@ public class J2BplTransformer extends BodyTransformer {
 
         final ArrayList<Class> classes = Lists.newArrayList(this.classes);
 
-        Collections.sort(classes, new Comparator<Class>() {
-
-            @Override
-            public int compare(Class o1, Class o2) {
-
-                return o1.getTranslatedName().compareTo(o2.getTranslatedName());
-            }
-        });
+        Collections.sort(classes, (o1, o2) -> o1.getTranslatedName().compareTo(o2.getTranslatedName()));
 
         for (Class aClass : classes) {
             stringBuilder.append("\n")
@@ -192,14 +179,7 @@ public class J2BplTransformer extends BodyTransformer {
 
         final Collection<Method> values = methodsMap.values();
         final ArrayList<Method> methods = Lists.newArrayList(values);
-        Collections.sort(methods, new Comparator<Method>() {
-
-            @Override
-            public int compare(Method o1, Method o2) {
-
-                return o1.getTranslatedName().compareTo(o2.getTranslatedName());
-            }
-        });
+        Collections.sort(methods, (o1, o2) -> o1.getTranslatedName().compareTo(o2.getTranslatedName()));
 
         return methods;
     }

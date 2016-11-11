@@ -26,6 +26,7 @@ import soot.jimple.ThrowStmt;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 public class UnitTranslator extends AbstractStmtSwitch {
 
@@ -271,14 +272,14 @@ public class UnitTranslator extends AbstractStmtSwitch {
     @Override
     public void caseInvokeStmt(InvokeStmt stmt) {
 
-        final String returnVariableName = method.getGeneratedReturnVariableName(stmt);
+        final Optional<String> returnVariableName = method.getGeneratedReturnVariableName(stmt);
 
         final InvokeExpr invokeExpr = stmt.getInvokeExpr();
 
         String callInstruction = "call ";
 
-        if (returnVariableName != null) {
-            callInstruction += returnVariableName + " := ";
+        if (returnVariableName.isPresent()) {
+            callInstruction += returnVariableName.get() + " := ";
         }
 
         callInstruction += translateValue(invokeExpr) + ";";

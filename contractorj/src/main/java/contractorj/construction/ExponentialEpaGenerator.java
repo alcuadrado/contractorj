@@ -76,9 +76,9 @@ public class ExponentialEpaGenerator {
 
         for (State state : allStates) {
 
-            for (final Action action : constructorsState.enabledActions) {
-                queriesQueue.add(new Query("TRANSITION_", constructorsState, action, state, invariant));
-            }
+            constructorsState.enabledActions.stream()
+                    .map(action -> new Query("TRANSITION_", constructorsState, action, state, invariant))
+                    .forEach(queriesQueue::add);
 
             generateQueriesForPairOfStates(invariant, state, state);
         }
@@ -121,10 +121,9 @@ public class ExponentialEpaGenerator {
     }
 
     private void generateQueriesForPairOfStates(Method invariant, State from, State to) {
-
-        for (Action transition : from.enabledActions) {
-            queriesQueue.add(new Query("TRANSITION_", from, transition, to, invariant));
-        }
+        from.enabledActions.stream()
+                .map(transition -> new Query("TRANSITION_", from, transition, to, invariant))
+                .forEach(queriesQueue::add);
     }
 
 }

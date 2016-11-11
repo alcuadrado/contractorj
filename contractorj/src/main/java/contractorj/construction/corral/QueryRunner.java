@@ -12,8 +12,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class QueryRunner implements Runnable {
 
@@ -95,15 +97,13 @@ public class QueryRunner implements Runnable {
 
                 final float time = lastRunTime / 1_000_000_000f;
 
-                final ArrayList<String> sourceActions = new ArrayList<>();
-                for (final Action enabledAction : query.getSource().enabledActions) {
-                    sourceActions.add(enabledAction.method.getJavaNameWithArgumentTypes());
-                }
+                final List<String> sourceActions = query.getSource().enabledActions.stream()
+                        .map(action -> action.method.getJavaNameWithArgumentTypes())
+                        .collect(Collectors.toList());
 
-                final ArrayList<String> targetActions = new ArrayList<>();
-                for (final Action enabledAction : query.getTarget().enabledActions) {
-                    sourceActions.add(enabledAction.method.getJavaNameWithArgumentTypes());
-                }
+                final List<String> targetActions = query.getTarget().enabledActions.stream()
+                        .map(action -> action.method.getJavaNameWithArgumentTypes())
+                        .collect(Collectors.toList());
 
                 final StringBuilder logBuilder = new StringBuilder()
                         .append("Query\n")

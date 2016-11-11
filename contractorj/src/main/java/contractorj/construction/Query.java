@@ -1,18 +1,18 @@
 package contractorj.construction;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import contractorj.model.Action;
 import contractorj.model.State;
 import j2bpl.Method;
 import j2bpl.StringUtils;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Query {
 
@@ -74,13 +74,10 @@ public class Query {
 
     private String getJoinedActionNames(Set<Action> actions, String joiner) {
 
-        final ArrayList<String> names = new ArrayList<>(actions.size());
-
-        for (Action action : actions) {
-            names.add(action.method.getJavaNameWithArgumentTypes());
-        }
-
-        Collections.sort(names);
+        final List<String> names = actions.stream()
+                .map(action -> action.method.getJavaNameWithArgumentTypes())
+                .sorted()
+                .collect(Collectors.toList());
 
         return Joiner.on(joiner).join(names);
     }
@@ -160,19 +157,16 @@ public class Query {
 
     private String getLocalVariablesDeclaration() {
 
-        final Set<Variable> variables = getLocalVariables();
-        final ArrayList<String> declarations = new ArrayList<>(variables.size());
-
-        for (final Variable argument : variables) {
-            declarations.add("var " + argument.name + " : " + argument.translatedType + ";");
-        }
+        final List<String> declarations = getLocalVariables().stream()
+                .map(argument -> "var " + argument.name + " : " + argument.translatedType + ";")
+                .collect(Collectors.toList());
 
         return Joiner.on("\n").join(declarations);
     }
 
-    private Set<Variable> getLocalVariables() {
+    private List<Variable> getLocalVariables() {
 
-        final HashSet<Variable> variables = new HashSet<>();
+        final List<Variable> variables = new ArrayList<>();
 
         if (!isThisVariableAnArgument()) {
             variables.add(getThisVariable());
@@ -185,13 +179,11 @@ public class Query {
             variables.add(transitionResultVariable.get());
         }
 
-        for (final Action action : source.getAllActions()) {
-            variables.add(getVariableForMethodResult(action.precondition).get());
-        }
-
-        for (final Action action : target.getAllActions()) {
-            variables.add(getVariableForMethodResult(action.precondition).get());
-        }
+        Stream.concat(source.getAllActions().stream(), target.getAllActions().stream())
+                .map(action -> getVariableForMethodResult(action.precondition))
+                .map(Optional::get)
+                .distinct()
+                .forEach(variables::add);
 
         return variables;
     }
@@ -199,7 +191,7 @@ public class Query {
     private Optional<Variable> getVariableForMethodResult(Method method) {
 
         if (!method.hasReturnType()) {
-            return Optional.absent();
+            return Optional.empty();
         }
 
         return Optional.of(new Variable(method.getTranslatedReturnType(), "ret_" + method.getTranslatedName()));
@@ -273,10 +265,6 @@ public class Query {
 
         final List<Variable> arguments = new ArrayList<>();
 
-        if (transition.method.isConstructor()) {
-            int i = 0;
-        }
-
         if (isThisVariableAnArgument()) {
             arguments.add(getThisVariable());
         }
@@ -319,24 +307,18 @@ public class Query {
 
     private String getQueryArgumentsDeclaration() {
 
-        final List<Variable> queryArguments = getQueryArguments();
-        final ArrayList<String> declarations = new ArrayList<>(queryArguments.size());
-
-        for (final Variable argument : queryArguments) {
-            declarations.add(argument.name + " : " + argument.translatedType);
-        }
+        final List<String> declarations = getQueryArguments().stream()
+                .map(argument -> argument.name + " : " + argument.translatedType)
+                .collect(Collectors.toList());
 
         return Joiner.on(", ").join(declarations);
     }
 
     private List<String> getNames(List<Variable> variables) {
 
-        final ArrayList<String> names = new ArrayList<>(variables.size());
-        for (final Variable variable : variables) {
-            names.add(variable.name);
-        }
-
-        return names;
+        return variables.stream()
+                .map(variable -> variable.name)
+                .collect(Collectors.toList());
     }
 
     private String getStateGuardCalls(State state, String argumentNamesSuffix) {
@@ -365,13 +347,17 @@ public class Query {
 
         final List<String> atoms = new ArrayList<>();
 
-        for (final Action action : state.enabledActions) {
-            atoms.add(getVariableForMethodResult(action.precondition).get().name);
-        }
+        state.enabledActions.stream()
+                .map(action -> getVariableForMethodResult(action.precondition))
+                .map(Optional::get)
+                .map(variable -> variable.name)
+                .forEach(atoms::add);
 
-        for (final Action action : state.disabledActions) {
-            atoms.add("!" + getVariableForMethodResult(action.precondition).get().name);
-        }
+        state.disabledActions.stream()
+                .map(action -> getVariableForMethodResult(action.precondition))
+                .map(Optional::get)
+                .map(variable -> "!" + variable.name)
+                .forEach(atoms::add);
 
         return Joiner.on(" && ").join(atoms);
     }

@@ -44,13 +44,13 @@ public class Epa {
             usedStates.add(to);
 
             if (!collapsedEdges.containsKey(from)) {
-                collapsedEdges.put(from, new HashMap<State, List<String>>());
+                collapsedEdges.put(from, new HashMap<>());
             }
 
             final Map<State, List<String>> startingInFrom = collapsedEdges.get(from);
 
             if (!startingInFrom.containsKey(to)) {
-                startingInFrom.put(to, new LinkedList<String>());
+                startingInFrom.put(to, new LinkedList<>());
             }
 
             final String name = transitionMethod.getJavaNameWithArgumentTypes();

@@ -35,13 +35,9 @@ public class State {
 
     private void ensureAllOrNoneActionsAreConstructors() {
 
-        int numberOfConstructors = 0;
-
-        for (final Action action : getAllActions()) {
-            if (action.method.isConstructor()) {
-                numberOfConstructors++;
-            }
-        }
+        long numberOfConstructors = getAllActions().stream()
+                .filter(action -> action.method.isConstructor())
+                .count();
 
         if (numberOfConstructors != 0 && numberOfConstructors != enabledActions.size() + disabledActions.size()) {
             throw new IllegalArgumentException("Invalid state: can't mix methods and constructors");

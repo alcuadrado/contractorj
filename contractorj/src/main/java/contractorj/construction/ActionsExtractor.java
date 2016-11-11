@@ -126,19 +126,13 @@ public class ActionsExtractor {
             final String methodName = method.getJavaNameWithArgumentTypes();
 
             if (!instanceMethodsMap.containsKey(methodName)) {
-                instanceMethodsMap.put(methodName, new HashSet<Method>());
+                instanceMethodsMap.put(methodName, new HashSet<>());
             }
 
             instanceMethodsMap.get(methodName).add(method);
         }
 
         return instanceMethodsMap;
-    }
-
-    private boolean isConstructorPrecondition(final Method method) {
-
-        final String name = getPreconditionMethodName(theClass.getBaseJavaName());
-        return method.isStatic() && method.getBaseJavaName().equals(name);
     }
 
 }

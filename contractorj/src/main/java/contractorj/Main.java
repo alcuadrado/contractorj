@@ -2,6 +2,8 @@ package contractorj;
 
 import contractorj.construction.LazyEpaGenerator;
 import contractorj.model.Epa;
+import contractorj.serialization.DotEpaSerializer;
+import contractorj.serialization.EpaSerializer;
 import j2bpl.Class;
 import j2bpl.Translator;
 import org.apache.commons.cli.CommandLine;
@@ -40,10 +42,16 @@ public class Main {
             throw new IllegalArgumentException("Can't find class " + className);
         }
 
-        final LazyEpaGenerator epaGenerator = new LazyEpaGenerator(classToMakeEpa.get(), translator.getTranslation());
+        final LazyEpaGenerator epaGenerator = new LazyEpaGenerator(
+                classToMakeEpa.get(),
+                translator.getTranslation(),
+                numberOfThreads
+        );
+
         final Epa epa = epaGenerator.generateEpa();
 
-        Files.write(outputFile.toPath(), epa.toDot().getBytes());
+        final EpaSerializer epaSerializer = new DotEpaSerializer();
+        epaSerializer.serializeToFile(epa, outputFile);
     }
 
     private static void parseArguments(final String[] args) {

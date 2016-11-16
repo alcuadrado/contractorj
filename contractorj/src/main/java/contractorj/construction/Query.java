@@ -16,15 +16,29 @@ import java.util.stream.Stream;
 
 public class Query {
 
-    public static final String QUERY_ASSERTION_LABEL = "query_assertion";
+    public enum Labels {
+        QUERY,
+        BROKEN_INVARIANT,
+        SOURCE_STATE_CALLS,
+        TARGET_STATE_CALLS,
+        NEVER_THROWS,
+        ALWAYS_THROWS,
+    }
 
-    public static final String APPLICATION_BUG_LABEL = "application_bug";
+    public enum Type {
+        TRANSITION_QUERY,
+        NECESSARY_ENABLED_QUERY,
+        NECESSARY_DISABLED_QUERY
+    }
 
-    public static final String UNHANDLED_EXCEPTION_LABEL = "unhandled_exception";
+    public enum TransitionThrows {
+        NEVER_THROWS,
+        ALWAYS_THROWS,
+        THROWS,
+        DOES_NOT_THROW
+    }
 
     private static final String TARGET_ARGS_SUFFIX = "After";
-
-    private final String namePrefix;
 
     private final State source;
 
@@ -34,14 +48,23 @@ public class Query {
 
     private final Method invariant;
 
-    public Query(final String namePrefix, State source, Action transition, State target, Method invariant) {
+    private final Type type;
 
-        this.namePrefix = namePrefix;
+    private final TransitionThrows transitionThrows;
+
+    public Query(Type type,
+                 State source,
+                 Action transition,
+                 State target,
+                 Method invariant,
+                 TransitionThrows transitionThrows) {
 
         this.source = source;
         this.transition = transition;
         this.target = target;
         this.invariant = invariant;
+        this.type = type;
+        this.transitionThrows = transitionThrows;
 
         if (!source.enabledActions.contains(transition)) {
             throw new IllegalArgumentException("Invalid query: transition must be in source's enabled actions.");
@@ -50,11 +73,55 @@ public class Query {
 
     public String getName() {
 
-        final String baseName = namePrefix + "from__________" + getStateName(source)
-                + "__________to__________" + getStateName(target) + "__________via__________"
-                + transition.method.getJavaNameWithArgumentTypes();
+        final String partsSeparator = "__________";
 
-        return StringUtils.scapeIllegalIdentifierCharacters(baseName);
+        final StringBuilder name = new StringBuilder()
+                .append(type.toString())
+
+                .append(partsSeparator)
+                .append("from")
+                .append(partsSeparator)
+
+                .append(getStateName(source));
+
+        if (type.equals(Type.TRANSITION_QUERY)) {
+
+            name.append(partsSeparator)
+                    .append("to")
+                    .append(partsSeparator)
+
+                    .append(getStateName(target));
+        } else {
+
+            name.append(partsSeparator)
+                    .append("checking")
+                    .append(partsSeparator);
+
+
+
+            final Action checkingAction;
+
+            if (type.equals(Type.NECESSARY_ENABLED_QUERY)) {
+                checkingAction = target.enabledActions.iterator().next();
+            } else {
+                checkingAction = target.disabledActions.iterator().next();
+
+                name.append("NOT_");
+            }
+
+            name.append(checkingAction.method.getBaseJavaName());
+        }
+
+        name.append(partsSeparator)
+                .append("via")
+                .append(partsSeparator)
+
+                .append(transition.method.getJavaNameWithArgumentTypes())
+
+                .append(partsSeparator)
+                .append(transitionThrows.toString());
+
+        return StringUtils.scapeIllegalIdentifierCharacters(name.toString());
     }
 
     private String getStateName(State state) {
@@ -63,10 +130,6 @@ public class Query {
 
         if (!state.enabledActions.isEmpty()) {
             return getJoinedActionNames(state.enabledActions, joiner);
-        }
-
-        if (!state.disabledActions.isEmpty()) {
-            return "NOT_" + getJoinedActionNames(state.disabledActions, joiner);
         }
 
         return "EMPTY_STATE";
@@ -112,7 +175,8 @@ public class Query {
                 .append("\n")
                 .append("\n")
 
-                .append(getStateGuardCalls(source, "")).append("\n")
+                .append(Labels.SOURCE_STATE_CALLS).append(":\n")
+                .append(StringUtils.indent(getStateGuardCalls(source, ""))).append("\n")
                 .append("\n")
                 .append("\n");
 
@@ -130,29 +194,47 @@ public class Query {
                 .append("\n")
                 .append("\n")
 
-                .append(getStateGuardCalls(target, TARGET_ARGS_SUFFIX)).append("\n")
+                .append(Labels.TARGET_STATE_CALLS).append(":\n")
+                .append(StringUtils.indent(getStateGuardCalls(target, TARGET_ARGS_SUFFIX))).append("\n")
                 .append("\n")
                 .append("\n")
 
-                .append(APPLICATION_BUG_LABEL + ":\n")
+                .append(Labels.BROKEN_INVARIANT).append(":\n")
                 .append(StringUtils.indent("assert ")).append(invariantResultVariableName).append(";\n")
                 .append("\n")
-
-                .append(QUERY_ASSERTION_LABEL + ":\n")
-                .append(StringUtils.indent("assert !(")).append(getStateGuard(target)).append(");\n")
                 .append("\n")
 
-                .append(UNHANDLED_EXCEPTION_LABEL + ":\n")
-                .append(StringUtils.indent("assert $Exception == null;")).append("\n");
+                .append(getQueryAssertion()).append("\n");
 
-        final StringBuilder query = new StringBuilder();
-
-        query.append("procedure ").append(getName()).append("(").append(getQueryArgumentsDeclaration()).append(") {\n")
+        final StringBuilder query = new StringBuilder()
+                .append("procedure ").append(getName()).append("(").append(getQueryArgumentsDeclaration()).append(") {\n")
                 .append("\n")
                 .append(StringUtils.indent(queryBody.toString())).append("\n")
                 .append("}");
 
         return query.toString();
+    }
+
+    private String getQueryAssertion() {
+
+        final StringBuilder assertion = new StringBuilder();
+
+        assertion.append(Labels.QUERY).append(":\n")
+                .append(StringUtils.indent("assert "));
+
+        if (type.equals(Type.TRANSITION_QUERY)) {
+            assertion.append("!(");
+        }
+
+        assertion.append(getStateGuard(target));
+
+        if (type.equals(Type.TRANSITION_QUERY)) {
+            assertion.append(")");
+        }
+
+        assertion.append(";");
+
+        return assertion.toString();
     }
 
     private String getLocalVariablesDeclaration() {
@@ -239,8 +321,40 @@ public class Query {
         stringBuilder.append(method.getTranslatedName())
                 .append("(")
                 .append(Joiner.on(", ").join(getNames(arguments)))
-                .append(");\n")
-                .append("if ($Exception != null) { goto ").append(UNHANDLED_EXCEPTION_LABEL).append(" ; }");
+                .append(");\n");
+
+        if (method.equals(transition.method)) {
+
+            switch (transitionThrows) {
+                case NEVER_THROWS:
+                    stringBuilder
+                            .append("\n")
+                            .append("\n")
+                            .append(Labels.NEVER_THROWS).append(":\n")
+                            .append(StringUtils.indent("assert $Exception == null;"));
+                    break;
+
+                case ALWAYS_THROWS:
+                    stringBuilder
+                            .append("\n")
+                            .append("\n")
+                            .append(Labels.ALWAYS_THROWS).append(":\n")
+                            .append(StringUtils.indent("assert $Exception != null;"));
+                    break;
+
+                case DOES_NOT_THROW:
+                    stringBuilder.append("assume $Exception == null;");
+                    break;
+
+                case THROWS:
+                    stringBuilder.append("assume $Exception != null;\n")
+                            .append("$Exception := null;");
+                    break;
+            }
+
+        } else {
+            stringBuilder.append("assert $Exception == null;");
+        }
 
         return stringBuilder.toString();
     }

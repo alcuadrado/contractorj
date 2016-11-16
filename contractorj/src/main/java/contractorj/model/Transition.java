@@ -10,7 +10,11 @@ public class Transition {
 
     public final boolean isUncertain;
 
-    public Transition(State source, State target, Action transition, boolean isUncertain) {
+    public final boolean isThrowing;
+
+    public Transition(State source, State target, Action transition, boolean isUncertain, final boolean isThrowing) {
+
+        this.isThrowing = isThrowing;
 
         assert source.enabledActions.contains(transition);
 

@@ -23,7 +23,7 @@ public class Epa {
         this.title = title;
     }
 
-    public synchronized void addEdge(Transition transition) {
+    public synchronized void addTransition(Transition transition) {
 
         transitions.add(transition);
     }
@@ -38,7 +38,6 @@ public class Epa {
 
             final State from = transition.source;
             final State to = transition.target;
-            final Method transitionMethod = transition.transition.method;
 
             usedStates.add(from);
             usedStates.add(to);
@@ -53,8 +52,8 @@ public class Epa {
                 startingInFrom.put(to, new LinkedList<>());
             }
 
-            final String name = transitionMethod.getJavaNameWithArgumentTypes();
-            startingInFrom.get(to).add(name + (transition.isUncertain ? "?" : ""));
+            final String transitionName = getTransitionName(transition);
+            startingInFrom.get(to).add(transitionName);
         }
 
         final StringBuilder stringBuilder = new StringBuilder();
@@ -102,6 +101,13 @@ public class Epa {
         stringBuilder.append("}");
 
         return stringBuilder.toString();
+    }
+
+    private String getTransitionName(final Transition transition) {
+
+        final Method transitionMethod = transition.transition.method;
+        return transitionMethod.getJavaNameWithArgumentTypes()
+                + (transition.isUncertain ? "?" : "") + (transition.isThrowing ? "\u26A1" : "");
     }
 
     private String getStateDotName(State state) {

@@ -1,7 +1,7 @@
 package contractorj;
 
+import contractorj.construction.LazyEpaGenerator;
 import contractorj.model.Epa;
-import contractorj.construction.ExponentialEpaGenerator;
 import j2bpl.Class;
 import j2bpl.Translator;
 import org.apache.commons.cli.CommandLine;
@@ -15,6 +15,7 @@ import org.apache.commons.cli.ParseException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Optional;
 
 public class Main {
 
@@ -33,16 +34,14 @@ public class Main {
         final Translator translator = new Translator();
         translator.translate(pathToClassPath);
 
-        final Class classToMakeEpa = translator.getTranslatedClass(className);
+        final Optional<Class> classToMakeEpa = translator.getTranslatedClass(className);
 
-        if (classToMakeEpa == null) {
+        if (!classToMakeEpa.isPresent()) {
             throw new IllegalArgumentException("Can't find class " + className);
         }
 
-        final ExponentialEpaGenerator exponentialEpaGenerator = new ExponentialEpaGenerator(classToMakeEpa,
-                translator.getTranslation(), numberOfThreads);
-
-        final Epa epa = exponentialEpaGenerator.generateEpa();
+        final LazyEpaGenerator epaGenerator = new LazyEpaGenerator(classToMakeEpa.get(), translator.getTranslation());
+        final Epa epa = epaGenerator.generateEpa();
 
         Files.write(outputFile.toPath(), epa.toDot().getBytes());
     }

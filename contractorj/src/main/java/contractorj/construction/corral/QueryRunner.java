@@ -2,7 +2,6 @@ package contractorj.construction.corral;
 
 import com.google.common.base.Joiner;
 import contractorj.construction.Query;
-import contractorj.model.Action;
 import contractorj.model.Epa;
 import contractorj.model.Transition;
 
@@ -11,7 +10,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -81,21 +79,20 @@ public class QueryRunner implements Runnable {
 
                 final String queryName = query.getName();
 
-                final Result result = corralRunner.run(boogieFile.getAbsolutePath(), queryName);
+                final CorralRunner.RunnerResult runnerResult = corralRunner.run(boogieFile.getAbsolutePath(),
+                        queryName);
 
-                if (result.equals(Result.YES)) {
-                    final Transition transition = new Transition(query.getSource(), query.getTarget(), query.getTransition(), false);
-                    epa.addEdge(transition);
+                final Result result = runnerResult.queryResult;
+
+                if (result.equals(Result.BUG_IN_QUERY)) {
+                    final Transition transition = new Transition(query.getSource(), query.getTarget(), query.getTransition(), false, false);
+                    epa.addTransition(transition);
                 }
 
-                if (result.equals(Result.MAYBE)) {
-                    final Transition transition = new Transition(query.getSource(), query.getTarget(), query.getTransition(), true);
-                    epa.addEdge(transition);
+                if (result.equals(Result.MAYBE_BUG)) {
+                    final Transition transition = new Transition(query.getSource(), query.getTarget(), query.getTransition(), true, false);
+                    epa.addTransition(transition);
                 }
-
-                final long lastRunTime = corralRunner.getLastRunTime();
-
-                final float time = lastRunTime / 1_000_000_000f;
 
                 final List<String> sourceActions = query.getSource().enabledActions.stream()
                         .map(action -> action.method.getJavaNameWithArgumentTypes())
@@ -112,22 +109,22 @@ public class QueryRunner implements Runnable {
                         .append("\n")
                         .append("\ttarget: ").append(Joiner.on(", ").join(targetActions)).append("\n")
                         .append("\tresult: ").append(result).append("\n")
-                        .append("\ttime: ").append(time).append("\n")
+                        .append("\ttime: ").append(runnerResult.runningTime).append("\n")
                         .append("\tfile: ").append(boogieFile.getAbsolutePath()).append("\n")
                         .append("\tprocedure: ").append(queryName).append("\n")
                         .append("\n");
 
                 switch (result) {
 
-                    case YES:
+                    case BUG_IN_QUERY:
                         System.out.println(ANSI_GREEN + logBuilder.toString() + ANSI_RESET);
                         break;
 
-                    case MAYBE:
+                    case MAYBE_BUG:
                         System.out.println(ANSI_BLUE + logBuilder.toString() + ANSI_RESET);
                         break;
 
-                    case UNHANDLED_EXCEPTION:
+                    case TRANSITION_MAY_NOT_THROW:
                         System.out.println(ANSI_RED + logBuilder.toString() + ANSI_RESET);
                         break;
 

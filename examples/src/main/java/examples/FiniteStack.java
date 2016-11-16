@@ -33,6 +33,11 @@ public class FiniteStack {
 
     public void Push()
     {
+
+        if (Next == 5) {
+            throw new RuntimeException();
+        }
+
         Next = Next + 1;
     }
 

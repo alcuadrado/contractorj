@@ -27,14 +27,18 @@ public class CorralRunner {
         this.recursionBound = recursionBound;
     }
 
+    public String getConsoleCommandToRun(String pathToBoogieSourcecode, String mainMethod) {
+        return  (!isWindows() ? "mono " : "") + "'" + pathToCorral + "' '/main:" + mainMethod
+                + "' /recursionBound:" + recursionBound + " /trackAllVars '" + pathToBoogieSourcecode + "'";
+    }
+
     public RunnerResult run(String pathToBoogieSourcecode, String mainMethod) {
 
-        final String lineToRun = (!isWindows() ? "mono " : "") + "'" + pathToCorral + "' '/main:" + mainMethod
-                + "' /recursionBound:" + recursionBound + " /trackAllVars '" + pathToBoogieSourcecode + "'";
+        final String consoleCommandToRun = getConsoleCommandToRun(pathToBoogieSourcecode, mainMethod);
 
         final LocalDateTime start = LocalDateTime.now();
 
-        final String processOutput = runtAndReturnOutput(lineToRun);
+        final String processOutput = runtAndReturnOutput(consoleCommandToRun);
 
         final LocalDateTime end = LocalDateTime.now();
 

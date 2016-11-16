@@ -2,7 +2,10 @@ package contractorj;
 
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
+import contractorj.construction.EpaGenerator;
 import contractorj.construction.LazyEpaGenerator;
+import contractorj.construction.Query;
+import contractorj.construction.corral.CorralRunner;
 import contractorj.model.Epa;
 import contractorj.serialization.DotEpaSerializer;
 import contractorj.serialization.EpaSerializer;
@@ -19,6 +22,7 @@ import org.apache.commons.cli.ParseException;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.time.Duration;
 import java.util.Optional;
 
 public class Main {
@@ -45,13 +49,22 @@ public class Main {
             throw new IllegalArgumentException("Can't find class " + className);
         }
 
-        final LazyEpaGenerator epaGenerator = new LazyEpaGenerator(
-                classToMakeEpa.get(),
+        final EpaGenerator epaEpaGenerator = new LazyEpaGenerator(
                 translator.getTranslation(),
-                numberOfThreads
+                numberOfThreads,
+                new CorralRunner("/Users/pato/facultad/tesis/tools/corral/bin/Debug/corral.exe")
         );
 
-        final Epa epa = epaGenerator.generateEpa();
+        final Epa epa = epaEpaGenerator.generateEpa(classToMakeEpa.get());
+
+        System.out.println("Total running time: " + formatDuration(epaEpaGenerator.getTotalTime()));
+        System.out.println("Time running queries: " + formatDuration(epaEpaGenerator.getTotalQueryingTime()));
+        System.out.println("Total number of queries: " + epaEpaGenerator.getTotalNumerOfQueries());
+
+        for (final Query.Type type : Query.Type.values()) {
+            System.out.println("Number of queries of type " + type + ": " +
+                    epaEpaGenerator.getNumberOfQueriesByType(type));
+        }
 
         final EpaSerializer epaSerializer = new DotEpaSerializer();
         epaSerializer.serializeToFile(epa, outputFile);
@@ -103,7 +116,6 @@ public class Main {
         }
     }
 
-
     private static String getRtJarPath() throws IOException {
 
         final URL url = Main.class.getResource("/java7-rt.jar");
@@ -112,6 +124,18 @@ public class Main {
         Resources.asByteSource(url).copyTo(Files.asByteSink(outputFile));
 
         return outputFile.getAbsolutePath();
+    }
+
+    private static String formatDuration(Duration duration) {
+
+        final long millis = duration.toMillis();
+
+        if (duration.compareTo(Duration.ofMinutes(1)) >= 0) {
+
+            return millis / 60_000F + "m";
+        }
+
+        return millis / 1000F + "s";
     }
 
 }

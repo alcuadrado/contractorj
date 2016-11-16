@@ -48,7 +48,7 @@ public class Query {
 
     private final Method invariant;
 
-    private final Type type;
+    public final Type type;
 
     private final TransitionThrows transitionThrows;
 

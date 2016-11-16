@@ -9,13 +9,7 @@ import contractorj.model.State;
 import contractorj.model.Transition;
 import contractorj.util.CombinationsGenerator;
 import j2bpl.Class;
-import j2bpl.Method;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -27,39 +21,7 @@ import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-public class LazyEpaGenerator {
-
-    public static final String ANSI_RESET = "\u001B[0m";
-
-    public static final String ANSI_BLACK = "\u001B[30m";
-
-    public static final String ANSI_RED = "\u001B[31m";
-
-    public static final String ANSI_GREEN = "\u001B[32m";
-
-    public static final String ANSI_YELLOW = "\u001B[33m";
-
-    public static final String ANSI_BLUE = "\u001B[34m";
-
-    public static final String ANSI_PURPLE = "\u001B[35m";
-
-    public static final String ANSI_CYAN = "\u001B[36m";
-
-    public static final String ANSI_WHITE = "\u001B[37m";
-
-    private final Class theClass;
-
-    private final String baseTranslation;
-
-    private final int numberOfThreads;
-
-    private final CorralRunner corralRunner;
-
-    private ThreadLocal<File> boogieFile = new ThreadLocal<>();
-
-    private Set<Action> actions;
-
-    private Method invariant;
+public class LazyEpaGenerator extends EpaGenerator {
 
     private ExecutorService driverExecutorService;
 
@@ -71,15 +33,13 @@ public class LazyEpaGenerator {
 
     private Phaser phaser;
 
-    public LazyEpaGenerator(Class theClass, String baseTranslation, final int numberOfThreads) {
+    public LazyEpaGenerator(final String baseTranslation, final int numberOfThreads, final CorralRunner corralRunner) {
 
-        this.theClass = theClass;
-        this.baseTranslation = baseTranslation;
-        this.numberOfThreads = numberOfThreads;
-        corralRunner = new CorralRunner("/Users/pato/facultad/tesis/tools/corral/bin/Debug/corral.exe");
+        super(baseTranslation, numberOfThreads, corralRunner);
     }
 
-    public Epa generateEpa() {
+    @Override
+    protected Epa generateEpaImplementation(final Class theClass) {
 
         epa = new Epa(theClass.getQualifiedJavaName());
 
@@ -89,11 +49,7 @@ public class LazyEpaGenerator {
         phaser = new Phaser();
         phaser.register();
 
-        final ActionsExtractor actionsExtractor = new ActionsExtractor(theClass);
-        actions = actionsExtractor.getInstanceActions();
-        invariant = actionsExtractor.getInvariant();
-
-        final State initialState = new State(actionsExtractor.getConstructorActions(), Sets.newHashSet());
+        final State initialState = new State(constructors, Sets.newHashSet());
 
         enqueueStateIfNecessary(initialState);
 
@@ -233,11 +189,6 @@ public class LazyEpaGenerator {
         });
     }
 
-    private Query createTransitionQuery(final State source, final Action transition, final State target) {
-
-        return new Query(Query.Type.TRANSITION_QUERY, source, transition, target, invariant, Query.TransitionThrows.NEVER_THROWS); //TODO: Fix TransitionThrows
-    }
-
     private State createTargetState(
             final Set<Action> necessarilyEnabledActions,
             final Set<Action> necessarilyDisabledActions,
@@ -300,12 +251,19 @@ public class LazyEpaGenerator {
         });
     }
 
+    private Query createTransitionQuery(final State source, final Action transition, final State target) {
+
+        return new Query(Query.Type.TRANSITION_QUERY, source, transition, target, invariant,
+                Query.TransitionThrows.NEVER_THROWS); //TODO: Fix TransitionThrows
+    }
+
     private Query createNecessarilyEnabledQuery(final State state, final Action transition, final Action testedAction) {
 
         final State targetState = new State(Sets.newHashSet(testedAction), Sets.newHashSet());
 
         //TODO: Fix TransitionThrows
-        return new Query(Query.Type.NECESSARY_ENABLED_QUERY, state, transition, targetState, invariant, Query.TransitionThrows.NEVER_THROWS);
+        return new Query(Query.Type.NECESSARY_ENABLED_QUERY, state, transition, targetState, invariant,
+                Query.TransitionThrows.NEVER_THROWS);
     }
 
     private Query createNecessarilyDisabledQuery(final State state, final Action transition, Action testedAction) {
@@ -313,101 +271,8 @@ public class LazyEpaGenerator {
         final State targetState = new State(Sets.newHashSet(), Sets.newHashSet(testedAction));
 
         //TODO: Fix TransitionThrows
-        return new Query(Query.Type.NECESSARY_DISABLED_QUERY, state, transition, targetState, invariant, Query.TransitionThrows.NEVER_THROWS);
-    }
-
-    private Result runQuery(final Query query) {
-
-        final String absolutePathToBoogieSourceFile = appendToBoogieFile(query.getBoogieCode());
-
-        final CorralRunner.RunnerResult runnerResult = corralRunner.run(absolutePathToBoogieSourceFile,
-                query.getName());
-
-        final Result result = runnerResult.queryResult;
-
-        final String colorEscapeSequence = getColorEscapeSequenceForResult(result);
-
-        String toPrint = colorEscapeSequence +
-                "mono /Users/pato/facultad/tesis/tools/corral/bin/Debug/corral.exe '/main:"
-                + query.getName() + "' /recursionBound:10 /trackAllVars " + absolutePathToBoogieSourceFile;
-
-        if (result.isError()) {
-            toPrint += result + "\n\n" + result.toString() + "\n\n" + runnerResult.output;
-            System.exit(1);
-        }
-
-        System.out.println(toPrint + ANSI_RESET + "\n");
-
-        return result;
-    }
-
-    private String getColorEscapeSequenceForResult(final Result result) {
-
-        final String colorEscapeSequence;
-        switch (result) {
-
-            case BUG_IN_QUERY:
-                colorEscapeSequence = ANSI_GREEN;
-                break;
-
-            case MAYBE_BUG:
-                colorEscapeSequence = ANSI_BLUE;
-                break;
-
-            case BROKEN_INVARIANT:
-                colorEscapeSequence = ANSI_PURPLE;
-                break;
-
-            case TRANSITION_MAY_NOT_THROW:
-            case TRANSITION_MAY_THROW:
-                colorEscapeSequence = ANSI_CYAN;
-                break;
-
-            case PRES_OR_INV_MAY_THROW:
-                colorEscapeSequence = ANSI_RED;
-                break;
-
-            default:
-                colorEscapeSequence = ANSI_RESET;
-        }
-
-        return colorEscapeSequence;
-    }
-
-    private String appendToBoogieFile(String boogieCode) {
-
-        File file = boogieFile.get();
-
-        if (file == null) {
-
-            try {
-                file = File.createTempFile("epa-" + Thread.currentThread().getName(), ".bpl");
-                appendToFile(file, baseTranslation);
-                boogieFile.set(file);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-
-            System.out.println(file.getAbsolutePath());
-        }
-
-        appendToFile(file, boogieCode);
-
-        return file.getAbsolutePath();
-    }
-
-    private void appendToFile(final File file, final String content) {
-
-        try (
-                final FileWriter fw = new FileWriter(file, true);
-                final BufferedWriter bw = new BufferedWriter(fw);
-                final PrintWriter out = new PrintWriter(bw)
-        ) {
-            out.print(content + "\n\n");
-            out.flush();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        return new Query(Query.Type.NECESSARY_DISABLED_QUERY, state, transition, targetState, invariant,
+                Query.TransitionThrows.NEVER_THROWS);
     }
 
     private static class ActionStatus {

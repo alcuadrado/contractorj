@@ -1,25 +1,20 @@
 package contractorj.construction.corral;
 
-import com.google.common.collect.Lists;
-import com.google.common.io.CharStreams;
 import contractorj.construction.Query;
+import org.apache.commons.exec.CommandLine;
+import org.apache.commons.exec.DefaultExecutor;
+import org.apache.commons.exec.PumpStreamHandler;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Logger;
+import java.time.Duration;
+import java.time.LocalDateTime;
 
 public class CorralRunner {
-
-    private static final Logger logger = Logger.getLogger(CorralRunner.class.getName());
 
     private final String pathToCorral;
 
     private final int recursionBound;
-
-    private long lastRunningTime = -1;
 
     public CorralRunner(String pathToCorral) {
 
@@ -32,92 +27,99 @@ public class CorralRunner {
         this.recursionBound = recursionBound;
     }
 
-    public Result run(String pathToBoogieSourcecode, String mainMethod) {
+    public RunnerResult run(String pathToBoogieSourcecode, String mainMethod) {
 
-        final List<String> command = Lists.newArrayList(pathToCorral, "/main:" + mainMethod,
-                "/recursionBound:" + recursionBound, "/trackAllVars", pathToBoogieSourcecode);
+        final String lineToRun = (!isWindows() ? "mono " : "") + "'" + pathToCorral + "' '/main:" + mainMethod
+                + "' /recursionBound:" + recursionBound + " /trackAllVars '" + pathToBoogieSourcecode + "'";
 
-        if (!isWindows()) {
-            command.add(0, "mono");
-        }
+        final LocalDateTime start = LocalDateTime.now();
 
-        final String[] commandArray = command.toArray(new String[command.size()]);
+        final String processOutput = runtAndReturnOutput(lineToRun);
 
-        final Runtime runtime = Runtime.getRuntime();
-        Process process = null;
+        final LocalDateTime end = LocalDateTime.now();
 
-        try {
-
-            final long startTime = System.nanoTime();
-
-            process = runtime.exec(commandArray);
-            final int exitStatus = process.waitFor();
-
-            final long endTime = System.nanoTime();
-
-            lastRunningTime = endTime - startTime;
-
-            if (exitStatus != 0) {
-                throw new RuntimeException();
-            }
-
-        } catch (IOException | InterruptedException | RuntimeException e) {
-
-            String processErr = "Couldn't read stderr";
-
-            if (process != null) {
-
-                try (final InputStream in = process.getInputStream();
-                     final InputStreamReader inr = new InputStreamReader(in)) {
-                    processErr = CharStreams.toString(inr);
-                } catch (IOException err) {
-                    // Do nothing
-                }
-
-            }
-
-            throw new RuntimeException("Error when executing Corral with: " + Arrays.toString(commandArray) + "\n"
-                    + processErr);
-        }
-
-        final String processOutput;
-
-        try (final InputStream in = process.getInputStream();
-             final InputStreamReader inr = new InputStreamReader(in)) {
-            processOutput = CharStreams.toString(inr);
-        } catch (IOException e) {
-            throw new RuntimeException("Error reading corral output");
-        }
+        final Result queryResult;
 
         if (processOutput.contains("Program has no bugs")) {
-            return Result.NO;
+
+            queryResult = Result.NO_BUG;
+
+        } else if (processOutput.contains("True bug")) {
+
+            if (processOutput.contains(Query.Labels.QUERY.toString())) {
+
+                queryResult = Result.BUG_IN_QUERY;
+
+            } else if (processOutput.contains(Query.Labels.BROKEN_INVARIANT.toString())) {
+
+                queryResult = Result.BROKEN_INVARIANT;
+
+            } else if (processOutput.contains(Query.Labels.ALWAYS_THROWS.toString())) {
+
+                queryResult = Result.TRANSITION_MAY_NOT_THROW;
+
+            } else if (processOutput.contains(Query.Labels.NEVER_THROWS.toString())) {
+
+                queryResult = Result.TRANSITION_MAY_THROW;
+
+            } else if (processOutput.contains(Query.Labels.SOURCE_STATE_CALLS.toString())
+                    || processOutput.contains(Query.Labels.TARGET_STATE_CALLS.toString())) {
+
+                queryResult = Result.PRES_OR_INV_MAY_THROW;
+
+            } else {
+                throw new RuntimeException("Unrecognized bug class");
+            }
+        } else {
+            queryResult = Result.MAYBE_BUG;
         }
 
-        if (processOutput.contains("True bug")) {
-
-            if (processOutput.contains(Query.QUERY_ASSERTION_LABEL)) {
-                return Result.YES;
-            }
-
-            if (processOutput.contains(Query.APPLICATION_BUG_LABEL)) {
-                return Result.APPLICATION_BUG;
-            }
-
-            if (processOutput.contains(Query.UNHANDLED_EXCEPTION_LABEL)) {
-                return Result.UNHANDLED_EXCEPTION;
-            }
-        }
-
-        return Result.MAYBE;
+        return new RunnerResult(queryResult, Duration.between(start, end), processOutput);
     }
 
-    public long getLastRunTime() {
+    private String runtAndReturnOutput(final String lineToRun) {
 
-        return lastRunningTime;
+        final CommandLine commandLine = CommandLine.parse(lineToRun);
+
+        final DefaultExecutor executor = new DefaultExecutor();
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PumpStreamHandler streamHandler = new PumpStreamHandler(outputStream);
+
+        executor.setStreamHandler(streamHandler);
+
+        try {
+            final int exitValue = executor.execute(commandLine);
+
+            if (exitValue != 0) {
+                throw new RuntimeException("Error executing " + lineToRun + "\n " + outputStream.toString());
+            }
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        return outputStream.toString();
     }
 
     private boolean isWindows() {
 
         return System.getProperty("os.name").toLowerCase().contains("win");
+    }
+
+    public static class RunnerResult {
+
+        public final Result queryResult;
+
+        public final Duration runningTime;
+
+        public final String output;
+
+        private RunnerResult(final Result queryResult, final Duration runningTime, final String output) {
+
+            this.queryResult = queryResult;
+            this.runningTime = runningTime;
+            this.output = output;
+        }
     }
 }

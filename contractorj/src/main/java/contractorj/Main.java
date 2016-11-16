@@ -1,5 +1,7 @@
 package contractorj;
 
+import com.google.common.io.Files;
+import com.google.common.io.Resources;
 import contractorj.construction.LazyEpaGenerator;
 import contractorj.model.Epa;
 import contractorj.serialization.DotEpaSerializer;
@@ -16,7 +18,7 @@ import org.apache.commons.cli.ParseException;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
+import java.net.URL;
 import java.util.Optional;
 
 public class Main {
@@ -34,7 +36,8 @@ public class Main {
         parseArguments(args);
 
         final Translator translator = new Translator();
-        translator.translate(pathToClassPath);
+
+        translator.translate(pathToClassPath, getRtJarPath());
 
         final Optional<Class> classToMakeEpa = translator.getTranslatedClass(className);
 
@@ -98,6 +101,17 @@ public class Main {
         if (cmd.hasOption('t')) {
             numberOfThreads = Integer.valueOf(cmd.getOptionValue('t'));
         }
+    }
+
+
+    private static String getRtJarPath() throws IOException {
+
+        final URL url = Main.class.getResource("/java7-rt.jar");
+
+        final File outputFile = File.createTempFile("temporal-rt-jar", "rt.jar");
+        Resources.asByteSource(url).copyTo(Files.asByteSink(outputFile));
+
+        return outputFile.getAbsolutePath();
     }
 
 }

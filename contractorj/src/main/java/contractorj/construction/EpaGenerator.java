@@ -201,6 +201,11 @@ public abstract class EpaGenerator {
                 .orElse(Duration.ZERO);
     }
 
+    public Duration getAverageQueryingTimeByType(Query.Type type) {
+
+        return getQueryingTimeByType(type).dividedBy(getNumberOfQueriesByType(type));
+    }
+
     public Duration getQueryingTimeByTypeAndResult(Query.Type type, Result result) {
 
         return queryingTimes.getOrDefault(type, new HashMap<>())

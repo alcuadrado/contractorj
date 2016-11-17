@@ -61,9 +61,20 @@ public class Main {
         System.out.println("Time running queries: " + formatDuration(epaEpaGenerator.getTotalQueryingTime()));
         System.out.println("Total number of queries: " + epaEpaGenerator.getTotalNumerOfQueries());
 
+        System.out.println("Types of queries:");
         for (final Query.Type type : Query.Type.values()) {
-            System.out.println("Number of queries of type " + type + ": " +
-                    epaEpaGenerator.getNumberOfQueriesByType(type));
+
+            System.out.println("\t" + type);
+
+            System.out.println("\t\tNumber of queries: " + epaEpaGenerator.getNumberOfQueriesByType(type));
+
+            System.out.println("\t\tTime running queries: "
+                    + formatDuration(epaEpaGenerator.getQueryingTimeByType(type)));
+
+            System.out.println("\t\tAverage running time: "
+                    + formatDuration(epaEpaGenerator.getAverageQueryingTimeByType(type)));
+
+            System.out.println("");
         }
 
         final EpaSerializer epaSerializer = new DotEpaSerializer();

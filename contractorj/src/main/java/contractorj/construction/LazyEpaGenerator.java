@@ -10,6 +10,7 @@ import contractorj.model.Transition;
 import contractorj.util.CombinationsGenerator;
 import j2bpl.Class;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -130,34 +131,51 @@ public class LazyEpaGenerator extends EpaGenerator {
                             maybeEnabledActions
                     );
 
-                    final Query query = createTransitionQuery(state, action, targetState);
-                    return new TargetStateQueryFuture(
+                    final Query queryNotThrowing = createTransitionQuery(state, action, targetState, false);
+                    final Query queryThrowing = createTransitionQuery(state, action, targetState, true);
+
+                    return new TargetStateQueryFutures(
                             targetState,
-                            submitQuery(query)
+                            submitQuery(queryNotThrowing),
+                            submitQuery(queryThrowing)
                     );
                 })
-                .map(targetStateQueryFuture -> {
+                .flatMap(targetStateQueryFutures -> {
 
-                    final Result queryResult;
+                    final Result notThrowingResult;
+                    final Result throwingResult;
 
                     try {
-                        queryResult = targetStateQueryFuture.resultFuture.get();
+                        notThrowingResult = targetStateQueryFutures.futureResultWithoutThrowing.get();
+                        throwingResult = targetStateQueryFutures.futureResultThrowing.get();
                     } catch (InterruptedException | ExecutionException e) {
                         throw new RuntimeException(e);
                     }
 
-                    if (queryResult.isError()) {
-                        return null;
+                    final List<Transition> transitions = new ArrayList<>();
+
+                    if (!notThrowingResult.equals(Result.NO_BUG)) {
+                        transitions.add(new Transition(
+                                state,
+                                targetStateQueryFutures.targetState,
+                                action,
+                                !notThrowingResult.equals(Result.BUG_IN_QUERY),
+                                false
+                        ));
                     }
 
-                    return new Transition(
-                            state,
-                            targetStateQueryFuture.targetState,
-                            action,
-                            !queryResult.equals(Result.BUG_IN_QUERY),
-                            false);
+                    if (!throwingResult.equals(Result.NO_BUG)) {
+                        transitions.add(new Transition(
+                                state,
+                                targetStateQueryFutures.targetState,
+                                action,
+                                !throwingResult.equals(Result.BUG_IN_QUERY),
+                                true
+                        ));
+                    }
+
+                    return transitions.stream();
                 })
-                .filter(transition1 -> transition1 != null)
                 .collect(Collectors.toSet());
 
         for (final Transition enabledTransition : enabledTransitions) {
@@ -251,28 +269,32 @@ public class LazyEpaGenerator extends EpaGenerator {
         });
     }
 
-    private Query createTransitionQuery(final State source, final Action transition, final State target) {
+    private Query createTransitionQuery(final State source, final Action transition, final State target,
+                                        boolean throwException) {
+
+        if (throwException) {
+            return new Query(Query.Type.TRANSITION_QUERY, source, transition, target, invariant,
+                    Query.TransitionThrows.THROWS);
+        }
 
         return new Query(Query.Type.TRANSITION_QUERY, source, transition, target, invariant,
-                Query.TransitionThrows.NEVER_THROWS); //TODO: Fix TransitionThrows
+                Query.TransitionThrows.DOES_NOT_THROW);
     }
 
     private Query createNecessarilyEnabledQuery(final State state, final Action transition, final Action testedAction) {
 
         final State targetState = new State(Sets.newHashSet(testedAction), Sets.newHashSet());
 
-        //TODO: Fix TransitionThrows
         return new Query(Query.Type.NECESSARY_ENABLED_QUERY, state, transition, targetState, invariant,
-                Query.TransitionThrows.NEVER_THROWS);
+                Query.TransitionThrows.EXCEPTION_IGNORED);
     }
 
     private Query createNecessarilyDisabledQuery(final State state, final Action transition, Action testedAction) {
 
         final State targetState = new State(Sets.newHashSet(), Sets.newHashSet(testedAction));
 
-        //TODO: Fix TransitionThrows
         return new Query(Query.Type.NECESSARY_DISABLED_QUERY, state, transition, targetState, invariant,
-                Query.TransitionThrows.NEVER_THROWS);
+                Query.TransitionThrows.EXCEPTION_IGNORED);
     }
 
     private static class ActionStatus {
@@ -310,16 +332,20 @@ public class LazyEpaGenerator extends EpaGenerator {
         }
     }
 
-    private static class TargetStateQueryFuture {
+    private static class TargetStateQueryFutures {
 
         public final State targetState;
 
-        public final Future<Result> resultFuture;
+        public final Future<Result> futureResultWithoutThrowing;
 
-        private TargetStateQueryFuture(final State targetState, final Future<Result> resultFuture) {
+        private final Future<Result> futureResultThrowing;
+
+        private TargetStateQueryFutures(final State targetState, final Future<Result> futureResultWithoutThrowing,
+                                        final Future<Result> futureResultThrowing) {
 
             this.targetState = targetState;
-            this.resultFuture = resultFuture;
+            this.futureResultWithoutThrowing = futureResultWithoutThrowing;
+            this.futureResultThrowing = futureResultThrowing;
         }
     }
 

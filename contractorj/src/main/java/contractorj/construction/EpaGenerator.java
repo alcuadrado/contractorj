@@ -91,7 +91,7 @@ public abstract class EpaGenerator {
 
         String toPrint = corralRunner.getConsoleCommandToRun(absolutePathToBoogieSourceFile, query.getName());
 
-        if (result.isError()) {
+        if (result.equals(Result.BROKEN_INVARIANT)) {
             toPrint += result + "\n\n" + result.toString() + "\n\n" + runnerResult.output;
             System.exit(1);
         }
@@ -111,13 +111,6 @@ public abstract class EpaGenerator {
 
             case BROKEN_INVARIANT:
                 return ColorPrinter.Color.PURPLE;
-
-            case TRANSITION_MAY_NOT_THROW:
-            case TRANSITION_MAY_THROW:
-                return ColorPrinter.Color.CYAN;
-
-            case PRES_OR_INV_MAY_THROW:
-                return ColorPrinter.Color.RED;
         }
 
         return ColorPrinter.Color.WHITE;

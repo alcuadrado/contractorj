@@ -50,26 +50,13 @@ public class CorralRunner {
 
         } else if (processOutput.contains("True bug")) {
 
-            if (processOutput.contains(Query.Labels.QUERY.toString())) {
+            if (processOutput.contains(Query.AssertionLabels.QUERY.toString())) {
 
                 queryResult = Result.BUG_IN_QUERY;
 
-            } else if (processOutput.contains(Query.Labels.BROKEN_INVARIANT.toString())) {
+            } else if (processOutput.contains(Query.AssertionLabels.INVARIANT.toString())) {
 
                 queryResult = Result.BROKEN_INVARIANT;
-
-            } else if (processOutput.contains(Query.Labels.ALWAYS_THROWS.toString())) {
-
-                queryResult = Result.TRANSITION_MAY_NOT_THROW;
-
-            } else if (processOutput.contains(Query.Labels.NEVER_THROWS.toString())) {
-
-                queryResult = Result.TRANSITION_MAY_THROW;
-
-            } else if (processOutput.contains(Query.Labels.SOURCE_STATE_CALLS.toString())
-                    || processOutput.contains(Query.Labels.TARGET_STATE_CALLS.toString())) {
-
-                queryResult = Result.PRES_OR_INV_MAY_THROW;
 
             } else {
                 throw new RuntimeException("Unrecognized bug class");

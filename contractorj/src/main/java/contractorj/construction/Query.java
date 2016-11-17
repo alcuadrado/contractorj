@@ -16,13 +16,9 @@ import java.util.stream.Stream;
 
 public class Query {
 
-    public enum Labels {
+    public enum AssertionLabels {
         QUERY,
-        BROKEN_INVARIANT,
-        SOURCE_STATE_CALLS,
-        TARGET_STATE_CALLS,
-        NEVER_THROWS,
-        ALWAYS_THROWS,
+        INVARIANT
     }
 
     public enum Type {
@@ -32,10 +28,9 @@ public class Query {
     }
 
     public enum TransitionThrows {
-        NEVER_THROWS,
-        ALWAYS_THROWS,
         THROWS,
-        DOES_NOT_THROW
+        DOES_NOT_THROW,
+        EXCEPTION_IGNORED
     }
 
     private static final String TARGET_ARGS_SUFFIX = "After";
@@ -145,21 +140,6 @@ public class Query {
         return Joiner.on(joiner).join(names);
     }
 
-    public State getSource() {
-
-        return source;
-    }
-
-    public State getTarget() {
-
-        return target;
-    }
-
-    public Action getTransition() {
-
-        return transition;
-    }
-
     public String getBoogieCode() {
 
         final StringBuilder queryBody = new StringBuilder();
@@ -175,8 +155,7 @@ public class Query {
                 .append("\n")
                 .append("\n")
 
-                .append(Labels.SOURCE_STATE_CALLS).append(":\n")
-                .append(StringUtils.indent(getStateGuardCalls(source, ""))).append("\n")
+                .append(getStateGuardCalls(source, "")).append("\n")
                 .append("\n")
                 .append("\n");
 
@@ -194,12 +173,11 @@ public class Query {
                 .append("\n")
                 .append("\n")
 
-                .append(Labels.TARGET_STATE_CALLS).append(":\n")
-                .append(StringUtils.indent(getStateGuardCalls(target, TARGET_ARGS_SUFFIX))).append("\n")
+                .append(getStateGuardCalls(target, TARGET_ARGS_SUFFIX)).append("\n")
                 .append("\n")
                 .append("\n")
 
-                .append(Labels.BROKEN_INVARIANT).append(":\n")
+                .append(AssertionLabels.INVARIANT).append(":\n")
                 .append(StringUtils.indent("assert ")).append(invariantResultVariableName).append(";\n")
                 .append("\n")
                 .append("\n")
@@ -207,7 +185,8 @@ public class Query {
                 .append(getQueryAssertion()).append("\n");
 
         final StringBuilder query = new StringBuilder()
-                .append("procedure ").append(getName()).append("(").append(getQueryArgumentsDeclaration()).append(") {\n")
+                .append("procedure ").append(getName()).append("(").append(getQueryArgumentsDeclaration())
+                .append(") {\n")
                 .append("\n")
                 .append(StringUtils.indent(queryBody.toString())).append("\n")
                 .append("}");
@@ -219,7 +198,7 @@ public class Query {
 
         final StringBuilder assertion = new StringBuilder();
 
-        assertion.append(Labels.QUERY).append(":\n")
+        assertion.append(AssertionLabels.QUERY).append(":\n")
                 .append(StringUtils.indent("assert "));
 
         if (type.equals(Type.TRANSITION_QUERY)) {
@@ -326,22 +305,6 @@ public class Query {
         if (method.equals(transition.method)) {
 
             switch (transitionThrows) {
-                case NEVER_THROWS:
-                    stringBuilder
-                            .append("\n")
-                            .append("\n")
-                            .append(Labels.NEVER_THROWS).append(":\n")
-                            .append(StringUtils.indent("assert $Exception == null;"));
-                    break;
-
-                case ALWAYS_THROWS:
-                    stringBuilder
-                            .append("\n")
-                            .append("\n")
-                            .append(Labels.ALWAYS_THROWS).append(":\n")
-                            .append(StringUtils.indent("assert $Exception != null;"));
-                    break;
-
                 case DOES_NOT_THROW:
                     stringBuilder.append("assume $Exception == null;");
                     break;
@@ -350,10 +313,14 @@ public class Query {
                     stringBuilder.append("assume $Exception != null;\n")
                             .append("$Exception := null;");
                     break;
+
+                case EXCEPTION_IGNORED:
+                    stringBuilder.append("$Exception := null;");
+                    break;
             }
 
         } else {
-            stringBuilder.append("assert $Exception == null;");
+            stringBuilder.append("assume $Exception == null;");
         }
 
         return stringBuilder.toString();
@@ -443,9 +410,7 @@ public class Query {
             calls.add(getInvariantCall());
         }
 
-        for (final Action action : state.getAllActions()) {
-            calls.add(getCall(action, argumentNamesSuffix, true));
-        }
+        state.getAllActions().forEach(action -> calls.add(getCall(action, argumentNamesSuffix, true)));
 
         return Joiner.on("\n\n").join(calls);
     }

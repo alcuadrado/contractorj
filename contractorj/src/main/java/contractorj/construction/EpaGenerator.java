@@ -130,7 +130,7 @@ public abstract class EpaGenerator {
         if (file == null) {
 
             try {
-                file = File.createTempFile("epa-" + Thread.currentThread().getName(), ".bpl");
+                file = File.createTempFile("epa-" + Thread.currentThread().getName() + "-", ".bpl");
                 appendToFile(file, baseTranslation);
                 boogieFile.set(file);
             } catch (IOException e) {

@@ -136,8 +136,6 @@ public abstract class EpaGenerator {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-
-            System.out.println(file.getAbsolutePath());
         }
 
         appendToFile(file, boogieCode);

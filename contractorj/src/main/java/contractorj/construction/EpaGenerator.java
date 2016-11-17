@@ -96,7 +96,7 @@ public abstract class EpaGenerator {
             System.exit(1);
         }
 
-        ColorPrinter.printInColor("\n" + toPrint, getResultColor(result));
+        ColorPrinter.printInColor(toPrint + "\n", getResultColor(result));
     }
 
     private ColorPrinter.Color getResultColor(Result result) {

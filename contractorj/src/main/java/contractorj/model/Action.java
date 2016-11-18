@@ -22,7 +22,7 @@ public class Action {
     @Override
     public String toString() {
 
-        return method.getJavaName();
+        return method.getJavaNameWithArgumentTypes();
     }
 
     @Override

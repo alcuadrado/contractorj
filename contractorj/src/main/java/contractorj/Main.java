@@ -9,6 +9,7 @@ import contractorj.construction.corral.CorralRunner;
 import contractorj.model.Epa;
 import contractorj.serialization.DotEpaSerializer;
 import contractorj.serialization.EpaSerializer;
+import contractorj.serialization.XmlEpaSerializer;
 import j2bpl.Class;
 import j2bpl.Translator;
 import org.apache.commons.cli.CommandLine;
@@ -31,7 +32,9 @@ public class Main {
 
     private static String className;
 
-    private static File outputFile;
+    private static File dotOutputFile;
+
+    private static File xmlOutputFile;
 
     private static int numberOfThreads = Runtime.getRuntime().availableProcessors();
 
@@ -77,8 +80,11 @@ public class Main {
             System.out.println("");
         }
 
-        final EpaSerializer epaSerializer = new DotEpaSerializer();
-        epaSerializer.serializeToFile(epa, outputFile);
+        final DotEpaSerializer dotEpaSerializer = new DotEpaSerializer();
+        final XmlEpaSerializer xmlEpaSerializer = new XmlEpaSerializer();
+
+        dotEpaSerializer.serializeToFile(epa, dotOutputFile);
+        xmlEpaSerializer.serializeToFile(epa, xmlOutputFile);
     }
 
     private static void parseArguments(final String[] args) {
@@ -97,6 +103,10 @@ public class Main {
         Option dotPathOption = new Option("d", "dot", true, "The path to the dot output");
         dotPathOption.setRequired(true);
         options.addOption(dotPathOption);
+
+        Option xmlPathOption = new Option("x", "xml", true, "The path to the xml output");
+        xmlPathOption.setRequired(true);
+        options.addOption(xmlPathOption);
 
         Option threadsOption = new Option("t", "threads", true,
                 "The number of threads to use (default: the number of cores)");
@@ -120,7 +130,8 @@ public class Main {
 
         pathToClassPath = cmd.getOptionValue("cp");
         className = cmd.getOptionValue("c");
-        outputFile = new File(cmd.getOptionValue("d"));
+        dotOutputFile = new File(cmd.getOptionValue("d"));
+        xmlOutputFile = new File(cmd.getOptionValue("x"));
 
         if (cmd.hasOption('t')) {
             numberOfThreads = Integer.valueOf(cmd.getOptionValue('t'));

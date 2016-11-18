@@ -24,8 +24,9 @@ gradle-app.setting
 # Corral output
 corral_out*
 
-# dot output
+# output
 *.dot
+*.xml
 *.png
 
 # Temporal files

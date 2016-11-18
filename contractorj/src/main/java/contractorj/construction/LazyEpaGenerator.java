@@ -42,7 +42,6 @@ public class LazyEpaGenerator extends EpaGenerator {
     @Override
     protected Epa generateEpaImplementation(final Class theClass) {
 
-        epa = new Epa(theClass.getQualifiedJavaName());
 
         driverExecutorService = Executors.newCachedThreadPool();
         queriesExecutorService = Executors.newFixedThreadPool(numberOfThreads);
@@ -51,6 +50,8 @@ public class LazyEpaGenerator extends EpaGenerator {
         phaser.register();
 
         final State initialState = new State(constructors, Sets.newHashSet());
+
+        epa = new Epa(theClass.getQualifiedJavaName(), initialState);
 
         enqueueStateIfNecessary(initialState);
 

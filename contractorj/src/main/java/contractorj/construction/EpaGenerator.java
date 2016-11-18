@@ -91,8 +91,9 @@ public abstract class EpaGenerator {
 
         String toPrint = corralRunner.getConsoleCommandToRun(absolutePathToBoogieSourceFile, query.getName());
 
-        if (result.equals(Result.BROKEN_INVARIANT)) {
-            toPrint += result + "\n\n" + result.toString() + "\n\n" + runnerResult.output;
+        if (query.getTransitionThrows().equals(Query.TransitionThrows.DOES_NOT_THROW) &&
+                result.equals(Result.BROKEN_INVARIANT)) {
+            toPrint += "\n\n" + result.toString() + "\n\n" + runnerResult.output;
         }
 
         ColorPrinter.printInColor(toPrint + "\n", getResultColor(result));

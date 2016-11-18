@@ -138,24 +138,32 @@ public class LazyEpaGenerator extends EpaGenerator {
                             maybeEnabledActions
                     );
 
-                    final Query queryNotThrowing = createTransitionQuery(state, action, targetState, false);
-                    final Query queryThrowing = createTransitionQuery(state, action, targetState, true);
+                    final Query queryNotThrowing = createTransitionQuery(state, action, targetState, false, false);
+                    final Query queryThrowingPreservingInvariant = createTransitionQuery(state, action, targetState,
+                            true, true);
+                    final Query queryThrowingNotPreservingInvariant = createTransitionQuery(state, action, targetState,
+                            true, false);
 
                     return new TargetStateQueryFutures(
                             action,
                             targetState,
                             submitQuery(queryNotThrowing),
-                            submitQuery(queryThrowing)
+                            submitQuery(queryThrowingPreservingInvariant),
+                            submitQuery(queryThrowingNotPreservingInvariant)
                     );
                 })
                 .flatMap(targetStateQueryFutures -> {
 
                     final Result notThrowingResult;
-                    final Result throwingResult;
+                    final Result throwingPreservingInvariantResult;
+                    final Result throwingNotPreservingInvariantResult;
 
                     try {
                         notThrowingResult = targetStateQueryFutures.futureResultWithoutThrowing.get();
-                        throwingResult = targetStateQueryFutures.futureResultThrowing.get();
+                        throwingPreservingInvariantResult = targetStateQueryFutures.
+                                futureResultThrowingPreservingInvariant.get();
+                        throwingNotPreservingInvariantResult = targetStateQueryFutures.
+                                futureResultThrowingNotPreservingInvariant.get();
                     } catch (InterruptedException | ExecutionException e) {
                         throw new RuntimeException(e);
                     }
@@ -178,22 +186,33 @@ public class LazyEpaGenerator extends EpaGenerator {
                         ));
                     }
 
-                    if (throwingResult.equals(Result.BUG_IN_QUERY) || throwingResult.equals(Result.MAYBE_BUG)) {
-                        transitions.add(new Transition(
-                                state,
-                                targetStateQueryFutures.targetState,
-                                action,
-                                !throwingResult.equals(Result.BUG_IN_QUERY),
-                                true
-                        ));
-                    }
-
-                    if (throwingResult.equals(Result.BROKEN_INVARIANT)) {
+                    if (throwingNotPreservingInvariantResult.equals(Result.BROKEN_INVARIANT)) {
                         transitions.add(new Transition(
                                 state,
                                 new State(Sets.newHashSet(), Sets.newHashSet()),
                                 action,
                                 false,
+                                true
+                        ));
+                    }
+
+                    if (throwingNotPreservingInvariantResult.equals(Result.MAYBE_BUG)) {
+                        transitions.add(new Transition(
+                                state,
+                                new State(Sets.newHashSet(), Sets.newHashSet()),
+                                action,
+                                true,
+                                true
+                        ));
+                    }
+
+                    if (throwingPreservingInvariantResult.equals(Result.BUG_IN_QUERY)
+                            || throwingPreservingInvariantResult.equals(Result.MAYBE_BUG)) {
+                        transitions.add(new Transition(
+                                state,
+                                targetStateQueryFutures.targetState,
+                                action,
+                                !throwingPreservingInvariantResult.equals(Result.BUG_IN_QUERY),
                                 true
                         ));
                     }
@@ -302,15 +321,15 @@ public class LazyEpaGenerator extends EpaGenerator {
     }
 
     private Query createTransitionQuery(final State source, final Action transition, final State target,
-                                        boolean throwException) {
+                                        boolean throwException, boolean assumeInvariant) {
 
         if (throwException) {
             return new Query(Query.Type.TRANSITION_QUERY, source, transition, target, invariant,
-                    Query.TransitionThrows.THROWS);
+                    Query.TransitionThrows.THROWS, assumeInvariant);
         }
 
         return new Query(Query.Type.TRANSITION_QUERY, source, transition, target, invariant,
-                Query.TransitionThrows.DOES_NOT_THROW);
+                Query.TransitionThrows.DOES_NOT_THROW, assumeInvariant);
     }
 
     private Query createNecessarilyEnabledQuery(final State state, final Action transition, final Action testedAction) {
@@ -318,7 +337,7 @@ public class LazyEpaGenerator extends EpaGenerator {
         final State targetState = new State(Sets.newHashSet(testedAction), Sets.newHashSet());
 
         return new Query(Query.Type.NECESSARY_ENABLED_QUERY, state, transition, targetState, invariant,
-                Query.TransitionThrows.EXCEPTION_IGNORED);
+                Query.TransitionThrows.EXCEPTION_IGNORED, false);
     }
 
     private Query createNecessarilyDisabledQuery(final State state, final Action transition, Action testedAction) {
@@ -326,7 +345,7 @@ public class LazyEpaGenerator extends EpaGenerator {
         final State targetState = new State(Sets.newHashSet(), Sets.newHashSet(testedAction));
 
         return new Query(Query.Type.NECESSARY_DISABLED_QUERY, state, transition, targetState, invariant,
-                Query.TransitionThrows.EXCEPTION_IGNORED);
+                Query.TransitionThrows.EXCEPTION_IGNORED, false);
     }
 
     private static class ActionStatus {
@@ -372,17 +391,21 @@ public class LazyEpaGenerator extends EpaGenerator {
 
         public final Future<Result> futureResultWithoutThrowing;
 
-        private final Future<Result> futureResultThrowing;
+        public final Future<Result> futureResultThrowingPreservingInvariant;
+
+        public final Future<Result> futureResultThrowingNotPreservingInvariant;
 
         private TargetStateQueryFutures(final Action transition,
                                         final State targetState,
                                         final Future<Result> futureResultWithoutThrowing,
-                                        final Future<Result> futureResultThrowing) {
+                                        final Future<Result> futureResultThrowingPreservingInvariant,
+                                        final Future<Result> futureResultThrowingNotPreservingInvariant) {
 
             this.transition = transition;
             this.targetState = targetState;
             this.futureResultWithoutThrowing = futureResultWithoutThrowing;
-            this.futureResultThrowing = futureResultThrowing;
+            this.futureResultThrowingPreservingInvariant = futureResultThrowingPreservingInvariant;
+            this.futureResultThrowingNotPreservingInvariant = futureResultThrowingNotPreservingInvariant;
         }
     }
 

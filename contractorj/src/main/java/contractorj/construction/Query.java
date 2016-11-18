@@ -47,12 +47,15 @@ public class Query {
 
     private final TransitionThrows transitionThrows;
 
+    private final boolean assumeInvariant;
+
     public Query(Type type,
                  State source,
                  Action transition,
                  State target,
                  Method invariant,
-                 TransitionThrows transitionThrows) {
+                 TransitionThrows transitionThrows,
+                 final boolean assumeInvariant) {
 
         this.source = source;
         this.transition = transition;
@@ -60,6 +63,7 @@ public class Query {
         this.invariant = invariant;
         this.type = type;
         this.transitionThrows = transitionThrows;
+        this.assumeInvariant = assumeInvariant;
 
         if (!source.enabledActions.contains(transition)) {
             throw new IllegalArgumentException("Invalid query: transition must be in source's enabled actions.");
@@ -91,8 +95,6 @@ public class Query {
             name.append(partsSeparator)
                     .append("checking")
                     .append(partsSeparator);
-
-
 
             final Action checkingAction;
 
@@ -177,12 +179,25 @@ public class Query {
                 .append("\n")
                 .append("\n")
 
-                .append(AssertionLabels.INVARIANT).append(":\n")
-                .append(StringUtils.indent("assert ")).append(invariantResultVariableName).append(";\n")
-                .append("\n")
-                .append("\n")
+                .append(AssertionLabels.INVARIANT).append(":\n");
 
-                .append(getQueryAssertion()).append("\n");
+        if (assumeInvariant) {
+            queryBody.append(StringUtils.indent("assume "));
+        } else {
+            queryBody.append(StringUtils.indent("assert "));
+        }
+
+        queryBody.append(invariantResultVariableName).append(";\n")
+                .append("\n")
+                .append("\n");
+
+        // This is an optimization. If we are throwing an exception and not assuming the invariant, we only care about
+        // the invariant's assert, so we omit this one.
+        // TODO: No, this is not an optimization, we use it in LazyEpaGenerator's
+        //      {@code throwingNotPreservingInvariantResult.equals(Result.MAYBE_BUG)}
+        if (assumeInvariant || !transitionThrows.equals(TransitionThrows.THROWS)) {
+            queryBody.append(getQueryAssertion()).append("\n");
+        }
 
         final StringBuilder query = new StringBuilder()
                 .append("procedure ").append(getName()).append("(").append(getQueryArgumentsDeclaration())
@@ -247,6 +262,11 @@ public class Query {
                 .forEach(variables::add);
 
         return variables;
+    }
+
+    public TransitionThrows getTransitionThrows() {
+
+        return transitionThrows;
     }
 
     private Optional<Variable> getVariableForMethodResult(Method method) {

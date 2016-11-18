@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class DotEpaSerializer implements EpaSerializer {
@@ -71,6 +72,9 @@ public class DotEpaSerializer implements EpaSerializer {
 
                 final List<String> methodNames = startingInFrom.get(to);
 
+                final Set<String> dedupedNames = new HashSet<>();
+                dedupedNames.addAll(methodNames);
+
                 final String color = getDarkishColor();
 
                 stringBuilder.append("\t")
@@ -78,7 +82,7 @@ public class DotEpaSerializer implements EpaSerializer {
                         .append(" -> ")
                         .append(getStateNode(to))
                         .append("[label=\"")
-                        .append(Joiner.on("\\n").join(methodNames))
+                        .append(Joiner.on("\\n").join(dedupedNames))
                         .append("\",color=\"")
                         .append(color)
                         .append("\",fontcolor=\"")
@@ -107,12 +111,12 @@ public class DotEpaSerializer implements EpaSerializer {
     private String getStateDotName(State state) {
 
         if (state.enabledActions.isEmpty()) {
-            return "EMPTY";
+            return "ERROR";
         }
 
-        final List<String> names = state.enabledActions.stream()
+        final Set<String> names = state.enabledActions.stream()
                 .map(action -> action.method.getJavaNameWithArgumentTypes())
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
 
         return Joiner.on("\\n").join(names);
     }

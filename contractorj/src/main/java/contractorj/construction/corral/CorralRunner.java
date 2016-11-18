@@ -87,7 +87,7 @@ public class CorralRunner {
             }
 
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error executing " + lineToRun + "\n " + outputStream.toString());
         }
 
         return outputStream.toString();

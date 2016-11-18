@@ -76,8 +76,15 @@ public class LazyEpaGenerator extends EpaGenerator {
 
             driverExecutorService.submit(() -> {
 
-                analiseStateAndAction(state, transition);
-                phaser.arrive();
+                try {
+                    analiseStateAndAction(state, transition);
+                } catch (Exception exception) {
+                    System.err.println("Unhandled exception on thread " + Thread.currentThread().getName() + ":"
+                            + exception.getMessage());
+                    exception.printStackTrace();
+                } finally {
+                    phaser.arrive();
+                }
 
             });
 
@@ -201,8 +208,15 @@ public class LazyEpaGenerator extends EpaGenerator {
 
         driverExecutorService.submit(() -> {
 
-            analiseState(state);
-            phaser.arrive();
+            try {
+                analiseState(state);
+            } catch (Exception exception) {
+                System.err.println("Unhandled exception on thread " + Thread.currentThread().getName() + ":"
+                        + exception.getMessage());
+                exception.printStackTrace();
+            } finally {
+                phaser.arrive();
+            }
 
         });
     }
@@ -262,10 +276,11 @@ public class LazyEpaGenerator extends EpaGenerator {
         phaser.register();
         return queriesExecutorService.submit(() -> {
 
-            final Result result = runQuery(query);
-
-            phaser.arrive();
-            return result;
+            try {
+                return runQuery(query);
+            } finally {
+                phaser.arrive();
+            }
         });
     }
 

@@ -142,6 +142,7 @@ public class LazyEpaGenerator extends EpaGenerator {
                     final Query queryThrowing = createTransitionQuery(state, action, targetState, true);
 
                     return new TargetStateQueryFutures(
+                            action,
                             targetState,
                             submitQuery(queryNotThrowing),
                             submitQuery(queryThrowing)
@@ -161,6 +162,12 @@ public class LazyEpaGenerator extends EpaGenerator {
 
                     final List<Transition> transitions = new ArrayList<>();
 
+                    if (notThrowingResult.equals(Result.BROKEN_INVARIANT)) {
+                        System.out.println("Application bug: calling method " + targetStateQueryFutures.transition
+                                + " from state " + state + " breaks the invariant");
+                        System.exit(1);
+                    }
+
                     if (!notThrowingResult.equals(Result.NO_BUG)) {
                         transitions.add(new Transition(
                                 state,
@@ -171,12 +178,22 @@ public class LazyEpaGenerator extends EpaGenerator {
                         ));
                     }
 
-                    if (!throwingResult.equals(Result.NO_BUG)) {
+                    if (throwingResult.equals(Result.BUG_IN_QUERY) || throwingResult.equals(Result.MAYBE_BUG)) {
                         transitions.add(new Transition(
                                 state,
                                 targetStateQueryFutures.targetState,
                                 action,
                                 !throwingResult.equals(Result.BUG_IN_QUERY),
+                                true
+                        ));
+                    }
+
+                    if (throwingResult.equals(Result.BROKEN_INVARIANT)) {
+                        transitions.add(new Transition(
+                                state,
+                                new State(Sets.newHashSet(), Sets.newHashSet()),
+                                action,
+                                false,
                                 true
                         ));
                     }
@@ -349,15 +366,20 @@ public class LazyEpaGenerator extends EpaGenerator {
 
     private static class TargetStateQueryFutures {
 
+        public final Action transition;
+
         public final State targetState;
 
         public final Future<Result> futureResultWithoutThrowing;
 
         private final Future<Result> futureResultThrowing;
 
-        private TargetStateQueryFutures(final State targetState, final Future<Result> futureResultWithoutThrowing,
+        private TargetStateQueryFutures(final Action transition,
+                                        final State targetState,
+                                        final Future<Result> futureResultWithoutThrowing,
                                         final Future<Result> futureResultThrowing) {
 
+            this.transition = transition;
             this.targetState = targetState;
             this.futureResultWithoutThrowing = futureResultWithoutThrowing;
             this.futureResultThrowing = futureResultThrowing;

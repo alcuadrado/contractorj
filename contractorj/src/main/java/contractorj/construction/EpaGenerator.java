@@ -93,7 +93,6 @@ public abstract class EpaGenerator {
 
         if (result.equals(Result.BROKEN_INVARIANT)) {
             toPrint += result + "\n\n" + result.toString() + "\n\n" + runnerResult.output;
-            System.exit(1);
         }
 
         ColorPrinter.printInColor(toPrint + "\n", getResultColor(result));

@@ -139,10 +139,14 @@ public class UnitTranslator extends AbstractStmtSwitch {
             return;
         }
 
-        if (type == BooleanType.v() && value instanceof IntConstant) {
+        if (type == BooleanType.v()) {
 
-            final boolean booleanValue = ((IntConstant) value).value != 0;
-            translation.add("assume Union2Bool(Bool2Union(" + booleanValue + ")) == " + booleanValue + ";");
+            if (value instanceof IntConstant) {
+                final boolean booleanValue = ((IntConstant) value).value != 0;
+                translatedValue = String.valueOf(booleanValue);
+            }
+
+            translation.add("assume Union2Bool(Bool2Union(" + translatedValue + ")) == " + translatedValue + ";");
             return;
         }
 
@@ -162,11 +166,15 @@ public class UnitTranslator extends AbstractStmtSwitch {
             return "Int2Union(" + translatedValue + ")";
         }
 
-        if (type == BooleanType.v() && value instanceof IntConstant) {
+        if (type == BooleanType.v()) {
 
-            final boolean booleanValue = ((IntConstant) value).value != 0;
+            if (value instanceof IntConstant) {
 
-            return "Bool2Union(" + (booleanValue ? "true" : "false") + ")";
+                final boolean booleanValue = ((IntConstant) value).value != 0;
+                translatedValue = String.valueOf(booleanValue);
+            }
+
+            return "Bool2Union(" + translatedValue + ")";
         }
 
         if (translateType.equals("Ref")) {

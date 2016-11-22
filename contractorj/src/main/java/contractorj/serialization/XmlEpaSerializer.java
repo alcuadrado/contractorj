@@ -131,9 +131,13 @@ public class XmlEpaSerializer implements EpaSerializer {
 
     private String getStateName(State state) {
 
+        if (state.equals(State.ERROR)) {
+            return "ERROR";
+        }
+
         return state.enabledActions.stream()
                 .map(action -> action.method.getJavaNameWithArgumentTypes())
                 .reduce((s1, s2) -> s1 + "$" + s2)
-                .orElse("ERROR");
+                .orElse("");
     }
 }

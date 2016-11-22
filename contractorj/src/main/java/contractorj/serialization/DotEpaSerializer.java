@@ -6,15 +6,14 @@ import com.google.common.collect.Sets;
 import contractorj.model.Epa;
 import contractorj.model.State;
 import contractorj.model.Transition;
-import j2bpl.Method;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -24,17 +23,12 @@ public class DotEpaSerializer implements EpaSerializer {
     @Override
     public String serialize(final Epa epa) {
 
-        final HashSet<State> usedStates = new HashSet<>();
-
         final Map<State, Map<State, List<String>>> collapsedEdges = new HashMap<>();
 
         for (Transition transition : epa.getTransitions()) {
 
             final State from = transition.source;
             final State to = transition.target;
-
-            usedStates.add(from);
-            usedStates.add(to);
 
             if (!collapsedEdges.containsKey(from)) {
                 collapsedEdges.put(from, new HashMap<>());
@@ -58,14 +52,10 @@ public class DotEpaSerializer implements EpaSerializer {
                 .append("\tlabelloc=top;\n")
                 .append("\tlabeljust=center;\n");
 
-        for (State usedState : usedStates) {
+        for (State state : getSortedStates(epa)) {
             stringBuilder.append("\t")
-                    .append(getStateNode(usedState))
-                    .append("[label=\"")
-                    .append(getStateDotName(usedState))
-                    .append("\",style=filled,color=\"")
-                    .append(getLightColor())
-                    .append("\"];\n");
+                    .append(getStateDeclaration(epa, state))
+                    .append("\n");
         }
 
         for (State from : collapsedEdges.keySet()) {
@@ -102,6 +92,40 @@ public class DotEpaSerializer implements EpaSerializer {
         return stringBuilder.toString();
     }
 
+    private String getStateDeclaration(final Epa epa, final State state) {
+
+        return getStateNode(state)
+                + "["
+                + "label=\"" + getStateDotName(state) + "\","
+                + "style=filled," +
+                "color=\"" + (state.equals(State.ERROR) ? getErrorColor() : getLightColor()) + "\"" +
+                (state.equals(epa.getInitialState()) ? ",peripheries=2" : "") +
+                "]";
+
+    }
+
+    private List<State> getSortedStates(Epa epa) {
+
+        final ArrayList<State> states = new ArrayList<>();
+
+        final Queue<State> statesToVisit = new LinkedList<>();
+        statesToVisit.add(epa.getInitialState());
+
+        while (!statesToVisit.isEmpty()) {
+
+            final State state = statesToVisit.remove();
+            states.add(state);
+
+            epa.getTransitionsWithSource(state).stream()
+                    .map(transition -> transition.target)
+                    .filter(targetState -> !statesToVisit.contains(targetState))
+                    .filter(targetState -> !states.contains(targetState))
+                    .forEach(statesToVisit::add);
+        }
+
+        return states;
+    }
+
     private String getStateNode(final State state) {
 
         return "n" + Math.abs(state.hashCode());
@@ -116,7 +140,7 @@ public class DotEpaSerializer implements EpaSerializer {
 
     private String getStateDotName(State state) {
 
-        if (state.enabledActions.isEmpty()) {
+        if (state.equals(State.ERROR)) {
             return "ERROR";
         }
 
@@ -135,6 +159,10 @@ public class DotEpaSerializer implements EpaSerializer {
     private String getDarkishColor() {
 
         return getColor(64, 180);
+    }
+
+    private String getErrorColor() {
+        return "#db3d4d";
     }
 
     private String getColor(int minValue, int maxValue) {

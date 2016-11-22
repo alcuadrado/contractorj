@@ -3,6 +3,7 @@ package contractorj.model;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Sets;
 
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -13,6 +14,8 @@ public class State {
     public final Set<Action> disabledActions;
 
     private boolean isConstructorsState = false;
+
+    public static State ERROR = new State(new HashSet<>(), new HashSet<>());
 
     public State(Set<Action> enabledActions, Set<Action> disabledActions) {
         this.enabledActions = enabledActions;

@@ -14,11 +14,6 @@ import java.util.stream.Collectors;
 
 public abstract class Query {
 
-    public enum AssertionLabels {
-        QUERY,
-        INVARIANT
-    }
-
     protected static final String AFTER_TRANSITION_ARGS_SUFFIX = "After";
 
     protected static final String NAME_PART_SEPARATOR = "_________";
@@ -71,7 +66,7 @@ public abstract class Query {
         return state.enabledActions.stream()
                 .map(action -> action.method.getJavaNameWithArgumentTypes())
                 .reduce((s1, s2) -> s1 + joiner + s2)
-                .orElse("ERROR");
+                .orElse("EMPTY");
     }
 
     public String getBoogieCode() {
@@ -99,7 +94,7 @@ public abstract class Query {
                 .append("\n");
 
         if (!source.isConstructorsState()) {
-            queryBody.append(getInvariantAssumption()).append(";\n");
+            queryBody.append(getInvariantAssumption()).append("\n");
         }
 
         queryBody

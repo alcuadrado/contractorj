@@ -1,11 +1,15 @@
 package contractorj.serialization;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import contractorj.model.Epa;
 import contractorj.model.State;
 import contractorj.model.Transition;
 import j2bpl.Method;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -70,10 +74,12 @@ public class DotEpaSerializer implements EpaSerializer {
 
             for (State to : startingInFrom.keySet()) {
 
-                final List<String> methodNames = startingInFrom.get(to);
-
-                final Set<String> dedupedNames = new HashSet<>();
-                dedupedNames.addAll(methodNames);
+                final List<String> methodNames = Lists.newArrayList(
+                        Sets.newHashSet(
+                                startingInFrom.get(to).iterator()
+                        ).iterator()
+                );
+                Collections.sort(methodNames);
 
                 final String color = getDarkishColor();
 
@@ -82,7 +88,7 @@ public class DotEpaSerializer implements EpaSerializer {
                         .append(" -> ")
                         .append(getStateNode(to))
                         .append("[label=\"")
-                        .append(Joiner.on("\\n").join(dedupedNames))
+                        .append(Joiner.on("\\n").join(methodNames))
                         .append("\",color=\"")
                         .append(color)
                         .append("\",fontcolor=\"")
@@ -103,9 +109,9 @@ public class DotEpaSerializer implements EpaSerializer {
 
     private String getTransitionName(final Transition transition) {
 
-        final Method transitionMethod = transition.transition.method;
-        return transitionMethod.getJavaNameWithArgumentTypes()
-                + (transition.isUncertain ? "?" : "") + (transition.isThrowing ? "\u26A1" : "");
+        return (transition.isThrowing ? "\u26A1" : "")
+                + transition.transition.method.getJavaNameWithArgumentTypes()
+                + (transition.isUncertain ? "?" : "");
     }
 
     private String getStateDotName(State state) {

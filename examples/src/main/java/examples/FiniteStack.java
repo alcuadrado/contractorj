@@ -33,12 +33,21 @@ public class FiniteStack {
 
     public void Push()
     {
+        final int originalNext = Next;
 
+        // Throw without breaking the invariant
         if (Next == 5) {
             throw new RuntimeException();
         }
 
-        Next = Next + 1;
+        Next = Max + 1;
+
+        // Throw breaking the invariant during an temporal internal state
+        if (originalNext == 6) {
+            throw new RuntimeException();
+        }
+
+        Next = originalNext + 1;
     }
 
     public boolean inv() {

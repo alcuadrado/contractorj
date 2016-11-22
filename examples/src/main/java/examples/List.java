@@ -4,6 +4,10 @@ public class List {
 
     private int size = 0;
 
+    public static boolean List_pre() {
+        return true;
+    }
+
     public boolean inv() {
         return size >= 0;
     }

@@ -5,11 +5,11 @@ import contractorj.construction.corral.CorralRunner;
 import contractorj.construction.corral.QueryResult;
 import contractorj.construction.corral.RunnerResult;
 import contractorj.construction.queries.Answer;
+import contractorj.construction.queries.Query;
 import contractorj.construction.queries.invariant.ExceptionBreaksInvariantQuery;
 import contractorj.construction.queries.necessary_actions.NecessarilyDisabledActionQuery;
 import contractorj.construction.queries.necessary_actions.NecessarilyEnabledActionQuery;
 import contractorj.construction.queries.transition.NotThrowingTransitionQuery;
-import contractorj.construction.queries.Query;
 import contractorj.construction.queries.transition.ThrowingTransitionQuery;
 import contractorj.model.Action;
 import contractorj.model.Epa;
@@ -105,21 +105,21 @@ public class LazyEpaGenerator extends EpaGenerator {
 
         final Future<Answer> exceptionBreaksInvariantFuture = runExceptionBreaksInvariantQuery(state, action);
 
-        final Set<ActionStatus> actionStatuses = getActionStatuses(
+        final Set<NecessaryActionStatus> necessaryActionStatuses = getActionStatuses(
                 state,
                 action
         );
 
-        ensureConsistentActionStatuses(state, action, actionStatuses);
+        ensureConsistentActionStatuses(state, action, necessaryActionStatuses);
 
-        final Set<Action> necessarilyEnabledActions = actionStatuses.stream()
-                .filter(actionStatus -> actionStatus.necessarilyEnabled.equals(Answer.YES))
-                .map(actionStatus -> actionStatus.action)
+        final Set<Action> necessarilyEnabledActions = necessaryActionStatuses.stream()
+                .filter(necessaryActionStatus -> necessaryActionStatus.necessarilyEnabled.equals(Answer.YES))
+                .map(necessaryActionStatus -> necessaryActionStatus.action)
                 .collect(Collectors.toSet());
 
-        final Set<Action> necessarilyDisabledActions = actionStatuses.stream()
-                .filter(actionStatus -> actionStatus.necessarilyDisabled.equals(Answer.YES))
-                .map(actionStatus -> actionStatus.action)
+        final Set<Action> necessarilyDisabledActions = necessaryActionStatuses.stream()
+                .filter(necessaryActionStatus -> necessaryActionStatus.necessarilyDisabled.equals(Answer.YES))
+                .map(necessaryActionStatus -> necessaryActionStatus.action)
                 .collect(Collectors.toSet());
 
         final Set<Transition> enabledTransitions = getTransitionsFromStateWithAction(
@@ -169,12 +169,12 @@ public class LazyEpaGenerator extends EpaGenerator {
 
     private void ensureConsistentActionStatuses(final State state,
                                                 final Action transition,
-                                                final Set<ActionStatus> actionsStatus) {
+                                                final Set<NecessaryActionStatus> actionsStatus) {
 
         final List<Action> conflictingActions = actionsStatus.stream()
-                .filter(actionStatus -> actionStatus.necessarilyDisabled.equals(Answer.YES)
-                        && actionStatus.necessarilyEnabled.equals(Answer.YES))
-                .map(actionStatus -> actionStatus.action)
+                .filter(necessaryActionStatus -> necessaryActionStatus.necessarilyDisabled.equals(Answer.YES)
+                        && necessaryActionStatus.necessarilyEnabled.equals(Answer.YES))
+                .map(necessaryActionStatus -> necessaryActionStatus.action)
                 .collect(Collectors.toList());
 
         if (!conflictingActions.isEmpty()) {
@@ -318,38 +318,15 @@ public class LazyEpaGenerator extends EpaGenerator {
         return new State(enabledActions, disabledActions);
     }
 
-    private Set<ActionStatus> getActionStatuses(final State state, final Action transition) {
+    private Set<NecessaryActionStatus> getActionStatuses(final State state, final Action transition) {
 
         return actions.stream()
-                .map(action -> {
-
-                    final Query enabledQuery = new NecessarilyEnabledActionQuery(state, transition, action, invariant);
-                    final Future<Answer> enabledFuture = submitQuery(enabledQuery);
-
-                    final Query disabledQuery = new NecessarilyDisabledActionQuery(state, transition, action,
-                            invariant);
-                    final Future<Answer> disabledFuture = submitQuery(disabledQuery);
-
-                    return new ActionStatusFuture(action, enabledFuture, disabledFuture);
-                })
-                .map(actionStatusFuture -> {
-
-                    final Answer enabled;
-                    final Answer disabled;
-
-                    try {
-                        enabled = actionStatusFuture.enabledFutureResult.get();
-                        disabled = actionStatusFuture.disabledFutureResult.get();
-                    } catch (InterruptedException | ExecutionException e) {
-                        throw new RuntimeException(e);
-                    }
-
-                    return new ActionStatus(
-                            actionStatusFuture.action,
-                            enabled,
-                            disabled
-                    );
-                })
+                .map(action -> new NecessaryActionFuture(
+                        action,
+                        new NecessarilyEnabledActionQuery(state, transition, action, invariant),
+                        new NecessarilyDisabledActionQuery(state, transition, action, invariant)
+                ))
+                .map(NecessaryActionFuture::get)
                 .collect(Collectors.toSet());
     }
 
@@ -369,7 +346,40 @@ public class LazyEpaGenerator extends EpaGenerator {
         });
     }
 
-    private static class ActionStatus {
+    private class NecessaryActionFuture {
+
+        private final Action action;
+
+        private final Future<Answer> enabledFutureResult;
+
+        private final Future<Answer> disabledFutureResult;
+
+        private NecessaryActionFuture(final Action action,
+                                      final NecessarilyEnabledActionQuery necessarilyEnabledActionQuery,
+                                      final NecessarilyDisabledActionQuery necessarilyDisabledActionQuery) {
+
+            this.action = action;
+            this.enabledFutureResult = submitQuery(necessarilyEnabledActionQuery);
+            this.disabledFutureResult = submitQuery(necessarilyDisabledActionQuery);
+        }
+
+        public NecessaryActionStatus get() {
+
+            try {
+                return new NecessaryActionStatus(
+                        action,
+                        enabledFutureResult.get(),
+                        disabledFutureResult.get()
+                );
+            } catch (InterruptedException | ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+
+        }
+
+    }
+
+    private static class NecessaryActionStatus {
 
         public final Action action;
 
@@ -377,29 +387,13 @@ public class LazyEpaGenerator extends EpaGenerator {
 
         public final Answer necessarilyDisabled;
 
-        private ActionStatus(final Action action, final Answer necessarilyEnabled, final Answer necessarilyDisabled) {
+        private NecessaryActionStatus(final Action action,
+                                      final Answer necessarilyEnabled,
+                                      final Answer necessarilyDisabled) {
 
             this.action = action;
             this.necessarilyEnabled = necessarilyEnabled;
             this.necessarilyDisabled = necessarilyDisabled;
-        }
-    }
-
-    private static class ActionStatusFuture {
-
-        public final Action action;
-
-        public final Future<Answer> enabledFutureResult;
-
-        public final Future<Answer> disabledFutureResult;
-
-        private ActionStatusFuture(final Action action,
-                                   final Future<Answer> enabledAnswer,
-                                   final Future<Answer> disabledAnswer) {
-
-            this.action = action;
-            this.enabledFutureResult = enabledAnswer;
-            this.disabledFutureResult = disabledAnswer;
         }
     }
 

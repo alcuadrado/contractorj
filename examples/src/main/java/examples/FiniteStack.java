@@ -29,6 +29,11 @@ public class FiniteStack {
     public void Pop()
     {
         Next = Next - 1;
+
+        // Sometimes break the invariant
+        if (Next == 16) {
+            Next = Max + 1;
+        }
     }
 
     public void Push()

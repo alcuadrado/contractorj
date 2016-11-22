@@ -1,8 +1,7 @@
 package contractorj.construction.corral;
 
-public enum Result {
+public enum QueryResult {
     NO_BUG,
     MAYBE_BUG,
-    BUG_IN_QUERY,
-    BROKEN_INVARIANT
+    TRUE_BUG
 }

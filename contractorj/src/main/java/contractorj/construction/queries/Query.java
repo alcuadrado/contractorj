@@ -1,6 +1,7 @@
-package contractorj.construction;
+package contractorj.construction.queries;
 
 import com.google.common.base.Joiner;
+import contractorj.construction.corral.QueryResult;
 import contractorj.model.Action;
 import contractorj.model.State;
 import j2bpl.Method;
@@ -8,145 +9,74 @@ import j2bpl.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-public class Query {
+public abstract class Query {
 
     public enum AssertionLabels {
         QUERY,
         INVARIANT
     }
 
-    public enum Type {
-        TRANSITION_QUERY,
-        NECESSARY_ENABLED_QUERY,
-        NECESSARY_DISABLED_QUERY
-    }
+    protected static final String AFTER_TRANSITION_ARGS_SUFFIX = "After";
 
-    public enum TransitionThrows {
-        THROWS,
-        DOES_NOT_THROW,
-        EXCEPTION_IGNORED
-    }
+    protected static final String NAME_PART_SEPARATOR = "_________";
 
-    private static final String TARGET_ARGS_SUFFIX = "After";
+    protected final State source;
 
-    private final State source;
+    protected final Action transition;
 
-    private final Action transition;
+    protected final Method invariant;
 
-    private final State target;
-
-    private final Method invariant;
-
-    public final Type type;
-
-    private final TransitionThrows transitionThrows;
-
-    private final boolean assumeInvariant;
-
-    public Query(Type type,
-                 State source,
-                 Action transition,
-                 State target,
-                 Method invariant,
-                 TransitionThrows transitionThrows,
-                 final boolean assumeInvariant) {
+    protected Query(State source,
+                    Action transition,
+                    Method invariant) {
 
         this.source = source;
         this.transition = transition;
-        this.target = target;
         this.invariant = invariant;
-        this.type = type;
-        this.transitionThrows = transitionThrows;
-        this.assumeInvariant = assumeInvariant;
 
         if (!source.enabledActions.contains(transition)) {
             throw new IllegalArgumentException("Invalid query: transition must be in source's enabled actions.");
         }
     }
 
-    public String getName() {
+    public abstract Answer getAnswer(final QueryResult queryResult);
 
-        final String partsSeparator = "__________";
+    protected abstract String getQueryCore();
 
-        final StringBuilder name = new StringBuilder()
-                .append(type.toString())
+    public State getSource() {
 
-                .append(partsSeparator)
-                .append("from")
-                .append(partsSeparator)
-
-                .append(getStateName(source));
-
-        if (type.equals(Type.TRANSITION_QUERY)) {
-
-            name.append(partsSeparator)
-                    .append("to")
-                    .append(partsSeparator)
-
-                    .append(getStateName(target));
-        } else {
-
-            name.append(partsSeparator)
-                    .append("checking")
-                    .append(partsSeparator);
-
-            final Action checkingAction;
-
-            if (type.equals(Type.NECESSARY_ENABLED_QUERY)) {
-                checkingAction = target.enabledActions.iterator().next();
-            } else {
-                checkingAction = target.disabledActions.iterator().next();
-
-                name.append("NOT_");
-            }
-
-            name.append(checkingAction.method.getBaseJavaName());
-        }
-
-        name.append(partsSeparator)
-                .append("via")
-                .append(partsSeparator)
-
-                .append(transition.method.getJavaNameWithArgumentTypes())
-
-                .append(partsSeparator)
-                .append(transitionThrows.toString());
-
-        return StringUtils.scapeIllegalIdentifierCharacters(name.toString());
+        return source;
     }
 
-    private String getStateName(State state) {
+    public Action getTransition() {
+
+        return transition;
+    }
+
+    public String getName() {
+
+        final String name = "from" + NAME_PART_SEPARATOR + getStateName(source) + NAME_PART_SEPARATOR
+                + "via" + NAME_PART_SEPARATOR + transition.method.getJavaNameWithArgumentTypes();
+
+        return StringUtils.scapeIllegalIdentifierCharacters(name);
+    }
+
+    protected String getStateName(State state) {
 
         final String joiner = "____";
 
-        if (!state.enabledActions.isEmpty()) {
-            return getJoinedActionNames(state.enabledActions, joiner);
-        }
-
-        return "EMPTY_STATE";
-    }
-
-    private String getJoinedActionNames(Set<Action> actions, String joiner) {
-
-        final List<String> names = actions.stream()
+        return state.enabledActions.stream()
                 .map(action -> action.method.getJavaNameWithArgumentTypes())
-                .sorted()
-                .collect(Collectors.toList());
-
-        return Joiner.on(joiner).join(names);
+                .reduce((s1, s2) -> s1 + joiner + s2)
+                .orElse("ERROR");
     }
 
     public String getBoogieCode() {
 
         final StringBuilder queryBody = new StringBuilder();
-
-        final String invariantResultVariableName = getVariableForMethodResult(invariant).get().name;
 
         queryBody
                 .append(getLocalVariablesDeclaration()).append("\n")
@@ -155,19 +85,25 @@ public class Query {
 
                 .append("call initialize_globals();\n")
                 .append("\n")
-                .append("\n")
+                .append("\n");
 
+        if (!source.isConstructorsState()) {
+            queryBody
+                    .append(getInvariantCall()).append("\n")
+                    .append("\n");
+        }
+
+        queryBody
                 .append(getStateGuardCalls(source, "")).append("\n")
                 .append("\n")
                 .append("\n");
 
         if (!source.isConstructorsState()) {
-            queryBody
-                    .append("assume ").append(getVariableForMethodResult(invariant).get().name).append(";\n");
+            queryBody.append(getInvariantAssumption()).append(";\n");
         }
 
         queryBody
-                .append("assume (").append(getStateGuard(source)).append(");\n")
+                .append(getStateGuardAssumption(source)).append("\n")
                 .append("\n")
                 .append("\n")
 
@@ -175,29 +111,12 @@ public class Query {
                 .append("\n")
                 .append("\n")
 
-                .append(getStateGuardCalls(target, TARGET_ARGS_SUFFIX)).append("\n")
+                .append(getInvariantCall()).append("\n")
                 .append("\n")
-                .append("\n")
 
-                .append(AssertionLabels.INVARIANT).append(":\n");
-
-        if (assumeInvariant) {
-            queryBody.append(StringUtils.indent("assume "));
-        } else {
-            queryBody.append(StringUtils.indent("assert "));
-        }
-
-        queryBody.append(invariantResultVariableName).append(";\n")
+                .append(getQueryCore()).append("\n")
                 .append("\n")
                 .append("\n");
-
-        // This is an optimization. If we are throwing an exception and not assuming the invariant, we only care about
-        // the invariant's assert, so we omit this one.
-        // TODO: No, this is not an optimization, we use it in LazyEpaGenerator's
-        //      {@code throwingNotPreservingInvariantResult.equals(Result.MAYBE_BUG)}
-        if (assumeInvariant || !transitionThrows.equals(TransitionThrows.THROWS)) {
-            queryBody.append(getQueryAssertion()).append("\n");
-        }
 
         final StringBuilder query = new StringBuilder()
                 .append("procedure ").append(getName()).append("(").append(getQueryArgumentsDeclaration())
@@ -209,26 +128,9 @@ public class Query {
         return query.toString();
     }
 
-    private String getQueryAssertion() {
+    protected Variable getInvariantReturnVariable() {
 
-        final StringBuilder assertion = new StringBuilder();
-
-        assertion.append(AssertionLabels.QUERY).append(":\n")
-                .append(StringUtils.indent("assert "));
-
-        if (type.equals(Type.TRANSITION_QUERY)) {
-            assertion.append("!(");
-        }
-
-        assertion.append(getStateGuard(target));
-
-        if (type.equals(Type.TRANSITION_QUERY)) {
-            assertion.append(")");
-        }
-
-        assertion.append(";");
-
-        return assertion.toString();
+        return getVariableForMethodResult(invariant).get();
     }
 
     private String getLocalVariablesDeclaration() {
@@ -240,7 +142,7 @@ public class Query {
         return Joiner.on("\n").join(declarations);
     }
 
-    private List<Variable> getLocalVariables() {
+    protected List<Variable> getLocalVariables() {
 
         final List<Variable> variables = new ArrayList<>();
 
@@ -255,7 +157,7 @@ public class Query {
             variables.add(transitionResultVariable.get());
         }
 
-        Stream.concat(source.getAllActions().stream(), target.getAllActions().stream())
+        source.getAllActions().stream()
                 .map(action -> getVariableForMethodResult(action.precondition))
                 .map(Optional::get)
                 .distinct()
@@ -264,12 +166,7 @@ public class Query {
         return variables;
     }
 
-    public TransitionThrows getTransitionThrows() {
-
-        return transitionThrows;
-    }
-
-    private Optional<Variable> getVariableForMethodResult(Method method) {
+    protected Optional<Variable> getVariableForMethodResult(Method method) {
 
         if (!method.hasReturnType()) {
             return Optional.empty();
@@ -278,7 +175,7 @@ public class Query {
         return Optional.of(new Variable(method.getTranslatedReturnType(), "ret_" + method.getTranslatedName()));
     }
 
-    private List<Variable> getArgumentListForMethod(Method method, String nameSuffix) {
+    protected List<Variable> getArgumentListForMethod(Method method, String nameSuffix) {
 
         final List<String> translatedArgumentTypes = method.getTranslatedArgumentTypes();
 
@@ -324,20 +221,7 @@ public class Query {
 
         if (method.equals(transition.method)) {
 
-            switch (transitionThrows) {
-                case DOES_NOT_THROW:
-                    stringBuilder.append("assume $Exception == null;");
-                    break;
-
-                case THROWS:
-                    stringBuilder.append("assume $Exception != null;\n")
-                            .append("$Exception := null;");
-                    break;
-
-                case EXCEPTION_IGNORED:
-                    stringBuilder.append("$Exception := null;");
-                    break;
-            }
+            stringBuilder.append(getTransitionCallExceptionHandling());
 
         } else {
             stringBuilder.append("assume $Exception == null;");
@@ -346,7 +230,9 @@ public class Query {
         return stringBuilder.toString();
     }
 
-    private String getCall(Action action, String argumentNamesSuffix, boolean callPre) {
+    protected abstract String getTransitionCallExceptionHandling();
+
+    protected String getCall(Action action, String argumentNamesSuffix, boolean callPre) {
 
         final List<Variable> arguments = getArgumentListForMethod(action.method, argumentNamesSuffix);
 
@@ -362,7 +248,25 @@ public class Query {
         return getCall(action.method, arguments);
     }
 
-    private List<Variable> getQueryArguments() {
+    protected String getInvariantAssertion() {
+
+        return "assert " + getInvariantReturnVariable().name + ";";
+    }
+
+    protected String getInvariantAssumption() {
+
+        return "assume " + getInvariantReturnVariable().name + ";";
+    }
+
+    protected String getNegatedStateGuardAssertion(State state) {
+        return "assert !(" + getStateGuard(state) + ");";
+    }
+
+    protected String getStateGuardAssumption(State state) {
+        return "assume (" + getStateGuard(state) + ");";
+    }
+
+    protected List<Variable> getQueryArguments() {
 
         final List<Variable> arguments = new ArrayList<>();
 
@@ -372,19 +276,6 @@ public class Query {
 
         for (final Action action : source.getAllActions()) {
             final List<Variable> actionArguments = getArgumentListForMethod(action.method, "");
-
-            if (!action.method.isStatic()) {
-                actionArguments.remove(0);
-            }
-
-            arguments.addAll(actionArguments);
-        }
-
-        for (final Action action : target.getAllActions()) {
-            final List<Variable> actionArguments = getArgumentListForMethod(
-                    action.method,
-                    TARGET_ARGS_SUFFIX
-            );
 
             if (!action.method.isStatic()) {
                 actionArguments.remove(0);
@@ -422,7 +313,8 @@ public class Query {
                 .collect(Collectors.toList());
     }
 
-    private String getStateGuardCalls(State state, String argumentNamesSuffix) {
+    //TODO: sacar invariant de acá
+    protected String getStateGuardCalls(State state, String argumentNamesSuffix) {
 
         final List<String> calls = new ArrayList<>();
 
@@ -442,7 +334,7 @@ public class Query {
         return getCall(invariant, arguments);
     }
 
-    private String getStateGuard(final State state) {
+    protected String getStateGuard(final State state) {
 
         final List<String> atoms = new ArrayList<>();
 
@@ -461,36 +353,4 @@ public class Query {
         return Joiner.on(" && ").join(atoms);
     }
 
-    private static class Variable {
-
-        public final String translatedType;
-
-        public final String name;
-
-        private Variable(final String translatedType, final String name) {
-
-            this.translatedType = translatedType;
-            this.name = name;
-        }
-
-        @Override
-        public boolean equals(final Object o) {
-
-            if (this == o) {
-                return true;
-            }
-            if (!(o instanceof Variable)) {
-                return false;
-            }
-            final Variable variable = (Variable) o;
-            return Objects.equals(translatedType, variable.translatedType) &&
-                    Objects.equals(name, variable.name);
-        }
-
-        @Override
-        public int hashCode() {
-
-            return Objects.hash(translatedType, name);
-        }
-    }
 }

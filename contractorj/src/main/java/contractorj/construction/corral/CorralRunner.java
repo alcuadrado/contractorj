@@ -1,6 +1,5 @@
 package contractorj.construction.corral;
 
-import contractorj.construction.Query;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.PumpStreamHandler;
@@ -28,7 +27,8 @@ public class CorralRunner {
     }
 
     public String getConsoleCommandToRun(String pathToBoogieSourcecode, String mainMethod) {
-        return  (!isWindows() ? "mono " : "") + "'" + pathToCorral + "' '/main:" + mainMethod
+
+        return (!isWindows() ? "mono " : "") + "'" + pathToCorral + "' '/main:" + mainMethod
                 + "' /recursionBound:" + recursionBound + " /trackAllVars '" + pathToBoogieSourcecode + "'";
     }
 
@@ -42,30 +42,21 @@ public class CorralRunner {
 
         final LocalDateTime end = LocalDateTime.now();
 
-        final Result queryResult;
+        final QueryResult queryQueryResult;
 
         if (processOutput.contains("Program has no bugs")) {
 
-            queryResult = Result.NO_BUG;
+            queryQueryResult = QueryResult.NO_BUG;
 
         } else if (processOutput.contains("True bug")) {
 
-            if (processOutput.contains(Query.AssertionLabels.QUERY.toString())) {
+            queryQueryResult = QueryResult.TRUE_BUG;
 
-                queryResult = Result.BUG_IN_QUERY;
-
-            } else if (processOutput.contains(Query.AssertionLabels.INVARIANT.toString())) {
-
-                queryResult = Result.BROKEN_INVARIANT;
-
-            } else {
-                throw new RuntimeException("Unrecognized bug class");
-            }
         } else {
-            queryResult = Result.MAYBE_BUG;
+            queryQueryResult = QueryResult.MAYBE_BUG;
         }
 
-        return new RunnerResult(queryResult, Duration.between(start, end), processOutput);
+        return new RunnerResult(queryQueryResult, Duration.between(start, end), processOutput);
     }
 
     private String runtAndReturnOutput(final String lineToRun) {
@@ -98,19 +89,4 @@ public class CorralRunner {
         return System.getProperty("os.name").toLowerCase().contains("win");
     }
 
-    public static class RunnerResult {
-
-        public final Result queryResult;
-
-        public final Duration runningTime;
-
-        public final String output;
-
-        private RunnerResult(final Result queryResult, final Duration runningTime, final String output) {
-
-            this.queryResult = queryResult;
-            this.runningTime = runningTime;
-            this.output = output;
-        }
-    }
 }

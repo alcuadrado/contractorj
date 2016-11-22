@@ -4,11 +4,10 @@ import com.google.common.io.Files;
 import com.google.common.io.Resources;
 import contractorj.construction.EpaGenerator;
 import contractorj.construction.LazyEpaGenerator;
-import contractorj.construction.Query;
+import contractorj.construction.queries.Query;
 import contractorj.construction.corral.CorralRunner;
 import contractorj.model.Epa;
 import contractorj.serialization.DotEpaSerializer;
-import contractorj.serialization.EpaSerializer;
 import contractorj.serialization.XmlEpaSerializer;
 import j2bpl.Class;
 import j2bpl.Translator;
@@ -62,20 +61,21 @@ public class Main {
 
         System.out.println("Total running time: " + formatDuration(epaEpaGenerator.getTotalTime()));
         System.out.println("Time running queries: " + formatDuration(epaEpaGenerator.getTotalQueryingTime()));
-        System.out.println("Total number of queries: " + epaEpaGenerator.getTotalNumerOfQueries());
+        System.out.println("Total number of queries: " + epaEpaGenerator.getTotalNumberOfQueries());
 
         System.out.println("Types of queries:");
-        for (final Query.Type type : Query.Type.values()) {
 
-            System.out.println("\t" + type);
+        for (final java.lang.Class<? extends Query> queryClass : epaEpaGenerator.getQueryClasses()) {
 
-            System.out.println("\t\tNumber of queries: " + epaEpaGenerator.getNumberOfQueriesByType(type));
+            System.out.println("\t" + queryClass.getSimpleName());
+
+            System.out.println("\t\tNumber of queries: " + epaEpaGenerator.getNumberOfQueriesByClass(queryClass));
 
             System.out.println("\t\tTime running queries: "
-                    + formatDuration(epaEpaGenerator.getQueryingTimeByType(type)));
+                    + formatDuration(epaEpaGenerator.getQueryingTimeByClass(queryClass)));
 
             System.out.println("\t\tAverage running time: "
-                    + formatDuration(epaEpaGenerator.getAverageQueryingTimeByType(type)));
+                    + formatDuration(epaEpaGenerator.getAverageQueryingTimeByClass(queryClass)));
 
             System.out.println("");
         }

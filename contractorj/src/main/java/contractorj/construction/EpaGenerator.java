@@ -1,7 +1,10 @@
 package contractorj.construction;
 
 import contractorj.construction.corral.CorralRunner;
-import contractorj.construction.corral.Result;
+import contractorj.construction.corral.QueryResult;
+import contractorj.construction.corral.RunnerResult;
+import contractorj.construction.queries.Answer;
+import contractorj.construction.queries.Query;
 import contractorj.model.Action;
 import contractorj.model.Epa;
 import contractorj.util.ColorPrinter;
@@ -18,6 +21,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +29,9 @@ import java.util.Set;
 
 public abstract class EpaGenerator {
 
-    private final Map<Query.Type, Map<Result, List<Duration>>> queryingTimes = new HashMap<>();
+    private final Set<java.lang.Class<? extends Query>> queryClasses = new HashSet<>();
+
+    private final Map<java.lang.Class<? extends Query>, Map<Answer, List<Duration>>> queryingTimes = new HashMap<>();
 
     private final String baseTranslation;
 
@@ -70,47 +76,39 @@ public abstract class EpaGenerator {
 
     protected abstract Epa generateEpaImplementation(final Class theClass);
 
-    protected Result runQuery(final Query query) {
+    protected RunnerResult runQuery(final Query query) {
 
         final String absolutePathToBoogieSourceFile = appendToThreadLocalBoogieFile(query.getBoogieCode());
 
-        final CorralRunner.RunnerResult runnerResult = corralRunner.run(absolutePathToBoogieSourceFile,
+        final RunnerResult runnerResult = corralRunner.run(absolutePathToBoogieSourceFile,
                 query.getName());
 
         recordQueryRun(query, runnerResult);
-
         printCorralCommand(query, absolutePathToBoogieSourceFile, runnerResult);
 
-        return runnerResult.queryResult;
+        return runnerResult;
     }
 
     private void printCorralCommand(Query query, final String absolutePathToBoogieSourceFile,
-                                    CorralRunner.RunnerResult runnerResult) {
+                                    RunnerResult runnerRunnerResult) {
 
-        final Result result = runnerResult.queryResult;
+        final QueryResult queryResult = runnerRunnerResult.queryResult;
 
         String toPrint = corralRunner.getConsoleCommandToRun(absolutePathToBoogieSourceFile, query.getName());
 
-        if (query.getTransitionThrows().equals(Query.TransitionThrows.DOES_NOT_THROW) &&
-                result.equals(Result.BROKEN_INVARIANT)) {
-            toPrint += "\n\n" + result.toString() + "\n\n" + runnerResult.output;
-        }
-
-        ColorPrinter.printInColor(toPrint + "\n", getResultColor(result));
+        ColorPrinter.printInColor(toPrint + "\n", getResultColor(queryResult));
     }
 
-    private ColorPrinter.Color getResultColor(Result result) {
+    private ColorPrinter.Color getResultColor(QueryResult queryResult) {
 
-        switch (result) {
+        switch (queryResult) {
 
-            case BUG_IN_QUERY:
+            case TRUE_BUG:
                 return ColorPrinter.Color.GREEN;
 
             case MAYBE_BUG:
                 return ColorPrinter.Color.BLUE;
 
-            case BROKEN_INVARIANT:
-                return ColorPrinter.Color.PURPLE;
         }
 
         return ColorPrinter.Color.WHITE;
@@ -150,25 +148,25 @@ public abstract class EpaGenerator {
         }
     }
 
-    public long getTotalNumerOfQueries() {
+    public long getTotalNumberOfQueries() {
 
         return queryingTimes.values().stream()
-                .flatMap(resultDurationMap -> resultDurationMap.values().stream())
+                .flatMap(answerDurationMap -> answerDurationMap.values().stream())
                 .mapToInt(List::size)
                 .sum();
     }
 
-    public long getNumberOfQueriesByType(Query.Type type) {
+    public long getNumberOfQueriesByClass(java.lang.Class<? extends Query> queryClass) {
 
-        return queryingTimes.getOrDefault(type, new HashMap<>()).values().stream()
+        return queryingTimes.getOrDefault(queryClass, new HashMap<>()).values().stream()
                 .mapToInt(List::size)
                 .sum();
     }
 
-    public long getNumberOfQueriesByTypeAndResult(Query.Type type, Result result) {
+    public long getNumberOfQueriesByClassAndAnswer(java.lang.Class<? extends Query> queryClass, Answer answer) {
 
-        return queryingTimes.getOrDefault(type, new HashMap<>())
-                .getOrDefault(result, new ArrayList<>())
+        return queryingTimes.getOrDefault(queryClass, new HashMap<>())
+                .getOrDefault(answer, new ArrayList<>())
                 .size();
     }
 
@@ -180,47 +178,56 @@ public abstract class EpaGenerator {
     public Duration getTotalQueryingTime() {
 
         return queryingTimes.values().stream()
-                .flatMap(resultDurationMap -> resultDurationMap.values().stream())
+                .flatMap(answerDurationMap -> answerDurationMap.values().stream())
                 .flatMap(Collection::stream)
                 .reduce(Duration::plus)
                 .orElse(Duration.ZERO);
     }
 
-    public Duration getQueryingTimeByType(Query.Type type) {
+    public Duration getQueryingTimeByClass(java.lang.Class<? extends Query> queryClass) {
 
-        return queryingTimes.getOrDefault(type, new HashMap<>()).values().stream()
+        return queryingTimes.getOrDefault(queryClass, new HashMap<>()).values().stream()
                 .flatMap(Collection::stream)
                 .reduce(Duration::plus)
                 .orElse(Duration.ZERO);
     }
 
-    public Duration getAverageQueryingTimeByType(Query.Type type) {
+    public Duration getAverageQueryingTimeByClass(java.lang.Class<? extends Query> queryClass) {
 
-        return getQueryingTimeByType(type).dividedBy(getNumberOfQueriesByType(type));
+        return getQueryingTimeByClass(queryClass).dividedBy(getNumberOfQueriesByClass(queryClass));
     }
 
-    public Duration getQueryingTimeByTypeAndResult(Query.Type type, Result result) {
+    public Duration getQueryingTimeByClassAndAnswer(java.lang.Class<? extends Query> queryClass, Answer answer) {
 
-        return queryingTimes.getOrDefault(type, new HashMap<>())
-                .getOrDefault(result, new ArrayList<>())
+        return queryingTimes.getOrDefault(queryClass, new HashMap<>())
+                .getOrDefault(answer, new ArrayList<>())
                 .stream()
                 .reduce(Duration::plus)
                 .orElse(Duration.ZERO);
     }
 
-    private synchronized void recordQueryRun(Query query, CorralRunner.RunnerResult runnerResult) {
+    public Set<java.lang.Class<? extends Query>> getQueryClasses() {
 
-        if (!queryingTimes.containsKey(query.type)) {
-            queryingTimes.put(query.type, new HashMap<>());
+        return queryClasses;
+    }
+
+    private synchronized void recordQueryRun(Query query, RunnerResult runnerResult) {
+
+        final Answer answer = query.getAnswer(runnerResult.queryResult);
+        final java.lang.Class<? extends Query> queryClass = query.getClass();
+
+        if (!queryingTimes.containsKey(queryClass)) {
+            queryClasses.add(queryClass);
+            queryingTimes.put(queryClass, new HashMap<>());
         }
 
-        final Map<Result, List<Duration>> resultDurationMap = queryingTimes.get(query.type);
+        final Map<Answer, List<Duration>> answerDurationsMap = queryingTimes.get(queryClass);
 
-        if (!resultDurationMap.containsKey(runnerResult.queryResult)) {
-            resultDurationMap.put(runnerResult.queryResult, new LinkedList<>());
+        if (!answerDurationsMap.containsKey(answer)) {
+            answerDurationsMap.put(answer, new LinkedList<>());
         }
 
-        final List<Duration> durations = resultDurationMap.get(runnerResult.queryResult);
+        final List<Duration> durations = answerDurationsMap.get(answer);
 
         durations.add(runnerResult.runningTime);
     }

@@ -52,30 +52,45 @@ public class LazyEpaGenerator extends EpaGenerator {
     @Override
     protected Epa generateEpaImplementation(final Class theClass) {
 
-        driverExecutorService = Executors.newCachedThreadPool();
-        queriesExecutorService = Executors.newFixedThreadPool(numberOfThreads);
-        statesAlreadyEnqueued = Sets.newHashSet();
-        phaser = new Phaser();
-        phaser.register();
-
-        final State initialState = new State(constructors, Sets.newHashSet());
-
-        epa = new Epa(theClass.getQualifiedJavaName(), initialState);
-
-        enqueueStateIfNecessary(initialState);
-
-        phaser.arriveAndAwaitAdvance();
-        driverExecutorService.shutdown();
-        queriesExecutorService.shutdown();
+        final Thread.UncaughtExceptionHandler oldUncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
 
         try {
+
+            // We change the default uncaught exception handler to manage exception in parallel streams.
+            Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
+                System.err.println("Uncaught exception in thread " + t.getName() + ": " + e.getMessage());
+                e.printStackTrace(System.err);
+                System.exit(1);
+            });
+
+            driverExecutorService = Executors.newCachedThreadPool();
+            queriesExecutorService = Executors.newFixedThreadPool(numberOfThreads);
+            statesAlreadyEnqueued = Sets.newHashSet();
+            phaser = new Phaser();
+            phaser.register();
+
+            final State initialState = new State(constructors, Sets.newHashSet());
+
+            epa = new Epa(theClass.getQualifiedJavaName(), initialState);
+
+            enqueueStateIfNecessary(initialState);
+
+            phaser.arriveAndAwaitAdvance();
+            driverExecutorService.shutdown();
+            queriesExecutorService.shutdown();
+
             driverExecutorService.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
             queriesExecutorService.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
 
-        return epa;
+            return epa;
+
+        } catch (InterruptedException e) {
+
+            throw new RuntimeException(e);
+
+        } finally {
+            Thread.setDefaultUncaughtExceptionHandler(oldUncaughtExceptionHandler);
+        }
     }
 
     private void analiseState(final State state) {
@@ -111,7 +126,7 @@ public class LazyEpaGenerator extends EpaGenerator {
                 action
         );
 
-        ensureConsistentActionStatuses(state, action, necessaryActionResults);
+        ensureConsistentNecessaryActionResults(state, action, necessaryActionResults);
 
         final Set<Action> necessarilyEnabledActions = necessaryActionResults.stream()
                 .filter(necessaryActionResult -> necessaryActionResult.necessarilyEnabled.equals(Answer.YES))
@@ -175,9 +190,9 @@ public class LazyEpaGenerator extends EpaGenerator {
 
     }
 
-    private void ensureConsistentActionStatuses(final State state,
-                                                final Action transition,
-                                                final Set<NecessaryActionResult> actionsStatus) {
+    private void ensureConsistentNecessaryActionResults(final State state,
+                                                        final Action transition,
+                                                        final Set<NecessaryActionResult> actionsStatus) {
 
         final List<Action> conflictingActions = actionsStatus.stream()
                 .filter(necessaryActionResult -> necessaryActionResult.necessarilyDisabled.equals(Answer.YES)
@@ -205,27 +220,22 @@ public class LazyEpaGenerator extends EpaGenerator {
         final CombinationsGenerator<Action> combinationsGenerator = new CombinationsGenerator<>();
         final Set<Set<Action>> combinations = combinationsGenerator.combinations(uncertainActions);
 
-        return combinations.stream()
-                .map(maybeEnabledActions -> {
-
-                    final State targetState = createTargetState(
-                            necessarilyEnabledActions,
-                            necessarilyDisabledActions,
-                            uncertainActions,
-                            maybeEnabledActions
-                    );
-
-                    return new TransitionQueriesFutures(
-                            state,
-                            action,
-                            targetState
-                    );
-                })
-                .collect(Collectors.toList()).stream()
-                .map(TransitionQueriesFutures::get)
+        return combinations.parallelStream()
+                .map(maybeEnabledActions -> createTargetState(
+                        necessarilyEnabledActions,
+                        necessarilyDisabledActions,
+                        uncertainActions,
+                        maybeEnabledActions
+                ))
+                .map(targetState -> new TransitionQueriesResults(
+                        action,
+                        targetState,
+                        getAnswer(new NotThrowingTransitionQuery(state, action, targetState, invariant)),
+                        getAnswer(new ThrowingTransitionQuery(state, action, targetState, invariant))
+                ))
                 .flatMap(transitionQueriesResults -> {
 
-                    final Optional<Transition> notThrowingTransition = getTransitionFromQuery(
+                    final Optional<Transition> notThrowingTransition = getTransitionFromQueryResult(
                             state,
                             action,
                             transitionQueriesResults.targetState,
@@ -233,7 +243,7 @@ public class LazyEpaGenerator extends EpaGenerator {
                             false
                     );
 
-                    final Optional<Transition> throwingTransition = getTransitionFromQuery(
+                    final Optional<Transition> throwingTransition = getTransitionFromQueryResult(
                             state,
                             action,
                             transitionQueriesResults.targetState,
@@ -248,8 +258,8 @@ public class LazyEpaGenerator extends EpaGenerator {
                 .collect(Collectors.toSet());
     }
 
-    private Optional<Transition> getTransitionFromQuery(State source, Action transitionAction, State target,
-                                                        Answer answer, boolean throwing) {
+    private Optional<Transition> getTransitionFromQueryResult(State source, Action transitionAction, State target,
+                                                              Answer answer, boolean throwing) {
 
         if (answer.equals(Answer.NO)) {
             return Optional.empty();
@@ -314,11 +324,29 @@ public class LazyEpaGenerator extends EpaGenerator {
 
     private Set<NecessaryActionResult> getNecessaryActionResults(final State state, final Action transition) {
 
-        return actions.stream()
-                .map(action -> new NecessaryActionFuture(state, transition, action))
-                .collect(Collectors.toList()).stream()
-                .map(NecessaryActionFuture::get)
+        return actions.parallelStream()
+                .map(testedAction -> {
+                    final NecessarilyEnabledActionQuery necessarilyEnabledActionQuery =
+                            new NecessarilyEnabledActionQuery(state, transition, testedAction, invariant);
+                    final NecessarilyDisabledActionQuery necessarilyDisabledActionQuery =
+                            new NecessarilyDisabledActionQuery(state, transition, testedAction, invariant);
+
+                    return new NecessaryActionResult(
+                            testedAction,
+                            getAnswer(necessarilyEnabledActionQuery),
+                            getAnswer(necessarilyDisabledActionQuery)
+                    );
+                })
                 .collect(Collectors.toSet());
+    }
+
+    private Answer getAnswer(final Query query) {
+
+        try {
+            return submitQuery(query).get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private Future<Answer> submitQuery(final Query query) {
@@ -337,50 +365,6 @@ public class LazyEpaGenerator extends EpaGenerator {
         });
     }
 
-    private class NecessaryActionFuture {
-
-        private final Action testedAction;
-
-        private final Future<Answer> necessaryEnabledFuture;
-
-        private final Future<Answer> necessaryDisabledFuture;
-
-        public NecessaryActionFuture(final State state,
-                                      final Action transition,
-                                      final Action testedAction) {
-
-            this(
-                    testedAction,
-                    new NecessarilyEnabledActionQuery(state, transition, testedAction, invariant),
-                    new NecessarilyDisabledActionQuery(state, transition, testedAction, invariant)
-            );
-        }
-
-        private NecessaryActionFuture(final Action testedAction,
-                                      final NecessarilyEnabledActionQuery necessarilyEnabledActionQuery,
-                                      final NecessarilyDisabledActionQuery necessarilyDisabledActionQuery) {
-
-            this.testedAction = testedAction;
-            this.necessaryEnabledFuture = submitQuery(necessarilyEnabledActionQuery);
-            this.necessaryDisabledFuture = submitQuery(necessarilyDisabledActionQuery);
-        }
-
-        public NecessaryActionResult get() {
-
-            try {
-                return new NecessaryActionResult(
-                        testedAction,
-                        necessaryEnabledFuture.get(),
-                        necessaryDisabledFuture.get()
-                );
-            } catch (InterruptedException | ExecutionException e) {
-                throw new RuntimeException(e);
-            }
-
-        }
-
-    }
-
     private static class NecessaryActionResult {
 
         public final Action action;
@@ -396,54 +380,6 @@ public class LazyEpaGenerator extends EpaGenerator {
             this.action = action;
             this.necessarilyEnabled = necessarilyEnabled;
             this.necessarilyDisabled = necessarilyDisabled;
-        }
-    }
-
-    private class TransitionQueriesFutures {
-
-        private final Action transition;
-
-        private final State targetState;
-
-        private final Future<Answer> notThrowingTransitionFuture;
-
-        private final Future<Answer> throwingTransitionFuture;
-
-        private TransitionQueriesFutures(final State sourceState,
-                                         final Action transition,
-                                         final State targetState) {
-
-            this(
-                    transition,
-                    targetState,
-                    new NotThrowingTransitionQuery(sourceState, transition, targetState, invariant),
-                    new ThrowingTransitionQuery(sourceState, transition, targetState, invariant)
-            );
-        }
-
-        private TransitionQueriesFutures(final Action transition,
-                                         final State targetState,
-                                         final NotThrowingTransitionQuery notThrowingTransitionQuery,
-                                         final ThrowingTransitionQuery throwingTransitionQuery) {
-
-            this.transition = transition;
-            this.targetState = targetState;
-            this.notThrowingTransitionFuture = submitQuery(notThrowingTransitionQuery);
-            this.throwingTransitionFuture = submitQuery(throwingTransitionQuery);
-        }
-
-        public TransitionQueriesResults get() {
-
-            try {
-                return new TransitionQueriesResults(
-                        transition,
-                        targetState,
-                        notThrowingTransitionFuture.get(),
-                        throwingTransitionFuture.get()
-                );
-            } catch (InterruptedException | ExecutionException e) {
-                throw new RuntimeException(e);
-            }
         }
     }
 

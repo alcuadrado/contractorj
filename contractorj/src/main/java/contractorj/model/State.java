@@ -15,7 +15,7 @@ public class State {
 
     private boolean isConstructorsState = false;
 
-    public static State ERROR = new State(new HashSet<>(), new HashSet<>());
+    public static final State ERROR = new State(new HashSet<>(), new HashSet<>());
 
     public State(Set<Action> enabledActions, Set<Action> disabledActions) {
         this.enabledActions = enabledActions;

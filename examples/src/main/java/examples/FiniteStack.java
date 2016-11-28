@@ -2,8 +2,8 @@ package examples;
 
 public class FiniteStack {
 
-    public int Max;
-    public int Next;
+    private int max;
+    private int next;
 
     public static boolean FiniteStack_pre() {
         return true;
@@ -11,8 +11,8 @@ public class FiniteStack {
 
     public FiniteStack()
     {
-        Max = 5;
-        Next = -1;
+        max = 5;
+        next = -1;
     }
 
     public static boolean FiniteStack_pre(int size)
@@ -22,48 +22,48 @@ public class FiniteStack {
 
     public FiniteStack(int size)
     {
-        Max = size;
-        Next = -1;
+        max = size;
+        next = -1;
     }
 
     public void Pop()
     {
-        Next = Next - 1;
+        next = next - 1;
 
         // Sometimes break the invariant
-        if (Next == 16) {
-            Next = Max + 1;
+        if (next == 16) {
+            next = max + 1;
         }
     }
 
     public void Push()
     {
-        final int originalNext = Next;
+        final int originalNext = next;
 
         // Throw without breaking the invariant
-        if (Next == 5) {
+        if (next == 5) {
             throw new RuntimeException();
         }
 
-        Next = Max + 1;
+        next = max + 1;
 
         // Throw breaking the invariant during an temporal internal state
         if (originalNext == 6) {
             throw new RuntimeException();
         }
 
-        Next = originalNext + 1;
+        next = originalNext + 1;
     }
 
     public boolean inv() {
-        return Max > 2 && Next >= -1 && Max >= Next;
+        return max > 2 && next >= -1 && max >= next;
     }
 
     public boolean Pop_pre() {
-        return Next > -1;
+        return next > -1;
     }
 
     public boolean Push_pre() {
-        return Next < Max;
+        return next < max;
     }
 }

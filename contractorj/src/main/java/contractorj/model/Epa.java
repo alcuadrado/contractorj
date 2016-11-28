@@ -25,8 +25,8 @@ public class Epa {
 
     public synchronized void addTransition(Transition transition) {
 
-        states.add(transition.source);
-        states.add(transition.target);
+        states.add(transition.getSource());
+        states.add(transition.getTarget());
 
         transitions.add(transition);
     }
@@ -53,13 +53,13 @@ public class Epa {
 
     public Set<Action> getActions() {
         return states.stream()
-                .flatMap(state -> Stream.concat(state.enabledActions.stream(), state.disabledActions.stream()))
+                .flatMap(state -> Stream.concat(state.getEnabledActions().stream(), state.getDisabledActions().stream()))
                 .collect(Collectors.toSet());
     }
 
     public Set<Transition> getTransitionsWithSource(State source) {
         return transitions.stream()
-                .filter(transition -> transition.source.equals(source))
+                .filter(transition -> transition.getSource().equals(source))
                 .collect(Collectors.toSet());
     }
 

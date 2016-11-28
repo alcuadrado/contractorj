@@ -90,7 +90,7 @@ public abstract class TransitionQuery extends Query {
 
         return Stream.concat(
                 super.getLocalVariables().stream(),
-                target.getAllActions().stream().map(action -> getVariableForMethodResult(action.precondition).get()))
+                target.getAllActions().stream().map(action -> getVariableForMethodResult(action.getPrecondition()).get()))
                 .distinct()
                 .collect(Collectors.toList());
     }
@@ -102,11 +102,11 @@ public abstract class TransitionQuery extends Query {
 
         for (final Action action : target.getAllActions()) {
             final List<Variable> actionArguments = getArgumentListForMethod(
-                    action.method,
+                    action.getMethod(),
                     AFTER_MAIN_ACTION_ARGS_SUFFIX
             );
 
-            if (!action.method.isStatic()) {
+            if (!action.getMethod().isStatic()) {
                 actionArguments.remove(0);
             }
 

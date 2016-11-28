@@ -33,7 +33,7 @@ public abstract class Query {
         this.mainAction = mainAction;
         this.invariant = invariant;
 
-        if (!source.enabledActions.contains(mainAction)) {
+        if (!source.getEnabledActions().contains(mainAction)) {
             throw new IllegalArgumentException("Invalid query: mainAction must be in source's enabled actions.");
         }
     }
@@ -54,7 +54,7 @@ public abstract class Query {
     public String getName() {
 
         final String name = "from" + NAME_PART_SEPARATOR + getStateName(source) + NAME_PART_SEPARATOR
-                + "via" + NAME_PART_SEPARATOR + mainAction.method.getJavaNameWithArgumentTypes();
+                + "via" + NAME_PART_SEPARATOR + mainAction.getMethod().getJavaNameWithArgumentTypes();
 
         return StringUtils.scapeIllegalIdentifierCharacters(name);
     }
@@ -63,8 +63,8 @@ public abstract class Query {
 
         final String joiner = "____";
 
-        return state.enabledActions.stream()
-                .map(action -> action.method.getJavaNameWithArgumentTypes())
+        return state.getEnabledActions().stream()
+                .map(action -> action.getMethod().getJavaNameWithArgumentTypes())
                 .reduce((s1, s2) -> s1 + joiner + s2)
                 .orElse("EMPTY");
     }
@@ -147,13 +147,13 @@ public abstract class Query {
 
         variables.add(getVariableForMethodResult(invariant).get());
 
-        final Optional<Variable> mainActionResultVariable = getVariableForMethodResult(mainAction.method);
+        final Optional<Variable> mainActionResultVariable = getVariableForMethodResult(mainAction.getMethod());
         if (mainActionResultVariable.isPresent()) {
             variables.add(mainActionResultVariable.get());
         }
 
         source.getAllActions().stream()
-                .map(action -> getVariableForMethodResult(action.precondition))
+                .map(action -> getVariableForMethodResult(action.getPrecondition()))
                 .map(Optional::get)
                 .distinct()
                 .forEach(variables::add);
@@ -214,7 +214,7 @@ public abstract class Query {
                 .append(Joiner.on(", ").join(getNames(arguments)))
                 .append(");\n");
 
-        if (method.equals(mainAction.method)) {
+        if (method.equals(mainAction.getMethod())) {
 
             stringBuilder.append(getMainActionCallExceptionHandling());
 
@@ -227,18 +227,18 @@ public abstract class Query {
 
     protected String getCall(Action action, String argumentNamesSuffix, boolean callPre) {
 
-        final List<Variable> arguments = getArgumentListForMethod(action.method, argumentNamesSuffix);
+        final List<Variable> arguments = getArgumentListForMethod(action.getMethod(), argumentNamesSuffix);
 
         if (callPre) {
 
-            if (!action.method.isStatic() && action.precondition.isStatic()) {
+            if (!action.getMethod().isStatic() && action.getPrecondition().isStatic()) {
                 arguments.remove(0);
             }
 
-            return getCall(action.precondition, arguments);
+            return getCall(action.getPrecondition(), arguments);
         }
 
-        return getCall(action.method, arguments);
+        return getCall(action.getMethod(), arguments);
     }
 
     protected String getInvariantAssertion() {
@@ -268,9 +268,9 @@ public abstract class Query {
         }
 
         for (final Action action : source.getAllActions()) {
-            final List<Variable> actionArguments = getArgumentListForMethod(action.method, "");
+            final List<Variable> actionArguments = getArgumentListForMethod(action.getMethod(), "");
 
-            if (!action.method.isStatic()) {
+            if (!action.getMethod().isStatic()) {
                 actionArguments.remove(0);
             }
 
@@ -287,7 +287,7 @@ public abstract class Query {
 
     private boolean isThisVariableAnArgument() {
 
-        return !mainAction.method.isConstructor();
+        return !mainAction.getMethod().isConstructor();
     }
 
     private String getQueryArgumentsDeclaration() {
@@ -331,14 +331,14 @@ public abstract class Query {
 
         final List<String> atoms = new ArrayList<>();
 
-        state.enabledActions.stream()
-                .map(action -> getVariableForMethodResult(action.precondition))
+        state.getEnabledActions().stream()
+                .map(action -> getVariableForMethodResult(action.getPrecondition()))
                 .map(Optional::get)
                 .map(variable -> variable.name)
                 .forEach(atoms::add);
 
-        state.disabledActions.stream()
-                .map(action -> getVariableForMethodResult(action.precondition))
+        state.getDisabledActions().stream()
+                .map(action -> getVariableForMethodResult(action.getPrecondition()))
                 .map(Optional::get)
                 .map(variable -> "!" + variable.name)
                 .forEach(atoms::add);

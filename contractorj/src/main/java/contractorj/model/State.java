@@ -9,9 +9,9 @@ import java.util.Set;
 
 public class State {
 
-    public final Set<Action> enabledActions;
+    private final Set<Action> enabledActions;
 
-    public final Set<Action> disabledActions;
+    private final Set<Action> disabledActions;
 
     private boolean isConstructorsState = false;
 
@@ -33,22 +33,27 @@ public class State {
     }
 
     public Set<Action> getAllActions() {
-        return Sets.union(enabledActions, disabledActions);
+        return Sets.union(getEnabledActions(), getDisabledActions());
     }
 
     private void ensureAllOrNoneActionsAreConstructors() {
 
         long numberOfConstructors = getAllActions().stream()
-                .filter(action -> action.method.isConstructor())
+                .filter(action -> action.getMethod().isConstructor())
                 .count();
 
-        if (numberOfConstructors != 0 && numberOfConstructors != enabledActions.size() + disabledActions.size()) {
+        if (numberOfConstructors != 0 && numberOfConstructors != getTotalNumberOfActions()) {
             throw new IllegalArgumentException("Invalid state: can't mix methods and constructors");
         }
 
         if (numberOfConstructors > 0) {
             isConstructorsState = true;
         }
+    }
+
+    private int getTotalNumberOfActions() {
+
+        return getEnabledActions().size() + getDisabledActions().size();
     }
 
     @Override
@@ -62,22 +67,33 @@ public class State {
         }
 
         final State state = (State) o;
-        return Objects.equals(enabledActions, state.enabledActions) &&
-                Objects.equals(disabledActions, state.disabledActions);
+        return Objects.equals(getEnabledActions(), state.getEnabledActions()) &&
+                Objects.equals(getDisabledActions(), state.getDisabledActions());
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(enabledActions, disabledActions);
+        return Objects.hash(getEnabledActions(), getDisabledActions());
     }
 
     @Override
     public String toString() {
 
         return "State{" +
-                "enabledActions=" + Joiner.on(", ").join(enabledActions) +
-                ", disabledActions=" + Joiner.on(", ").join(disabledActions) +
+                "enabledActions=" + Joiner.on(", ").join(getEnabledActions()) +
+                ", disabledActions=" + Joiner.on(", ").join(getDisabledActions()) +
                 '}';
     }
+
+    public Set<Action> getEnabledActions() {
+
+        return enabledActions;
+    }
+
+    public Set<Action> getDisabledActions() {
+
+        return disabledActions;
+    }
+
 }

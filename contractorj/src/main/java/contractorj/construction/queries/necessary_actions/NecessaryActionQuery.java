@@ -48,7 +48,7 @@ public abstract class NecessaryActionQuery extends Query {
     public String getName() {
 
         final String name = super.getName() + NAME_PART_SEPARATOR
-                + "testing" + NAME_PART_SEPARATOR + testedAction.method.getJavaNameWithArgumentTypes();
+                + "testing" + NAME_PART_SEPARATOR + testedAction.getMethod().getJavaNameWithArgumentTypes();
 
         return StringUtils.scapeIllegalIdentifierCharacters(name);
     }
@@ -69,7 +69,7 @@ public abstract class NecessaryActionQuery extends Query {
 
     private Variable getTestedActionReturnVariable() {
 
-        return getVariableForMethodResult(testedAction.precondition).get();
+        return getVariableForMethodResult(testedAction.getPrecondition()).get();
     }
 
     @Override
@@ -97,11 +97,11 @@ public abstract class NecessaryActionQuery extends Query {
         final List<Variable> arguments = super.getQueryArguments();
 
         final List<Variable> actionArguments = getArgumentListForMethod(
-                testedAction.method,
+                testedAction.getMethod(),
                 AFTER_MAIN_ACTION_ARGS_SUFFIX
         );
 
-        if (!testedAction.method.isStatic()) {
+        if (!testedAction.getMethod().isStatic()) {
             actionArguments.remove(0);
         }
 

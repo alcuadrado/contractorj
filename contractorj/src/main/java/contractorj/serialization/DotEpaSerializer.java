@@ -27,8 +27,8 @@ public class DotEpaSerializer implements EpaSerializer {
 
         for (Transition transition : epa.getTransitions()) {
 
-            final State from = transition.source;
-            final State to = transition.target;
+            final State from = transition.getSource();
+            final State to = transition.getTarget();
 
             if (!collapsedEdges.containsKey(from)) {
                 collapsedEdges.put(from, new HashMap<>());
@@ -117,7 +117,7 @@ public class DotEpaSerializer implements EpaSerializer {
             states.add(state);
 
             epa.getTransitionsWithSource(state).stream()
-                    .map(transition -> transition.target)
+                    .map(transition -> transition.getTarget())
                     .filter(targetState -> !statesToVisit.contains(targetState))
                     .filter(targetState -> !states.contains(targetState))
                     .forEach(statesToVisit::add);
@@ -133,9 +133,9 @@ public class DotEpaSerializer implements EpaSerializer {
 
     private String getTransitionName(final Transition transition) {
 
-        return (transition.isThrowing ? "\u26A1" : "")
-                + transition.action.method.getJavaNameWithArgumentTypes()
-                + (transition.isUncertain ? "?" : "");
+        return (transition.isThrowing() ? "\u26A1" : "")
+                + transition.getAction().getMethod().getJavaNameWithArgumentTypes()
+                + (transition.isUncertain() ? "?" : "");
     }
 
     private String getStateDotName(State state) {
@@ -144,8 +144,8 @@ public class DotEpaSerializer implements EpaSerializer {
             return "ERROR";
         }
 
-        final Set<String> names = state.enabledActions.stream()
-                .map(action -> action.method.getJavaNameWithArgumentTypes())
+        final Set<String> names = state.getEnabledActions().stream()
+                .map(action -> action.getMethod().getJavaNameWithArgumentTypes())
                 .collect(Collectors.toSet());
 
         return Joiner.on("\\n").join(names);

@@ -18,8 +18,6 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.ByteArrayOutputStream;
-import java.util.Optional;
-import java.util.stream.Stream;
 
 public class XmlEpaSerializer implements EpaSerializer {
 
@@ -95,7 +93,7 @@ public class XmlEpaSerializer implements EpaSerializer {
 
         stateElement.setAttribute("name", getStateName(state));
 
-        for (final Action enabledAction : state.enabledActions) {
+        for (final Action enabledAction : state.getEnabledActions()) {
             final Element enabledLabel = doc.createElement("enabled_label");
             enabledLabel.setAttribute("name", enabledAction.toString());
 
@@ -104,14 +102,14 @@ public class XmlEpaSerializer implements EpaSerializer {
 
         for (final Transition transition : epa.getTransitionsWithSource(state)) {
 
-            final String destinationName = getStateName(transition.target);
+            final String destinationName = getStateName(transition.getTarget());
             final boolean isDestinationError = destinationName.equals("ERROR");
 
             final Element transitionElement = doc.createElement("transition");
             transitionElement.setAttribute("destination", destinationName);
-            transitionElement.setAttribute("label", transition.action.toString());
-            transitionElement.setAttribute("uncertain", String.valueOf(transition.isUncertain));
-            transitionElement.setAttribute("exitCode", transition.isThrowing ? "Exception" : "Ok");
+            transitionElement.setAttribute("label", transition.getAction().toString());
+            transitionElement.setAttribute("uncertain", String.valueOf(transition.isUncertain()));
+            transitionElement.setAttribute("exitCode", transition.isThrowing() ? "Exception" : "Ok");
             transitionElement.setAttribute("violates_invariant", String.valueOf(isDestinationError));
 
             stateElement.appendChild(transitionElement);
@@ -137,8 +135,8 @@ public class XmlEpaSerializer implements EpaSerializer {
             return "ERROR";
         }
 
-        return state.enabledActions.stream()
-                .map(action -> action.method.getJavaNameWithArgumentTypes())
+        return state.getEnabledActions().stream()
+                .map(action -> action.getMethod().getJavaNameWithArgumentTypes())
                 .reduce((s1, s2) -> s1 + "$" + s2)
                 .orElse("");
     }

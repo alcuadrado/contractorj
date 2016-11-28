@@ -9,9 +9,9 @@ import java.util.Objects;
  */
 public class Action {
 
-    public final Method precondition;
+    private final Method precondition;
 
-    public final Method method;
+    private final Method method;
 
     public Action(Method precondition, Method method) {
 
@@ -22,7 +22,7 @@ public class Action {
     @Override
     public String toString() {
 
-        return method.getJavaNameWithArgumentTypes();
+        return getMethod().getJavaNameWithArgumentTypes();
     }
 
     @Override
@@ -37,14 +37,23 @@ public class Action {
         }
 
         final Action action = (Action) o;
-        return Objects.equals(precondition, action.precondition) &&
-                Objects.equals(method, action.method);
+        return Objects.equals(getPrecondition(), action.getPrecondition()) &&
+                Objects.equals(getMethod(), action.getMethod());
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(precondition, method);
+        return Objects.hash(getPrecondition(), getMethod());
     }
 
+    public Method getPrecondition() {
+
+        return precondition;
+    }
+
+    public Method getMethod() {
+
+        return method;
+    }
 }

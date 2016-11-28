@@ -95,7 +95,7 @@ public class LazyEpaGenerator extends EpaGenerator {
 
     private void analiseState(final State state) {
 
-        state.enabledActions.forEach(action ->
+        state.getEnabledActions().forEach(action ->
                 runOnDriverExecutorService(() -> analiseStateAndAction(state, action))
         );
     }
@@ -150,7 +150,7 @@ public class LazyEpaGenerator extends EpaGenerator {
 
                 final Transition transition = maybeTransition.get();
 
-                enqueueStateIfNecessary(transition.target);
+                enqueueStateIfNecessary(transition.getTarget());
                 epa.addTransition(transition);
             }
 

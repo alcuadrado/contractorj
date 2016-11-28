@@ -6,10 +6,12 @@ import contractorj.construction.queries.Query;
 import contractorj.construction.queries.Variable;
 import contractorj.model.Action;
 import contractorj.model.State;
+import contractorj.model.Transition;
 import j2bpl.Method;
 import j2bpl.StringUtils;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -17,11 +19,28 @@ public abstract class TransitionQuery extends Query {
 
     private State target;
 
-    public TransitionQuery(final State source, final Action transition, final State target, final Method invariant) {
+    public TransitionQuery(final State source, final Action mainAction, final State target, final Method invariant) {
 
-        super(source, transition, invariant);
+        super(source, mainAction, invariant);
 
         this.target = target;
+    }
+
+    protected abstract boolean throwsException();
+
+    @Override
+    public Optional<Transition> getTransition(final Answer answer) {
+
+        if (answer.equals(Answer.NO)) {
+            return Optional.empty();
+        }
+
+        return Optional.of(new Transition(
+                source,
+                mainAction, target,
+                answer.equals(Answer.MAYBE),
+                throwsException()
+        ));
     }
 
     @Override
@@ -55,7 +74,7 @@ public abstract class TransitionQuery extends Query {
     @Override
     protected String getQueryCore() {
 
-        return getStateGuardCalls(target, AFTER_TRANSITION_ARGS_SUFFIX) + "\n" +
+        return getStateGuardCalls(target, AFTER_MAIN_ACTION_ARGS_SUFFIX) + "\n" +
                 "\n" +
                 "\n" +
 
@@ -84,7 +103,7 @@ public abstract class TransitionQuery extends Query {
         for (final Action action : target.getAllActions()) {
             final List<Variable> actionArguments = getArgumentListForMethod(
                     action.method,
-                    AFTER_TRANSITION_ARGS_SUFFIX
+                    AFTER_MAIN_ACTION_ARGS_SUFFIX
             );
 
             if (!action.method.isStatic()) {

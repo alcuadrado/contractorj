@@ -8,15 +8,21 @@ import j2bpl.Method;
 public class ThrowingTransitionQuery extends TransitionQuery {
 
     public ThrowingTransitionQuery(final State source,
-                                   final Action transition,
+                                   final Action mainAction,
                                    final State target,
                                    final Method invariant) {
 
-        super(source, transition, target, invariant);
+        super(source, mainAction, target, invariant);
     }
 
     @Override
-    protected String getTransitionCallExceptionHandling() {
+    protected boolean throwsException() {
+
+        return true;
+    }
+
+    @Override
+    protected String getMainActionCallExceptionHandling() {
 
         return "assume $Exception != null;\n" +
                 "$Exception := null;";

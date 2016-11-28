@@ -1,7 +1,5 @@
 package contractorj.model;
 
-import com.google.common.collect.Sets;
-
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;

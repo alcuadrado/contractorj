@@ -6,25 +6,33 @@ import contractorj.construction.queries.Query;
 import contractorj.construction.queries.Variable;
 import contractorj.model.Action;
 import contractorj.model.State;
+import contractorj.model.Transition;
 import j2bpl.Method;
 import j2bpl.StringUtils;
 
 import java.util.List;
+import java.util.Optional;
 
 public abstract class NecessaryActionQuery extends Query {
 
     private final Action testedAction;
 
     public NecessaryActionQuery(final State source,
-                                final Action transition,
+                                final Action mainAction,
                                 final Action testedAction,
                                 final Method invariant) {
 
-        super(source, transition, invariant);
+        super(source, mainAction, invariant);
         this.testedAction = testedAction;
     }
 
     protected abstract boolean isTestingEnabledness();
+
+    @Override
+    public Optional<Transition> getTransition(final Answer answer) {
+
+        return Optional.empty();
+    }
 
     @Override
     public Answer getAnswer(final QueryResult queryResult) {
@@ -48,7 +56,7 @@ public abstract class NecessaryActionQuery extends Query {
     @Override
     protected String getQueryCore() {
 
-        return getCall(testedAction, AFTER_TRANSITION_ARGS_SUFFIX, true) + "\n"
+        return getCall(testedAction, AFTER_MAIN_ACTION_ARGS_SUFFIX, true) + "\n"
                 + "\n"
                 + "\n"
 
@@ -78,7 +86,7 @@ public abstract class NecessaryActionQuery extends Query {
     }
 
     @Override
-    protected String getTransitionCallExceptionHandling() {
+    protected String getMainActionCallExceptionHandling() {
 
         return "$Exception := null;";
     }
@@ -90,7 +98,7 @@ public abstract class NecessaryActionQuery extends Query {
 
         final List<Variable> actionArguments = getArgumentListForMethod(
                 testedAction.method,
-                AFTER_TRANSITION_ARGS_SUFFIX
+                AFTER_MAIN_ACTION_ARGS_SUFFIX
         );
 
         if (!testedAction.method.isStatic()) {

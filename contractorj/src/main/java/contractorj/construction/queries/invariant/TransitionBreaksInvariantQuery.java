@@ -6,13 +6,19 @@ import j2bpl.Method;
 
 public class TransitionBreaksInvariantQuery extends InvariantQuery {
 
-    public TransitionBreaksInvariantQuery(final State source, final Action transition, final Method invariant) {
+    public TransitionBreaksInvariantQuery(final State source, final Action mainAction, final Method invariant) {
 
-        super(source, transition, invariant);
+        super(source, mainAction, invariant);
     }
 
     @Override
-    protected String getTransitionCallExceptionHandling() {
+    protected boolean throwsException() {
+
+        return false;
+    }
+
+    @Override
+    protected String getMainActionCallExceptionHandling() {
 
         return "assume $Exception == null;";
     }

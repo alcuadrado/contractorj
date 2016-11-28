@@ -4,6 +4,7 @@ import com.google.common.base.Joiner;
 import contractorj.construction.corral.QueryResult;
 import contractorj.model.Action;
 import contractorj.model.State;
+import contractorj.model.Transition;
 import j2bpl.Method;
 import j2bpl.StringUtils;
 
@@ -14,26 +15,26 @@ import java.util.stream.Collectors;
 
 public abstract class Query {
 
-    protected static final String AFTER_TRANSITION_ARGS_SUFFIX = "After";
+    protected static final String AFTER_MAIN_ACTION_ARGS_SUFFIX = "After";
 
     protected static final String NAME_PART_SEPARATOR = "_________";
 
     protected final State source;
 
-    protected final Action transition;
+    protected final Action mainAction;
 
     protected final Method invariant;
 
     protected Query(State source,
-                    Action transition,
+                    Action mainAction,
                     Method invariant) {
 
         this.source = source;
-        this.transition = transition;
+        this.mainAction = mainAction;
         this.invariant = invariant;
 
-        if (!source.enabledActions.contains(transition)) {
-            throw new IllegalArgumentException("Invalid query: transition must be in source's enabled actions.");
+        if (!source.enabledActions.contains(mainAction)) {
+            throw new IllegalArgumentException("Invalid query: mainAction must be in source's enabled actions.");
         }
     }
 
@@ -41,20 +42,19 @@ public abstract class Query {
 
     protected abstract String getQueryCore();
 
+    public abstract Optional<Transition> getTransition(Answer answer);
+
+    protected abstract String getMainActionCallExceptionHandling();
+
     public State getSource() {
 
         return source;
     }
 
-    public Action getTransition() {
-
-        return transition;
-    }
-
     public String getName() {
 
         final String name = "from" + NAME_PART_SEPARATOR + getStateName(source) + NAME_PART_SEPARATOR
-                + "via" + NAME_PART_SEPARATOR + transition.method.getJavaNameWithArgumentTypes();
+                + "via" + NAME_PART_SEPARATOR + mainAction.method.getJavaNameWithArgumentTypes();
 
         return StringUtils.scapeIllegalIdentifierCharacters(name);
     }
@@ -102,7 +102,7 @@ public abstract class Query {
                 .append("\n")
                 .append("\n")
 
-                .append(getCall(transition, "", false)).append("\n")
+                .append(getCall(mainAction, "", false)).append("\n")
                 .append("\n")
                 .append("\n")
 
@@ -147,9 +147,9 @@ public abstract class Query {
 
         variables.add(getVariableForMethodResult(invariant).get());
 
-        final Optional<Variable> transitionResultVariable = getVariableForMethodResult(transition.method);
-        if (transitionResultVariable.isPresent()) {
-            variables.add(transitionResultVariable.get());
+        final Optional<Variable> mainActionResultVariable = getVariableForMethodResult(mainAction.method);
+        if (mainActionResultVariable.isPresent()) {
+            variables.add(mainActionResultVariable.get());
         }
 
         source.getAllActions().stream()
@@ -214,9 +214,9 @@ public abstract class Query {
                 .append(Joiner.on(", ").join(getNames(arguments)))
                 .append(");\n");
 
-        if (method.equals(transition.method)) {
+        if (method.equals(mainAction.method)) {
 
-            stringBuilder.append(getTransitionCallExceptionHandling());
+            stringBuilder.append(getMainActionCallExceptionHandling());
 
         } else {
             stringBuilder.append("assume $Exception == null;");
@@ -224,8 +224,6 @@ public abstract class Query {
 
         return stringBuilder.toString();
     }
-
-    protected abstract String getTransitionCallExceptionHandling();
 
     protected String getCall(Action action, String argumentNamesSuffix, boolean callPre) {
 
@@ -289,7 +287,7 @@ public abstract class Query {
 
     private boolean isThisVariableAnArgument() {
 
-        return !transition.method.isConstructor();
+        return !mainAction.method.isConstructor();
     }
 
     private String getQueryArgumentsDeclaration() {

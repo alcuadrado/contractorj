@@ -5,14 +5,19 @@ import contractorj.construction.queries.Answer;
 import contractorj.construction.queries.Query;
 import contractorj.model.Action;
 import contractorj.model.State;
+import contractorj.model.Transition;
 import j2bpl.Method;
+
+import java.util.Optional;
 
 public abstract class InvariantQuery extends Query {
 
-    protected InvariantQuery(final State source, final Action transition, final Method invariant) {
+    protected InvariantQuery(final State source, final Action mainAction, final Method invariant) {
 
-        super(source, transition, invariant);
+        super(source, mainAction, invariant);
     }
+
+    protected abstract boolean throwsException();
 
     @Override
     public Answer getAnswer(final QueryResult queryResult) {
@@ -29,6 +34,22 @@ public abstract class InvariantQuery extends Query {
                 return Answer.MAYBE;
         }
 
+    }
+
+    @Override
+    public Optional<Transition> getTransition(final Answer answer) {
+
+        if (answer.equals(Answer.NO)) {
+            return Optional.empty();
+        }
+
+
+        return Optional.of(new Transition(
+                source,
+                mainAction, State.ERROR,
+                answer.equals(Answer.MAYBE),
+                throwsException()
+        ));
     }
 
     @Override

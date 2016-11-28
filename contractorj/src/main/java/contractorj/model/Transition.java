@@ -6,23 +6,22 @@ public class Transition {
 
     public final State target;
 
-    public final Action transition;
+    public final Action action;
 
     public final boolean isUncertain;
 
     public final boolean isThrowing;
 
-    public Transition(State source, State target, Action transition, boolean isUncertain, final boolean isThrowing) {
+    public Transition(State source, Action action, State target, boolean isUncertain, final boolean isThrowing) {
 
         this.isThrowing = isThrowing;
 
-        assert source.enabledActions.contains(transition);
+        assert source.enabledActions.contains(action);
 
         this.source = source;
         this.target = target;
-        this.transition = transition;
+        this.action = action;
         this.isUncertain = isUncertain;
     }
-
 
 }

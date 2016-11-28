@@ -18,6 +18,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.ByteArrayOutputStream;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 public class XmlEpaSerializer implements EpaSerializer {
 
@@ -107,7 +109,7 @@ public class XmlEpaSerializer implements EpaSerializer {
 
             final Element transitionElement = doc.createElement("transition");
             transitionElement.setAttribute("destination", destinationName);
-            transitionElement.setAttribute("label", transition.transition.toString());
+            transitionElement.setAttribute("label", transition.action.toString());
             transitionElement.setAttribute("uncertain", String.valueOf(transition.isUncertain));
             transitionElement.setAttribute("exitCode", transition.isThrowing ? "Exception" : "Ok");
             transitionElement.setAttribute("violates_invariant", String.valueOf(isDestinationError));

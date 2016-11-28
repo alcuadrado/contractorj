@@ -8,11 +8,11 @@ import j2bpl.Method;
 public class NecessarilyDisabledActionQuery extends NecessaryActionQuery {
 
     public NecessarilyDisabledActionQuery(final State source,
-                                          final Action transition,
+                                          final Action mainAction,
                                           final Action testedAction,
                                           final Method invariant) {
 
-        super(source, transition, testedAction, invariant);
+        super(source, mainAction, testedAction, invariant);
     }
 
     @Override

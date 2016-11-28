@@ -134,7 +134,7 @@ public class DotEpaSerializer implements EpaSerializer {
     private String getTransitionName(final Transition transition) {
 
         return (transition.isThrowing ? "\u26A1" : "")
-                + transition.transition.method.getJavaNameWithArgumentTypes()
+                + transition.action.method.getJavaNameWithArgumentTypes()
                 + (transition.isUncertain ? "?" : "");
     }
 

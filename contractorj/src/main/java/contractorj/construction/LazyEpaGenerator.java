@@ -95,206 +95,18 @@ public class LazyEpaGenerator extends EpaGenerator {
 
     private void analiseState(final State state) {
 
-        for (final Action transition : state.enabledActions) {
-
-            phaser.register();
-
-            driverExecutorService.submit(() -> {
-
-                try {
-                    analiseStateAndAction(state, transition);
-                } catch (Exception exception) {
-                    System.err.println("Unhandled exception on thread " + Thread.currentThread().getName() + ":"
-                            + exception.getMessage());
-                    exception.printStackTrace();
-                } finally {
-                    phaser.arrive();
-                }
-
-            });
-
-        }
-
-    }
-
-    private void analiseStateAndAction(final State state, final Action action) {
-
-        final InvariantQueriesFuture invariantQueriesFuture = new InvariantQueriesFuture(state, action);
-
-        final Set<NecessaryActionResult> necessaryActionResults = getNecessaryActionResults(
-                state,
-                action
+        state.enabledActions.forEach(action ->
+                runOnDriverExecutorService(() -> analiseStateAndAction(state, action))
         );
-
-        ensureConsistentNecessaryActionResults(state, action, necessaryActionResults);
-
-        final Set<Action> necessarilyEnabledActions = necessaryActionResults.stream()
-                .filter(necessaryActionResult -> necessaryActionResult.necessarilyEnabled.equals(Answer.YES))
-                .map(necessaryActionResult -> necessaryActionResult.action)
-                .collect(Collectors.toSet());
-
-        final Set<Action> necessarilyDisabledActions = necessaryActionResults.stream()
-                .filter(necessaryActionResult -> necessaryActionResult.necessarilyDisabled.equals(Answer.YES))
-                .map(necessaryActionResult -> necessaryActionResult.action)
-                .collect(Collectors.toSet());
-
-        final Set<Transition> enabledTransitions = getTransitionsFromStateWithAction(
-                state,
-                action,
-                necessarilyEnabledActions,
-                necessarilyDisabledActions
-        );
-
-        analiseInvariantBreakage(state, action, invariantQueriesFuture);
-
-        for (final Transition enabledTransition : enabledTransitions) {
-
-            final State targetState = enabledTransition.target;
-
-            enqueueStateIfNecessary(targetState);
-
-            epa.addTransition(enabledTransition);
-        }
-
     }
 
-    private void analiseInvariantBreakage(final State state,
-                                          final Action transition,
-                                          final InvariantQueriesFuture invariantQueriesFuture) {
-
-        final InvariantQueriesResult invariantQueriesResult = invariantQueriesFuture.get();
-
-        final Answer transitionBreaksInvariant = invariantQueriesResult.transitionBreaksInvariant;
-
-        if (!transitionBreaksInvariant.equals(Answer.NO)) {
-            epa.addTransition(new Transition(
-                    state,
-                    getErrorState(),
-                    transition,
-                    transitionBreaksInvariant.equals(Answer.MAYBE),
-                    false
-            ));
-        }
-
-        final Answer exceptionBreaksInvariant = invariantQueriesResult.exceptionBreaksInvariant;
-
-        if (!exceptionBreaksInvariant.equals(Answer.NO)) {
-            epa.addTransition(new Transition(
-                    state,
-                    getErrorState(),
-                    transition,
-                    exceptionBreaksInvariant.equals(Answer.MAYBE),
-                    true
-            ));
-        }
-
-    }
-
-    private void ensureConsistentNecessaryActionResults(final State state,
-                                                        final Action transition,
-                                                        final Set<NecessaryActionResult> actionsStatus) {
-
-        final List<Action> conflictingActions = actionsStatus.stream()
-                .filter(necessaryActionResult -> necessaryActionResult.necessarilyDisabled.equals(Answer.YES)
-                        && necessaryActionResult.necessarilyEnabled.equals(Answer.YES))
-                .map(necessaryActionResult -> necessaryActionResult.action)
-                .collect(Collectors.toList());
-
-        if (!conflictingActions.isEmpty()) {
-            throw new IllegalStateException("Going through transition " + transition.toString() + " from state "
-                    + state + " makes " + Arrays.toString(conflictingActions.toArray())
-                    + " both enabled and disabled.");
-        }
-    }
-
-    private Set<Transition> getTransitionsFromStateWithAction(final State state,
-                                                              final Action action,
-                                                              final Set<Action> necessarilyEnabledActions,
-                                                              final Set<Action> necessarilyDisabledActions) {
-
-        final Set<Action> uncertainActions = Sets.difference(
-                Sets.difference(actions, necessarilyEnabledActions),
-                necessarilyDisabledActions
-        );
-
-        final CombinationsGenerator<Action> combinationsGenerator = new CombinationsGenerator<>();
-        final Set<Set<Action>> combinations = combinationsGenerator.combinations(uncertainActions);
-
-        return combinations.parallelStream()
-                .map(maybeEnabledActions -> createTargetState(
-                        necessarilyEnabledActions,
-                        necessarilyDisabledActions,
-                        uncertainActions,
-                        maybeEnabledActions
-                ))
-                .map(targetState -> new TransitionQueriesResults(
-                        action,
-                        targetState,
-                        getAnswer(new NotThrowingTransitionQuery(state, action, targetState, invariant)),
-                        getAnswer(new ThrowingTransitionQuery(state, action, targetState, invariant))
-                ))
-                .flatMap(transitionQueriesResults -> {
-
-                    final Optional<Transition> notThrowingTransition = getTransitionFromQueryResult(
-                            state,
-                            action,
-                            transitionQueriesResults.targetState,
-                            transitionQueriesResults.notThrowingTransitionAnswer,
-                            false
-                    );
-
-                    final Optional<Transition> throwingTransition = getTransitionFromQueryResult(
-                            state,
-                            action,
-                            transitionQueriesResults.targetState,
-                            transitionQueriesResults.throwingTransitionAnswer,
-                            true
-                    );
-
-                    return Stream.of(notThrowingTransition, throwingTransition)
-                            .filter(Optional::isPresent)
-                            .map(Optional::get);
-                })
-                .collect(Collectors.toSet());
-    }
-
-    private Optional<Transition> getTransitionFromQueryResult(State source, Action transitionAction, State target,
-                                                              Answer answer, boolean throwing) {
-
-        if (answer.equals(Answer.NO)) {
-            return Optional.empty();
-        }
-
-        final Transition transition = new Transition(
-                source,
-                target,
-                transitionAction,
-                answer.equals(Answer.MAYBE),
-                throwing
-        );
-
-        return Optional.of(transition);
-    }
-
-    private State getErrorState() {
-
-        return new State(Sets.newHashSet(), Sets.newHashSet());
-    }
-
-    private synchronized void enqueueStateIfNecessary(State state) {
-
-        if (statesAlreadyEnqueued.contains(state)) {
-            return;
-        }
-
-        statesAlreadyEnqueued.add(state);
+    private void runOnDriverExecutorService(AsyncTask asyncTask) {
 
         phaser.register();
-
         driverExecutorService.submit(() -> {
 
             try {
-                analiseState(state);
+                asyncTask.run();
             } catch (Exception exception) {
                 System.err.println("Unhandled exception on thread " + Thread.currentThread().getName() + ":"
                         + exception.getMessage());
@@ -306,11 +118,125 @@ public class LazyEpaGenerator extends EpaGenerator {
         });
     }
 
-    private State createTargetState(
-            final Set<Action> necessarilyEnabledActions,
-            final Set<Action> necessarilyDisabledActions,
-            final Set<Action> uncertainActions,
-            final Set<Action> maybeEnabledActions) {
+    private void analiseStateAndAction(final State state, final Action mainAction) {
+
+        final Set<NecessaryActionResult> necessaryActionResults = getNecessaryActionResults(
+                state,
+                mainAction
+        );
+
+        ensureConsistentNecessaryActionResults(state, mainAction, necessaryActionResults);
+
+        final Set<Action> necessarilyEnabledActions = necessaryActionResults.stream()
+                .filter(necessaryActionResult -> necessaryActionResult.necessarilyEnabled.equals(Answer.YES))
+                .map(necessaryActionResult -> necessaryActionResult.testedAction)
+                .collect(Collectors.toSet());
+
+        final Set<Action> necessarilyDisabledActions = necessaryActionResults.stream()
+                .filter(necessaryActionResult -> necessaryActionResult.necessarilyDisabled.equals(Answer.YES))
+                .map(necessaryActionResult -> necessaryActionResult.testedAction)
+                .collect(Collectors.toSet());
+
+        final Stream<Query> queryStream = Stream.concat(
+                getInvariantTestQueries(state, mainAction),
+                getTransitionQueries(state, mainAction, necessarilyEnabledActions, necessarilyDisabledActions)
+        );
+
+        queryStream.forEach(query -> runOnDriverExecutorService(() -> {
+
+            final Optional<Transition> maybeTransition = query.getTransition(getAnswer(query));
+
+            if (maybeTransition.isPresent()) {
+
+                final Transition transition = maybeTransition.get();
+
+                enqueueStateIfNecessary(transition.target);
+                epa.addTransition(transition);
+            }
+
+        }));
+    }
+
+    private void ensureConsistentNecessaryActionResults(final State state,
+                                                        final Action mainAction,
+                                                        final Set<NecessaryActionResult> necessaryActionResults) {
+
+        final List<Action> conflictingActions = necessaryActionResults.stream()
+                .filter(necessaryActionResult -> necessaryActionResult.necessarilyDisabled.equals(Answer.YES)
+                        && necessaryActionResult.necessarilyEnabled.equals(Answer.YES))
+                .map(necessaryActionResult -> necessaryActionResult.testedAction)
+                .collect(Collectors.toList());
+
+        if (!conflictingActions.isEmpty()) {
+            throw new IllegalStateException("Going through testedAction " + mainAction.toString() + " from state "
+                    + state + " makes " + Arrays.toString(conflictingActions.toArray())
+                    + " both enabled and disabled.");
+        }
+    }
+
+    private Stream<Query> getInvariantTestQueries(final State state, final Action mainAction) {
+
+        return Stream.of(
+                new TransitionBreaksInvariantQuery(state, mainAction, invariant),
+                new ExceptionBreaksInvariantQuery(state, mainAction, invariant)
+        );
+    }
+
+    private Stream<Query> getTransitionQueries(final State state,
+                                               final Action mainAction,
+                                               final Set<Action> necessarilyEnabledActions,
+                                               final Set<Action> necessarilyDisabledActions) {
+
+        final Set<Action> uncertainActions = Sets.difference(
+                Sets.difference(actions, necessarilyEnabledActions),
+                necessarilyDisabledActions
+        );
+
+        final CombinationsGenerator<Action> combinationsGenerator = new CombinationsGenerator<>();
+        final Set<Set<Action>> combinations = combinationsGenerator.combinations(uncertainActions);
+
+        return combinations.stream()
+                .map(maybeEnabledActions -> createTargetState(
+                        necessarilyEnabledActions,
+                        necessarilyDisabledActions,
+                        uncertainActions,
+                        maybeEnabledActions
+                ))
+                .flatMap(targetState -> {
+
+                    final NotThrowingTransitionQuery notThrowingTransitionQuery = new NotThrowingTransitionQuery(
+                            state,
+                            mainAction,
+                            targetState,
+                            invariant
+                    );
+
+                    final ThrowingTransitionQuery throwingTransitionQuery = new ThrowingTransitionQuery(
+                            state,
+                            mainAction,
+                            targetState,
+                            invariant
+                    );
+
+                    return Stream.of(notThrowingTransitionQuery, throwingTransitionQuery);
+                });
+    }
+
+    private synchronized void enqueueStateIfNecessary(State state) {
+
+        if (statesAlreadyEnqueued.contains(state)) {
+            return;
+        }
+
+        statesAlreadyEnqueued.add(state);
+
+        runOnDriverExecutorService(() -> analiseState(state));
+    }
+
+    private State createTargetState(final Set<Action> necessarilyEnabledActions,
+                                    final Set<Action> necessarilyDisabledActions,
+                                    final Set<Action> uncertainActions,
+                                    final Set<Action> maybeEnabledActions) {
 
         final Set<Action> enabledActions = Sets.union(necessarilyEnabledActions, maybeEnabledActions);
 
@@ -322,14 +248,14 @@ public class LazyEpaGenerator extends EpaGenerator {
         return new State(enabledActions, disabledActions);
     }
 
-    private Set<NecessaryActionResult> getNecessaryActionResults(final State state, final Action transition) {
+    private Set<NecessaryActionResult> getNecessaryActionResults(final State state, final Action mainAction) {
 
         return actions.parallelStream()
                 .map(testedAction -> {
                     final NecessarilyEnabledActionQuery necessarilyEnabledActionQuery =
-                            new NecessarilyEnabledActionQuery(state, transition, testedAction, invariant);
+                            new NecessarilyEnabledActionQuery(state, mainAction, testedAction, invariant);
                     final NecessarilyDisabledActionQuery necessarilyDisabledActionQuery =
-                            new NecessarilyDisabledActionQuery(state, transition, testedAction, invariant);
+                            new NecessarilyDisabledActionQuery(state, mainAction, testedAction, invariant);
 
                     return new NecessaryActionResult(
                             testedAction,
@@ -367,92 +293,26 @@ public class LazyEpaGenerator extends EpaGenerator {
 
     private static class NecessaryActionResult {
 
-        public final Action action;
+        public final Action testedAction;
 
         public final Answer necessarilyEnabled;
 
         public final Answer necessarilyDisabled;
 
-        private NecessaryActionResult(final Action action,
+        private NecessaryActionResult(final Action testedAction,
                                       final Answer necessarilyEnabled,
                                       final Answer necessarilyDisabled) {
 
-            this.action = action;
+            this.testedAction = testedAction;
             this.necessarilyEnabled = necessarilyEnabled;
             this.necessarilyDisabled = necessarilyDisabled;
         }
     }
 
-    private static class TransitionQueriesResults {
+    private interface AsyncTask {
 
-        public final Action transition;
+        void run();
 
-        public final State targetState;
-
-        public final Answer notThrowingTransitionAnswer;
-
-        public final Answer throwingTransitionAnswer;
-
-        private TransitionQueriesResults(final Action transition,
-                                         final State targetState,
-                                         final Answer notThrowingTransitionAnswer,
-                                         final Answer throwingTransitionAnswer) {
-
-            this.transition = transition;
-            this.targetState = targetState;
-            this.notThrowingTransitionAnswer = notThrowingTransitionAnswer;
-            this.throwingTransitionAnswer = throwingTransitionAnswer;
-        }
-    }
-
-    private class InvariantQueriesFuture {
-
-        private final Future<Answer> transitionBreaksInvariantFuture;
-
-        private final Future<Answer> exceptionBreaksInvariantFuture;
-
-        public InvariantQueriesFuture(State state, Action transition) {
-
-            this(
-                    new TransitionBreaksInvariantQuery(state, transition, invariant),
-                    new ExceptionBreaksInvariantQuery(state, transition, invariant)
-            );
-
-        }
-
-        private InvariantQueriesFuture(final TransitionBreaksInvariantQuery transitionBreaksInvariantQuery,
-                                       final ExceptionBreaksInvariantQuery exceptionBreaksInvariantQuery) {
-
-            this.transitionBreaksInvariantFuture = submitQuery(transitionBreaksInvariantQuery);
-            this.exceptionBreaksInvariantFuture = submitQuery(exceptionBreaksInvariantQuery);
-        }
-
-        public InvariantQueriesResult get() {
-
-            try {
-                return new InvariantQueriesResult(
-                        transitionBreaksInvariantFuture.get(),
-                        exceptionBreaksInvariantFuture.get()
-                );
-            } catch (InterruptedException | ExecutionException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-    }
-
-    private static class InvariantQueriesResult {
-
-        public Answer transitionBreaksInvariant;
-
-        public Answer exceptionBreaksInvariant;
-
-        public InvariantQueriesResult(final Answer transitionBreaksInvariant,
-                                      final Answer exceptionBreaksInvariant) {
-
-            this.transitionBreaksInvariant = transitionBreaksInvariant;
-            this.exceptionBreaksInvariant = exceptionBreaksInvariant;
-        }
     }
 
 }

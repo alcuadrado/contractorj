@@ -1,5 +1,6 @@
 apply plugin: 'java'
 apply plugin: 'application'
+apply plugin: 'com.github.johnrengelman.shadow'
 
 mainClassName = 'contractorj.Main'
 
@@ -7,6 +8,18 @@ run {
     if (System.getProperty("exec.args") != null) {
         args System.getProperty("exec.args").split()
     }
+}
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.4'
+    }
+}
+
+shadowJar {
 }
 
 dependencies {

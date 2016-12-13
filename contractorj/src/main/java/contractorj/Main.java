@@ -140,7 +140,7 @@ public class Main {
 
     private static String getRtJarPath() throws IOException {
 
-        final URL url = Main.class.getResource("/java7-rt.jar");
+        final URL url = Main.class.getResource("/java7-rt-jar");
 
         final File outputFile = File.createTempFile("temporal-rt-jar", "rt.jar");
         Resources.asByteSource(url).copyTo(Files.asByteSink(outputFile));

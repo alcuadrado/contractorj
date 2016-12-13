@@ -63,6 +63,7 @@ public abstract class EpaGenerator {
         final LocalDateTime start = LocalDateTime.now();
 
         final ActionsExtractor actionsExtractor = new ActionsExtractor(theClass);
+
         actions = actionsExtractor.getInstanceActions();
         invariant = actionsExtractor.getInvariant();
         constructors = actionsExtractor.getConstructorActions();

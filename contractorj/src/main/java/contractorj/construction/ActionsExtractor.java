@@ -9,16 +9,13 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Extracts all the instanceActions of a class and its invariant.
- */
 public class ActionsExtractor {
 
     private final static String INVARIANT_METHOD_NAME = "inv()";
 
     private final Class theClass;
 
-    private final Map<String, Set<Method>> methodsMap;
+    private final Map<String, Method> methodsMap = new HashMap<>();
 
     private final Set<Action> instanceActions = new HashSet<>();
 
@@ -45,8 +42,7 @@ public class ActionsExtractor {
 
         this.theClass = theClass;
 
-        methodsMap = getMethodsMap();
-
+        computeMethodsMap();
         searchInvariant();
         generateActions();
     }
@@ -55,32 +51,36 @@ public class ActionsExtractor {
 
         for (String methodName : methodsMap.keySet()) {
 
-            final String preconditionMethodName = getPreconditionMethodName(methodName);
-
-            if (!methodsMap.containsKey(preconditionMethodName)) {
+            if (methodName.equals(INVARIANT_METHOD_NAME)) {
                 continue;
             }
 
-            final Set<Method> methods = methodsMap.get(methodName);
-            final Set<Method> preconditions = methodsMap.get(preconditionMethodName);
-
-            if (methods.size() != 1 || preconditions.size() != 1) {
-                throw new IllegalStateException("More than one method or precondition with same name and arguments");
+            if (isPreconditionName(methodName)) {
+                continue;
             }
 
-            final Method method = methods.iterator().next();
-            final Method precondition = preconditions.iterator().next();
+            final Method method = methodsMap.get(methodName);
 
-            if (!precondition.hasReturnType() || !precondition.getTranslatedReturnType().equals("bool")) {
-                throw new IllegalArgumentException("Precondition " + preconditionMethodName + " must return a boolean");
+            if (method.isStatic()) {
+                continue;
             }
 
-            if (!method.getParameterTypes().equals(precondition.getParameterTypes())) {
-                throw new IllegalArgumentException("Precondition " + preconditionMethodName + " must have the same " +
-                        "arguments as its method.");
+            final String statePreconditionMethodName = getStatePreconditionMethodName(method);
+            final Method statePrecondition = methodsMap.getOrDefault(statePreconditionMethodName, null);
+
+            final Method paramsPrecondition;
+
+            if (hasNonThisParameters(method)) {
+
+                final String paramsPreconditionMethodName = getParamsPreconditionMethodName(method);
+                paramsPrecondition = methodsMap.getOrDefault(paramsPreconditionMethodName, null);
+            } else {
+                paramsPrecondition = null;
             }
 
-            final Action action = new Action(precondition, method);
+            validatePreconditions(method, statePrecondition, paramsPrecondition);
+
+            final Action action = new Action(method, statePrecondition, paramsPrecondition);
 
             if (method.isConstructor()) {
                 constructorActions.add(action);
@@ -90,6 +90,62 @@ public class ActionsExtractor {
         }
     }
 
+    private boolean isPreconditionName(final String methodName) {
+
+        return methodName.contains("_pre(");
+    }
+
+    private void validatePreconditions(final Method method,
+                                       final Method statePrecondition,
+                                       final Method paramsPrecondition) {
+
+        if (statePrecondition != null) {
+
+            final String statePreconditionName = statePrecondition.getJavaNameWithArgumentTypes();
+
+            if (statePrecondition.getParameterTypes().size() > 0) {
+                throw new IllegalArgumentException("State precondition " + statePreconditionName
+                        + " must have no argument.");
+            }
+
+            if (!statePrecondition.hasReturnType() || !statePrecondition.getTranslatedReturnType().equals("bool")) {
+                throw new IllegalArgumentException("Precondition " + statePreconditionName
+                        + " must return a boolean");
+            }
+
+        }
+
+        if (paramsPrecondition != null) {
+
+            final String paramsPreconditionName = paramsPrecondition.getJavaNameWithArgumentTypes();
+
+            if (!paramsPrecondition.hasReturnType() || !paramsPrecondition.getTranslatedReturnType().equals("bool")) {
+                throw new IllegalArgumentException("Precondition " + paramsPreconditionName
+                        + " must return a boolean");
+            }
+
+            if (!method.getParameterTypes().equals(paramsPrecondition.getParameterTypes())) {
+                throw new IllegalArgumentException("Parameters precondition " + paramsPreconditionName
+                        + " must have the same arguments as its method.");
+            }
+        }
+    }
+
+    private boolean hasNonThisParameters(final Method method) {
+
+        return method.getParameterTypes().size() > 0;
+    }
+
+    private String getStatePreconditionMethodName(final Method method) {
+
+        return method.getJavaNameWithArgumentTypes().replaceAll("\\(.*\\)", "_pre()");
+    }
+
+    private String getParamsPreconditionMethodName(final Method method) {
+
+        return method.getJavaNameWithArgumentTypes().replace("(", "_pre(");
+    }
+
     private void searchInvariant() {
 
         if (!methodsMap.containsKey(INVARIANT_METHOD_NAME)) {
@@ -97,11 +153,7 @@ public class ActionsExtractor {
                     + INVARIANT_METHOD_NAME);
         }
 
-        if (methodsMap.get(INVARIANT_METHOD_NAME).size() != 1) {
-            throw new UnsupportedOperationException("Exactly one invariant method is needed");
-        }
-
-        invariant = methodsMap.get(INVARIANT_METHOD_NAME).iterator().next();
+        invariant = methodsMap.get(INVARIANT_METHOD_NAME);
 
         if (!invariant.getTranslatedReturnType().equals("bool")) {
             throw new IllegalArgumentException("Invariant method must return a boolean");
@@ -112,27 +164,14 @@ public class ActionsExtractor {
         }
     }
 
-    private String getPreconditionMethodName(String methodName) {
-
-        return methodName.replace("(", "_pre(");
-    }
-
-    private Map<String, Set<Method>> getMethodsMap() {
-
-        final Map<String, Set<Method>> instanceMethodsMap = new HashMap<>();
+    private void computeMethodsMap() {
 
         for (Method method : theClass.getMethods()) {
 
             final String methodName = method.getJavaNameWithArgumentTypes();
 
-            if (!instanceMethodsMap.containsKey(methodName)) {
-                instanceMethodsMap.put(methodName, new HashSet<>());
-            }
-
-            instanceMethodsMap.get(methodName).add(method);
+            methodsMap.put(methodName, method);
         }
-
-        return instanceMethodsMap;
     }
 
 }

@@ -56,9 +56,12 @@ public abstract class NecessaryActionQuery extends Query {
     @Override
     protected String getQueryCore() {
 
-        return getCall(testedAction, AFTER_MAIN_ACTION_ARGS_SUFFIX, true) + "\n"
-                + "\n"
-                + "\n"
+        return getStatePreconditionCall(testedAction)
+                .map(
+                        s -> s + "\n"
+                                + "\n"
+                                + "\n"
+                ).orElse("")
 
                 + getInvariantAssertion() + "\n"
                 + "\n"
@@ -69,7 +72,11 @@ public abstract class NecessaryActionQuery extends Query {
 
     private Variable getTestedActionReturnVariable() {
 
-        return getVariableForMethodResult(testedAction.getPrecondition()).get();
+        if (!testedAction.getStatePrecondition().isPresent()) {
+            throw new IllegalStateException(testedAction + " has no state precondition so it's always enabled");
+        }
+
+        return getVariableForStatePreconditionResult(testedAction).get();
     }
 
     @Override
@@ -91,22 +98,4 @@ public abstract class NecessaryActionQuery extends Query {
         return "$Exception := null;";
     }
 
-    @Override
-    protected List<Variable> getQueryArguments() {
-
-        final List<Variable> arguments = super.getQueryArguments();
-
-        final List<Variable> actionArguments = getArgumentListForMethod(
-                testedAction.getMethod(),
-                AFTER_MAIN_ACTION_ARGS_SUFFIX
-        );
-
-        if (!testedAction.getMethod().isStatic()) {
-            actionArguments.remove(0);
-        }
-
-        arguments.addAll(actionArguments);
-
-        return arguments;
-    }
 }

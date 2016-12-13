@@ -252,6 +252,15 @@ public class LazyEpaGenerator extends EpaGenerator {
 
         return actions.parallelStream()
                 .map(testedAction -> {
+
+                    if (!testedAction.getStatePrecondition().isPresent()) {
+                        return new NecessaryActionResult(
+                                testedAction,
+                                Answer.YES,
+                                Answer.NO
+                        );
+                    }
+
                     final NecessarilyEnabledActionQuery necessarilyEnabledActionQuery =
                             new NecessarilyEnabledActionQuery(state, mainAction, testedAction, invariant);
                     final NecessarilyDisabledActionQuery necessarilyDisabledActionQuery =

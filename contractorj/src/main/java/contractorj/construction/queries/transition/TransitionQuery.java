@@ -74,7 +74,7 @@ public abstract class TransitionQuery extends Query {
     @Override
     protected String getQueryCore() {
 
-        return getStateGuardCalls(target, AFTER_MAIN_ACTION_ARGS_SUFFIX) + "\n" +
+        return getStateGuardCalls(target) + "\n" +
                 "\n" +
                 "\n" +
 
@@ -82,38 +82,15 @@ public abstract class TransitionQuery extends Query {
                 "\n" +
                 "\n" +
 
-                getNegatedStateGuardAssertion(target) + "\n";
+                getNegatedStateGuardAssertion(target);
     }
 
     @Override
     protected List<Variable> getLocalVariables() {
 
-        return Stream.concat(
-                super.getLocalVariables().stream(),
-                target.getAllActions().stream().map(action -> getVariableForMethodResult(action.getPrecondition()).get()))
+        return Stream.concat(super.getLocalVariables().stream(), getStateGuardVariables(target))
                 .distinct()
                 .collect(Collectors.toList());
-    }
-
-    @Override
-    protected List<Variable> getQueryArguments() {
-
-        final List<Variable> arguments = super.getQueryArguments();
-
-        for (final Action action : target.getAllActions()) {
-            final List<Variable> actionArguments = getArgumentListForMethod(
-                    action.getMethod(),
-                    AFTER_MAIN_ACTION_ARGS_SUFFIX
-            );
-
-            if (!action.getMethod().isStatic()) {
-                actionArguments.remove(0);
-            }
-
-            arguments.addAll(actionArguments);
-        }
-
-        return arguments;
     }
 
 }

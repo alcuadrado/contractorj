@@ -2,16 +2,31 @@ package examples;
 
 public class GenericStack<T> {
 
-    private static final int capacity = 5;
+    private final int capacity;
+
+    private final Object[] data;
+
     private int size = 0;
-    private T[] data = (T[]) new Object[capacity];
+
+    public GenericStack(final int capacity) {
+        this.capacity = capacity;
+        data = new Object[capacity];
+    }
+
+    public GenericStack() {
+        this(5);
+    }
+
+    public static boolean GenericStack_pre(final int capacity) {
+        return capacity > 0;
+    }
 
     public boolean inv() {
-//        return size >= 0 && size <= capacity && data.length == capacity; ANDA MAL POR NO CHEQUEAR NULL
         return size >= 0 && size <= capacity && data.length == capacity && data != null;
     }
 
-    public boolean Push_pre(T item) {
+    public boolean Push_pre() {
+
         return size < capacity;
     }
 
@@ -23,8 +38,13 @@ public class GenericStack<T> {
         return size > 0;
     }
 
+    @SuppressWarnings("unchecked")
     public T Pop() {
-        return data[--size];
+        return (T) data[--size];
+    }
+
+    public int getSize() {
+        return size;
     }
 
 }

@@ -1,6 +1,7 @@
 package contractorj.construction.queries;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import contractorj.construction.corral.QueryResult;
 import contractorj.model.Action;
 import contractorj.model.State;
@@ -12,10 +13,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public abstract class Query {
-
-    protected static final String AFTER_MAIN_ACTION_ARGS_SUFFIX = "After";
 
     protected static final String NAME_PART_SEPARATOR = "_________";
 
@@ -89,7 +89,7 @@ public abstract class Query {
         }
 
         queryBody
-                .append(getStateGuardCalls(source, "")).append("\n")
+                .append(getStateGuardCalls(source)).append("\n")
                 .append("\n")
                 .append("\n");
 
@@ -100,18 +100,24 @@ public abstract class Query {
         queryBody
                 .append(getStateGuardAssumption(source)).append("\n")
                 .append("\n")
-                .append("\n")
+                .append("\n");
 
-                .append(getCall(mainAction, "", false)).append("\n")
+        getMainActionParamsPreconditionCall().ifPresent(
+                call -> queryBody.append(call).append("\n")
+                        .append(getMainActionParamsPreconditionAssumption()).append("\n")
+                        .append("\n")
+                        .append("\n")
+        );
+
+        queryBody
+                .append(getMainActionCall()).append("\n")
                 .append("\n")
                 .append("\n")
 
                 .append(getInvariantCall()).append("\n")
                 .append("\n")
 
-                .append(getQueryCore()).append("\n")
-                .append("\n")
-                .append("\n");
+                .append(getQueryCore()).append("\n");
 
         final StringBuilder query = new StringBuilder()
                 .append("procedure ").append(getName()).append("(").append(getQueryArgumentsDeclaration())
@@ -123,7 +129,7 @@ public abstract class Query {
         return query.toString();
     }
 
-    protected Variable getInvariantReturnVariable() {
+    private Variable getInvariantReturnVariable() {
 
         return getVariableForMethodResult(invariant).get();
     }
@@ -147,54 +153,146 @@ public abstract class Query {
 
         variables.add(getVariableForMethodResult(invariant).get());
 
-        final Optional<Variable> mainActionResultVariable = getVariableForMethodResult(mainAction.getMethod());
-        if (mainActionResultVariable.isPresent()) {
-            variables.add(mainActionResultVariable.get());
-        }
+        getVariableForMethodResult(mainAction).ifPresent(variables::add);
+        getVariableForParamsPreconditionResult(mainAction).ifPresent(variables::add);
 
-        source.getAllActions().stream()
-                .map(action -> getVariableForMethodResult(action.getPrecondition()))
-                .map(Optional::get)
+        getStateGuardVariables(source)
                 .distinct()
                 .forEach(variables::add);
 
         return variables;
     }
 
-    protected Optional<Variable> getVariableForMethodResult(Method method) {
+    protected Stream<Variable> getStateGuardVariables(State state) {
+
+        return state.getAllActions().stream()
+                .map(this::getVariableForStatePreconditionResult)
+                .filter(Optional::isPresent)
+                .map(Optional::get);
+    }
+
+    private Optional<Variable> getVariableForMethodResult(Action action) {
+
+        return getVariableForMethodResult(action.getMethod());
+    }
+
+    protected Optional<Variable> getVariableForStatePreconditionResult(Action action) {
+
+        final Optional<Method> statePrecondition = action.getStatePrecondition();
+
+        if (!statePrecondition.isPresent()) {
+            return Optional.empty();
+        }
+
+        return getVariableForMethodResult(statePrecondition.get(), "state_pre_");
+    }
+
+    private Optional<Variable> getVariableForParamsPreconditionResult(Action action) {
+
+        final Optional<Method> paramsPrecondition = action.getParamsPrecondition();
+
+        if (!paramsPrecondition.isPresent()) {
+            return Optional.empty();
+        }
+
+        return getVariableForMethodResult(paramsPrecondition.get(), "params_pre_");
+    }
+
+    private Optional<Variable> getVariableForMethodResult(Method method) {
+
+        return getVariableForMethodResult(method, "");
+    }
+
+    private Optional<Variable> getVariableForMethodResult(Method method, String prefix) {
 
         if (!method.hasReturnType()) {
             return Optional.empty();
         }
 
-        return Optional.of(new Variable(method.getTranslatedReturnType(), "ret_" + method.getTranslatedName()));
+        final Variable variable = new Variable(
+                method.getTranslatedReturnType(),
+                prefix + "ret_" + method.getTranslatedName()
+        );
+
+        return Optional.of(variable);
     }
 
-    protected List<Variable> getArgumentListForMethod(Method method, String nameSuffix) {
+    private List<Variable> getMainActionMethodArguments() {
+
+        final Method method = mainAction.getMethod();
 
         final List<String> translatedArgumentTypes = method.getTranslatedArgumentTypes();
+        translatedArgumentTypes.remove(0); // Remove this' type
 
         final List<Variable> arguments = new ArrayList<>(translatedArgumentTypes.size());
-
-        if (!method.isStatic()) {
-            translatedArgumentTypes.remove(0);
-            arguments.add(getThisVariable());
-        }
+        arguments.add(getThisVariable());
 
         for (int i = 0; i < translatedArgumentTypes.size(); i++) {
+
             final Variable variable = new Variable(
                     translatedArgumentTypes.get(i),
-                    method.getTranslatedName() + "$arg" + i + nameSuffix
+                    method.getTranslatedName() + "$arg" + i
             );
+
             arguments.add(variable);
         }
 
         return arguments;
     }
 
-    private String getCall(Method method, List<Variable> arguments) {
+    private List<Variable> getMainActionParamsPreconditionArguments() {
 
-        final Optional<Variable> returnVariable = getVariableForMethodResult(method);
+        final List<Variable> mainActionMethodArguments = getMainActionMethodArguments();
+
+        if (mainAction.getMethod().isConstructor()) {
+            mainActionMethodArguments.remove(0);
+        }
+
+        return mainActionMethodArguments;
+    }
+
+
+    protected Optional<String> getStatePreconditionCall(Action action) {
+
+        return action.getStatePrecondition()
+                .map(method -> getCall(
+                        method,
+                        method.isStatic() ? Lists.newArrayList() : Lists.newArrayList(getThisVariable()),
+                        getVariableForStatePreconditionResult(action)
+                ));
+    }
+
+    private String getMainActionCall() {
+
+        final Method method = mainAction.getMethod();
+
+        return getCall(
+                method,
+                getMainActionMethodArguments(),
+                getVariableForMethodResult(mainAction)
+        );
+    }
+
+    private Optional<String> getMainActionParamsPreconditionCall() {
+
+        return mainAction.getParamsPrecondition()
+                .map(method -> getCall(
+                        method,
+                        getMainActionParamsPreconditionArguments(),
+                        getVariableForParamsPreconditionResult(mainAction)
+                ));
+    }
+
+    private String getInvariantCall() {
+
+        return getCall(
+                invariant,
+                Lists.newArrayList(getThisVariable()),
+                Optional.of(getInvariantReturnVariable())
+        );
+    }
+
+    private String getCall(Method method, List<Variable> arguments, final Optional<Variable> returnVariable) {
 
         final StringBuilder stringBuilder = new StringBuilder();
 
@@ -225,22 +323,6 @@ public abstract class Query {
         return stringBuilder.toString();
     }
 
-    protected String getCall(Action action, String argumentNamesSuffix, boolean callPre) {
-
-        final List<Variable> arguments = getArgumentListForMethod(action.getMethod(), argumentNamesSuffix);
-
-        if (callPre) {
-
-            if (!action.getMethod().isStatic() && action.getPrecondition().isStatic()) {
-                arguments.remove(0);
-            }
-
-            return getCall(action.getPrecondition(), arguments);
-        }
-
-        return getCall(action.getMethod(), arguments);
-    }
-
     protected String getInvariantAssertion() {
 
         return "assert " + getInvariantReturnVariable().name + ";";
@@ -252,29 +334,25 @@ public abstract class Query {
     }
 
     protected String getNegatedStateGuardAssertion(State state) {
+
         return "assert !(" + getStateGuard(state) + ");";
     }
 
-    protected String getStateGuardAssumption(State state) {
+    private String getStateGuardAssumption(State state) {
+
         return "assume (" + getStateGuard(state) + ");";
     }
 
-    protected List<Variable> getQueryArguments() {
+    private String getMainActionParamsPreconditionAssumption() {
+        return "assume " + getVariableForParamsPreconditionResult(mainAction).get().name + ";";
+    }
 
-        final List<Variable> arguments = new ArrayList<>();
+    private List<Variable> getQueryArguments() {
 
-        if (isThisVariableAnArgument()) {
-            arguments.add(getThisVariable());
-        }
+        final List<Variable> arguments = getMainActionMethodArguments();
 
-        for (final Action action : source.getAllActions()) {
-            final List<Variable> actionArguments = getArgumentListForMethod(action.getMethod(), "");
-
-            if (!action.getMethod().isStatic()) {
-                actionArguments.remove(0);
-            }
-
-            arguments.addAll(actionArguments);
+        if (!isThisVariableAnArgument()) {
+            arguments.remove(0);
         }
 
         return arguments;
@@ -306,44 +384,38 @@ public abstract class Query {
                 .collect(Collectors.toList());
     }
 
-    //TODO: sacar invariant de acá
-    protected String getStateGuardCalls(State state, String argumentNamesSuffix) {
+    protected String getStateGuardCalls(State state) {
 
-        final List<String> calls = new ArrayList<>();
-
-        if (!state.isConstructorsState()) {
-            calls.add(getInvariantCall());
-        }
-
-        state.getAllActions().forEach(action -> calls.add(getCall(action, argumentNamesSuffix, true)));
-
-        return Joiner.on("\n\n").join(calls);
+        return state.getAllActions()
+                .stream()
+                .map(this::getStatePreconditionCall)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .reduce((s1, s2) -> s1 + "\n\n" + s2)
+                .orElse("");
     }
 
-    private String getInvariantCall() {
-
-        final ArrayList<Variable> arguments = new ArrayList<>();
-        arguments.add(getThisVariable());
-        return getCall(invariant, arguments);
-    }
-
-    protected String getStateGuard(final State state) {
+    private String getStateGuard(final State state) {
 
         final List<String> atoms = new ArrayList<>();
 
         state.getEnabledActions().stream()
-                .map(action -> getVariableForMethodResult(action.getPrecondition()))
+                .map(this::getVariableForStatePreconditionResult)
+                .filter(Optional::isPresent)
                 .map(Optional::get)
                 .map(variable -> variable.name)
                 .forEach(atoms::add);
 
         state.getDisabledActions().stream()
-                .map(action -> getVariableForMethodResult(action.getPrecondition()))
+                .map(this::getVariableForStatePreconditionResult)
+                .filter(Optional::isPresent)
                 .map(Optional::get)
                 .map(variable -> "!" + variable.name)
                 .forEach(atoms::add);
 
-        return Joiner.on(" && ").join(atoms);
+        return atoms.stream()
+                .reduce((s1, s2) -> s1 + " && " + s2)
+                .orElse("true");
     }
 
 }

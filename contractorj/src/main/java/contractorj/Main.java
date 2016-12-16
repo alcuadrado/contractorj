@@ -27,6 +27,8 @@ import java.util.Optional;
 
 public class Main {
 
+    private static String pathToCorral;
+
     private static String pathToClassPath;
 
     private static String className;
@@ -51,10 +53,12 @@ public class Main {
             throw new IllegalArgumentException("Can't find class " + className);
         }
 
+        final CorralRunner corralRunner = new CorralRunner(pathToCorral);
+
         final EpaGenerator epaEpaGenerator = new LazyEpaGenerator(
                 translator.getTranslation(),
                 numberOfThreads,
-                new CorralRunner("/Users/pato/facultad/tesis/tools/corral/bin/Debug/corral.exe")
+                corralRunner
         );
 
         final Epa epa = epaEpaGenerator.generateEpa(classToMakeEpa.get());
@@ -89,32 +93,40 @@ public class Main {
 
     private static void parseArguments(final String[] args) {
 
-        Options options = new Options();
+        final Options options = new Options();
 
-        Option classpathOption = new Option("cp", "classpath", true,
+        final Option classpathOption = new Option("cp", "classpath", true,
                 "Path to the classpath with the classes to analyze");
         classpathOption.setRequired(true);
         options.addOption(classpathOption);
 
-        Option classNameOption = new Option("c", "class", true, "The class from which the EPA will be created");
+        final Option corralPathOption = new Option("co", "corral", true,
+                "The path to corral.exe");
+        corralPathOption.setRequired(true);
+        options.addOption(corralPathOption);
+
+        final Option classNameOption = new Option("c", "class", true,
+                "The class from which the EPA will be created");
         classNameOption.setRequired(true);
         options.addOption(classNameOption);
 
-        Option dotPathOption = new Option("d", "dot", true, "The path to the dot output");
+        final Option dotPathOption = new Option("d", "dot", true,
+                "The path to the dot output");
         dotPathOption.setRequired(true);
         options.addOption(dotPathOption);
 
-        Option xmlPathOption = new Option("x", "xml", true, "The path to the xml output");
+        final Option xmlPathOption = new Option("x", "xml", true,
+                "The path to the xml output");
         xmlPathOption.setRequired(true);
         options.addOption(xmlPathOption);
 
-        Option threadsOption = new Option("t", "threads", true,
+        final Option threadsOption = new Option("t", "threads", true,
                 "The number of threads to use (default: the number of cores)");
         threadsOption.setType(Number.class);
         options.addOption(threadsOption);
 
-        CommandLineParser parser = new DefaultParser();
-        HelpFormatter formatter = new HelpFormatter();
+        final CommandLineParser parser = new DefaultParser();
+        final HelpFormatter formatter = new HelpFormatter();
 
         final CommandLine cmd;
 
@@ -128,6 +140,7 @@ public class Main {
             return;
         }
 
+        pathToCorral = cmd.getOptionValue("co");
         pathToClassPath = cmd.getOptionValue("cp");
         className = cmd.getOptionValue("c");
         dotOutputFile = new File(cmd.getOptionValue("d"));

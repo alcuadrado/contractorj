@@ -6,7 +6,7 @@ cd "$( dirname "${BASH_SOURCE[0]}" )/.."
 
 ./gradlew :examples:classes
 
-./gradlew :contractorj:run --debug-jvm -Dexec.args="--classpath ../examples/build/classes/main --class \"$1\" --dot \"$1.dot\" --xml \"$1.xml\" -t 1 \"${@:2}\""
+./gradlew :contractorj:run --debug-jvm -Dexec.args="--classpath ../examples/build/classes/main --corral /Users/pato/facultad/tesis/tools/corral/bin/Debug/corral.exe --class \"$1\" --dot \"$1.dot\" --xml \"$1.xml\" -t 1 \"${@:2}\""
 
 dot "$1.dot" -T png -o "$1.png"
 

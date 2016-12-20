@@ -29,7 +29,7 @@ public class Main {
 
     private static String pathToCorral;
 
-    private static String pathToClassPath;
+    private static String classPath;
 
     private static String className;
 
@@ -45,7 +45,7 @@ public class Main {
 
         final Translator translator = new Translator();
 
-        translator.translate(pathToClassPath, getRtJarPath());
+        translator.translate(classPath, getRtJarPath());
 
         final Optional<Class> classToMakeEpa = translator.getTranslatedClass(className);
 
@@ -141,7 +141,7 @@ public class Main {
         }
 
         pathToCorral = cmd.getOptionValue("co");
-        pathToClassPath = cmd.getOptionValue("cp");
+        classPath = cmd.getOptionValue("cp");
         className = cmd.getOptionValue("c");
         dotOutputFile = new File(cmd.getOptionValue("d"));
         xmlOutputFile = new File(cmd.getOptionValue("x"));

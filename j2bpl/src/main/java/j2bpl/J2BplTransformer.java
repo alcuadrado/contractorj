@@ -17,6 +17,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -110,7 +111,7 @@ public class J2BplTransformer extends BodyTransformer {
 
         final ArrayList<Class> classes = Lists.newArrayList(this.classes);
 
-        Collections.sort(classes, (o1, o2) -> o1.getTranslatedName().compareTo(o2.getTranslatedName()));
+        classes.sort(Comparator.comparing(Class::getTranslatedName));
 
         for (Class aClass : classes) {
             stringBuilder.append("\n")

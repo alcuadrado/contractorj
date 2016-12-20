@@ -6,6 +6,7 @@ import soot.PackManager;
 import soot.Transform;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.PrintStream;
 import java.util.List;
 import java.util.Optional;
@@ -20,7 +21,7 @@ public class Translator {
      *
      * @see <a href="http://docs.oracle.com/javase/7/docs/technotes/tools/solaris/jdkfiles.html#jdk1.7.0_lib">rt.jar</a>
      */
-    public void translate(String classPath, final String pathToRrJar) {
+    public void translate(String classPath, final File pathToRrJar) {
 
         if (classPath.contains(":") || classPath.contains(".jar")) {
             throw new UnsupportedOperationException("J2Bpl only supports a single directory as classpath.");
@@ -41,7 +42,7 @@ public class Translator {
 
             pack.add(new Transform("jtp.bpl", J2BplTransformer.getInstance()));
 
-            final String completeClassPath = pathToRrJar + ":" + classPath;
+            final String completeClassPath = pathToRrJar.getAbsolutePath() + ":" + classPath;
 
             soot.Main.main(new String[]{
                     "-keep-line-number",

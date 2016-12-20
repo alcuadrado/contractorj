@@ -3,7 +3,7 @@ apply plugin: 'java'
 sourceCompatibility = JavaVersion.VERSION_1_7
 targetCompatibility = JavaVersion.VERSION_1_7
 
-def bootClasspathStr = project(":contractorj").projectDir.absolutePath + "/src/main/resources/java7-rt.jar"
+def bootClasspathStr = project(":contractorj").projectDir.absolutePath + "/src/main/resources/java7-rt-jar"
 project.tasks.withType(AbstractCompile, { AbstractCompile ac ->
     ac.options.bootClasspath = bootClasspathStr
 })

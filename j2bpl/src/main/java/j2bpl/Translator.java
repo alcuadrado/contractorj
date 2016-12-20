@@ -21,7 +21,7 @@ public class Translator {
      *
      * @see <a href="http://docs.oracle.com/javase/7/docs/technotes/tools/solaris/jdkfiles.html#jdk1.7.0_lib">rt.jar</a>
      */
-    public void translate(String classPath, final File pathToRrJar) {
+    public void translate(String classPath, final File pathToRrJar, final boolean dumpJimple) {
 
         if (classPath.contains(":") || classPath.contains(".jar")) {
             throw new UnsupportedOperationException("J2Bpl only supports a single directory as classpath.");
@@ -44,19 +44,24 @@ public class Translator {
 
             final String completeClassPath = pathToRrJar.getAbsolutePath() + ":" + classPath;
 
-            soot.Main.main(new String[]{
+            final List<String> args = Lists.newArrayList(
                     "-keep-line-number",
                     "-cp",
                     completeClassPath,
                     "-f",
                     "jimple",
-                    "-d",
-                    "./dump",
                     "-src-prec",
                     "class",
                     "-process-path",
                     classPath
-            });
+            );
+
+            if (dumpJimple) {
+                args.add("-");
+                args.add("./dump");
+            }
+
+            soot.Main.main(args.toArray(new String[args.size()]));
 
         } catch (Exception exception) {
 

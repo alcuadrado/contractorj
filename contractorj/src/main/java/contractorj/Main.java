@@ -47,7 +47,7 @@ public class Main {
         final EmbeddedJarsHelper embeddedJarsHelper = new EmbeddedJarsHelper();
         final File rtJar = embeddedJarsHelper.moveToTemporalFolder("java7-rt.jar");
 
-        translator.translate(classPath, rtJar);
+        translator.translate(classPath, rtJar, false);
 
         final Optional<Class> classToMakeEpa = translator.getTranslatedClass(className);
 

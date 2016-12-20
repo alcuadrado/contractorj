@@ -1,7 +1,5 @@
 package contractorj;
 
-import com.google.common.io.Files;
-import com.google.common.io.Resources;
 import contractorj.construction.EpaGenerator;
 import contractorj.construction.LazyEpaGenerator;
 import contractorj.construction.queries.Query;
@@ -9,6 +7,7 @@ import contractorj.construction.corral.CorralRunner;
 import contractorj.model.Epa;
 import contractorj.serialization.DotEpaSerializer;
 import contractorj.serialization.XmlEpaSerializer;
+import contractorj.util.EmbeddedJarsHelper;
 import j2bpl.Class;
 import j2bpl.Translator;
 import org.apache.commons.cli.CommandLine;
@@ -21,7 +20,6 @@ import org.apache.commons.cli.ParseException;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.time.Duration;
 import java.util.Optional;
 
@@ -41,11 +39,15 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
 
+
         parseArguments(args);
 
         final Translator translator = new Translator();
 
-        translator.translate(classPath, getRtJarPath());
+        final EmbeddedJarsHelper embeddedJarsHelper = new EmbeddedJarsHelper();
+        final File rtJar = embeddedJarsHelper.moveToTemporalFolder("java7-rt.jar");
+
+        translator.translate(classPath, rtJar);
 
         final Optional<Class> classToMakeEpa = translator.getTranslatedClass(className);
 
@@ -149,16 +151,6 @@ public class Main {
         if (cmd.hasOption('t')) {
             numberOfThreads = Integer.valueOf(cmd.getOptionValue('t'));
         }
-    }
-
-    private static String getRtJarPath() throws IOException {
-
-        final URL url = Main.class.getResource("/java7-rt-jar");
-
-        final File outputFile = File.createTempFile("temporal-rt-jar", "rt.jar");
-        Resources.asByteSource(url).copyTo(Files.asByteSink(outputFile));
-
-        return outputFile.getAbsolutePath();
     }
 
     private static String formatDuration(Duration duration) {

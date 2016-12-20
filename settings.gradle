@@ -1,3 +1,4 @@
 include ':j2bpl'
 include ':contractorj'
 include ':examples'
+include ':annotator'

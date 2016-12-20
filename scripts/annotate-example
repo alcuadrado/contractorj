@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+set -e
+
+cd "$( dirname "${BASH_SOURCE[0]}" )/.."
+
+./gradlew :examples:classes
+./gradlew :annotator:installDist
+
+annotator/build/install/annotator/bin/annotator --classpath examples/build/classes/main --corral /Users/pato/facultad/tesis/tools/corral/bin/Debug/corral.exe --class "examples/src/main/java/${1//\.///}.java" --dot "$1.dot" --xml "$1.xml" "${@:2}"
+
+dot "$1.dot" -T png -o "$1.png"
+

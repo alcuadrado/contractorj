@@ -32,3 +32,7 @@ corral_out*
 # Temporal files
 TODO
 output.bpl
+daikon-last-run.txt
+cached-daikon-results.txt
+annotated_source/*
+RegressionTest*

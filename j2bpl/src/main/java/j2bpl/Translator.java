@@ -1,11 +1,13 @@
 package j2bpl;
 
+import com.google.common.collect.Lists;
 import soot.Pack;
 import soot.PackManager;
 import soot.Transform;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.util.List;
 import java.util.Optional;
 
 public class Translator {
@@ -13,12 +15,16 @@ public class Translator {
     /**
      * Translates all the classes in the class path.
      *
-     * @param pathToClassPath The path to the class path.
-     * @param pathToRrJar     The path to the rt.jar lib.
+     * @param classPath   The classpath
+     * @param pathToRrJar The path to the rt.jar lib.
      *
      * @see <a href="http://docs.oracle.com/javase/7/docs/technotes/tools/solaris/jdkfiles.html#jdk1.7.0_lib">rt.jar</a>
      */
-    public void translate(String pathToClassPath, final String pathToRrJar) {
+    public void translate(String classPath, final String pathToRrJar) {
+
+        if (classPath.contains(":") || classPath.contains(".jar")) {
+            throw new UnsupportedOperationException("J2Bpl only supports a single directory as classpath.");
+        }
 
         final PrintStream originalOut = System.out;
         final PrintStream originalErr = System.err;
@@ -35,11 +41,12 @@ public class Translator {
 
             pack.add(new Transform("jtp.bpl", J2BplTransformer.getInstance()));
 
-            final String[] args = {
+            final String completeClassPath = pathToRrJar + ":" + classPath;
+
+            soot.Main.main(new String[]{
                     "-keep-line-number",
-                    "-pp",
                     "-cp",
-                    pathToRrJar + ":" + pathToClassPath,
+                    completeClassPath,
                     "-f",
                     "jimple",
                     "-d",
@@ -47,10 +54,9 @@ public class Translator {
                     "-src-prec",
                     "class",
                     "-process-path",
-                    pathToClassPath
-            };
+                    classPath
+            });
 
-            soot.Main.main(args);
         } catch (Exception exception) {
 
             originalOut.print(outReplacement.toString());

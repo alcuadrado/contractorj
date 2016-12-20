@@ -1,5 +1,6 @@
 package contractorj.construction.corral;
 
+import contractorj.util.CommandsRunner;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.PumpStreamHandler;
@@ -38,7 +39,7 @@ public class CorralRunner {
 
         final LocalDateTime start = LocalDateTime.now();
 
-        final String processOutput = runtAndReturnOutput(consoleCommandToRun);
+        final String processOutput = CommandsRunner.runtAndReturnOutput(consoleCommandToRun);
 
         final LocalDateTime end = LocalDateTime.now();
 

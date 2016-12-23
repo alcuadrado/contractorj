@@ -167,10 +167,15 @@ public class LocalMethod extends Method {
         final LinkedList<String> declarations = new LinkedList<>();
 
         for (InvokeStmt invokeStmt : generatedReturnVariableNames.keySet()) {
-            final Type returnType = invokeStmt.getInvokeExpr().getMethod().getReturnType();
+
+            final SootMethod invokedSootMethod = invokeStmt.getInvokeExpr().getMethod();
+
+            final Class invokedClass = Class.create(invokedSootMethod.getDeclaringClass());
+            final Method invokedMethod = Method.create(invokedClass, invokedSootMethod);
+
             declarations.add(
-                    "var " + generatedReturnVariableNames.get(invokeStmt) + " : " + TypeTranslator.translate(returnType)
-                            + ";"
+                    "var " + generatedReturnVariableNames.get(invokeStmt) + " : "
+                            + invokedMethod.getTranslatedReturnType() + ";"
             );
         }
 

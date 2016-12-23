@@ -29,10 +29,9 @@ public class Rewriter {
                 "        return arr.length;\n" +
                 "    }\n" +
                 "\n" +
-                "//    TODO: This is also needed but j2bpl doesn't support InterfaceInvokeExpr.\n" +
-                "//    private static int $$size(java.util.Collection col) {\n" +
-                "//        return col.size();\n" +
-                "//    }\n";
+                "    private static int $$size(java.util.Collection col) {\n" +
+                "        return col.size();\n" +
+                "    }\n";
 
         sourceCode += "\n}\n";
 

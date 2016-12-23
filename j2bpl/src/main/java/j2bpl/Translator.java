@@ -57,8 +57,8 @@ public class Translator {
             );
 
             if (dumpJimple) {
-                args.add("-");
-                args.add("./dump");
+                args.add("-d");
+                args.add("/Users/pato/facultad/tesis/contractorj/dump");
             }
 
             soot.Main.main(args.toArray(new String[args.size()]));

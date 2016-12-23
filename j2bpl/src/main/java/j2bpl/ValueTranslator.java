@@ -1,6 +1,7 @@
 package j2bpl;
 
 import com.google.common.base.Joiner;
+
 import soot.BooleanType;
 import soot.Local;
 import soot.SootField;
@@ -20,6 +21,7 @@ import soot.jimple.GtExpr;
 import soot.jimple.InstanceFieldRef;
 import soot.jimple.InstanceInvokeExpr;
 import soot.jimple.IntConstant;
+import soot.jimple.InterfaceInvokeExpr;
 import soot.jimple.InvokeExpr;
 import soot.jimple.LeExpr;
 import soot.jimple.LengthExpr;
@@ -314,6 +316,22 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
         translateInvokeExpr(v);
     }
 
+    @Override
+    public void caseInterfaceInvokeExpr(InterfaceInvokeExpr v) {
+
+        final Class methodClass = Class.create(v.getMethod().getDeclaringClass());
+        final Method theMethod = Method.create(methodClass, v.getMethod());
+
+        if (theMethod instanceof ExternalMethod) {
+            if (((ExternalMethod) theMethod).isHardCoded()) {
+                translateInvokeExpr(v);
+                return;
+            }
+        }
+
+        super.caseInterfaceInvokeExpr(v);
+    }
+
     private void translateInvokeExpr(InvokeExpr invokeExpr) {
 
         if (invokeExpr instanceof DynamicInvokeExpr) {
@@ -323,6 +341,7 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
         final List<String> translatedArgumentsList = new ArrayList<>();
 
         if (invokeExpr instanceof InstanceInvokeExpr) {
+
             final Value instance = ((InstanceInvokeExpr) invokeExpr).getBase();
             translatedArgumentsList.add(translateValue(instance));
         }
@@ -339,6 +358,7 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
                 .append(Joiner.on(", ").join(translatedArgumentsList))
                 .append(")");
     }
+
 
     public String getTranslation() {
 

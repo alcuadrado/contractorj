@@ -2,6 +2,7 @@ package j2bpl;
 
 import com.google.common.collect.Lists;
 import com.google.common.io.Resources;
+
 import soot.Body;
 import soot.BodyTransformer;
 import soot.SootClass;
@@ -16,7 +17,6 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class J2BplTransformer extends BodyTransformer {
 
@@ -131,6 +132,12 @@ public class J2BplTransformer extends BodyTransformer {
             }
         }
 
+        for (String var : getStringConstantVars()) {
+            stringBuilder.append("\n")
+                    .append("var ").append(var).append(" : Ref;")
+                    .append("\n");
+        }
+
         stringBuilder.append("\n")
                 .append(getGlobalInitializationProcedure())
                 .append("\n");
@@ -169,6 +176,13 @@ public class J2BplTransformer extends BodyTransformer {
                         .append(StringUtils.indent("assert $Exception == null;"))
                         .append("\n");
             }
+
+        }
+
+        for (String var : getStringConstantVars()) {
+            stringBuilder.append(StringUtils.indent("call "))
+                    .append(var).append(" := Alloc();")
+                    .append("\n");
         }
 
         stringBuilder.append("}");
@@ -180,7 +194,7 @@ public class J2BplTransformer extends BodyTransformer {
 
         final Collection<Method> values = methodsMap.values();
         final ArrayList<Method> methods = Lists.newArrayList(values);
-        Collections.sort(methods, (o1, o2) -> o1.getTranslatedName().compareTo(o2.getTranslatedName()));
+        methods.sort(Comparator.comparing(Method::getTranslatedName));
 
         return methods;
     }
@@ -190,4 +204,12 @@ public class J2BplTransformer extends BodyTransformer {
         return methodsMap.get(sootMethod);
     }
 
+    public Collection<String> getStringConstantVars() {
+
+        return getMethodsInOrder().stream()
+                .filter(method -> method instanceof LocalMethod)
+                .map(method -> ((LocalMethod) method))
+                .flatMap(method -> method.getStringConstantVars().stream())
+                .collect(Collectors.toSet());
+    }
 }

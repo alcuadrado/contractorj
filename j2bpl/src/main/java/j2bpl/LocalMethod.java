@@ -3,14 +3,15 @@ package j2bpl;
 import com.google.common.base.Joiner;
 import soot.Local;
 import soot.SootMethod;
-import soot.Type;
 import soot.Unit;
 import soot.Value;
+import soot.ValueBox;
 import soot.VoidType;
 import soot.jimple.IdentityStmt;
 import soot.jimple.InvokeStmt;
 import soot.jimple.JimpleBody;
 import soot.jimple.ParameterRef;
+import soot.jimple.StringConstant;
 import soot.toolkits.graph.Block;
 import soot.toolkits.graph.ExceptionalBlockGraph;
 
@@ -181,4 +182,22 @@ public class LocalMethod extends Method {
 
         return declarations;
     }
+
+    public List<String> getStringConstantVars() {
+
+        final List<String> vars = new ArrayList<>();
+
+        for (Unit unit : body.getUnits()) {
+            for (ValueBox valueBox : unit.getUseBoxes()) {
+                final Value value = valueBox.getValue();
+
+                if (value instanceof StringConstant) {
+                    vars.add(ValueTranslator.getStringConstantVarName((StringConstant) value));
+                }
+            }
+        }
+
+        return vars;
+    }
+
 }

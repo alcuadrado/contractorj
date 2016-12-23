@@ -33,6 +33,7 @@ import soot.jimple.NullConstant;
 import soot.jimple.SpecialInvokeExpr;
 import soot.jimple.StaticFieldRef;
 import soot.jimple.StaticInvokeExpr;
+import soot.jimple.StringConstant;
 import soot.jimple.SubExpr;
 import soot.jimple.VirtualInvokeExpr;
 
@@ -311,6 +312,11 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
     }
 
     @Override
+    public void caseStringConstant(StringConstant v) {
+        stringBuilder.append(getStringConstantVarName(v));
+    }
+
+    @Override
     public void caseSpecialInvokeExpr(SpecialInvokeExpr v) {
 
         translateInvokeExpr(v);
@@ -370,6 +376,11 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
         final ValueTranslator translator = new ValueTranslator();
         value.apply(translator);
         return translator.getTranslation();
+    }
+
+    public static String getStringConstantVarName(StringConstant stringConstant) {
+        return "stringConstant_" + stringConstant.value.hashCode()
+                + "_" + stringConstant.value.replaceAll("[^a-zA-Z0-9]", "_");
     }
 
 }

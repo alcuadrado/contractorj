@@ -22,7 +22,11 @@ public class ATM {
     }
 
     public boolean InsertCard_pre(int c) {
-        return !theCardIn && c > 0;
+        return c > 0;
+    }
+
+    public boolean InsertCard_pre() {
+        return !theCardIn;
     }
 
     public void InsertCard(int c)
@@ -32,7 +36,11 @@ public class ATM {
     }
 
     public boolean EnterPassword_pre(int q) {
-        return !passwordGiven && q > 0;
+        return q > 0;
+    }
+
+    public boolean EnterPassword_pre() {
+        return !passwordGiven;
     }
 
     public void EnterPassword(int q)

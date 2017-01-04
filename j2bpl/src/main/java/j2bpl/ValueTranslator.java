@@ -379,7 +379,7 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
     }
 
     public static String getStringConstantVarName(StringConstant stringConstant) {
-        return "stringConstant_" + stringConstant.value.hashCode()
+        return "stringConstant_" + Math.abs(stringConstant.value.hashCode())
                 + "_" + stringConstant.value.replaceAll("[^a-zA-Z0-9]", "_");
     }
 

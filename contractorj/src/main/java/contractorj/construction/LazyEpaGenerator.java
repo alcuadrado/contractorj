@@ -52,16 +52,8 @@ public class LazyEpaGenerator extends EpaGenerator {
     @Override
     protected Epa generateEpaImplementation(final Class theClass) {
 
-        final Thread.UncaughtExceptionHandler oldUncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
-
         try {
 
-            // We change the default uncaught exception handler to manage exception in parallel streams.
-            Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
-                System.err.println("Uncaught exception in thread " + t.getName() + ": " + e.getMessage());
-                e.printStackTrace(System.err);
-                System.exit(1);
-            });
 
             driverExecutorService = Executors.newCachedThreadPool();
             queriesExecutorService = Executors.newFixedThreadPool(numberOfThreads);
@@ -87,9 +79,6 @@ public class LazyEpaGenerator extends EpaGenerator {
         } catch (InterruptedException e) {
 
             throw new RuntimeException(e);
-
-        } finally {
-            Thread.setDefaultUncaughtExceptionHandler(oldUncaughtExceptionHandler);
         }
     }
 
@@ -111,6 +100,7 @@ public class LazyEpaGenerator extends EpaGenerator {
                 System.err.println("Unhandled exception on thread " + Thread.currentThread().getName() + ":"
                         + exception.getMessage());
                 exception.printStackTrace();
+                System.exit(1);
             } finally {
                 phaser.arrive();
             }

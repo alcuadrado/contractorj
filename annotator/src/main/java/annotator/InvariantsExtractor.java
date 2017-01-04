@@ -173,14 +173,25 @@ public class InvariantsExtractor {
         return getIdentifiers(condition)
                 .stream()
                 .filter(s -> !s.equals("$$size"))
-                .allMatch(s -> s.startsWith("this."));
+                .allMatch(this::isFieldReference);
+    }
+
+    private boolean isFieldReference(String s) {
+        if (s.startsWith("this.")) {
+            return true;
+        }
+
+        // Class.this.field case
+        int lastDot = s.lastIndexOf(".");
+        return lastDot > ".this".length() &&
+                s.substring(lastDot - ".this".length(), lastDot).equals(".this");
     }
 
     private boolean onlyAccessParameters(final String condition) {
 
         return getIdentifiers(condition)
                 .stream()
-                .noneMatch(s -> s.startsWith("this."));
+                .noneMatch(this::isFieldReference);
     }
 
     private List<String> getIdentifiers(final String condition) {

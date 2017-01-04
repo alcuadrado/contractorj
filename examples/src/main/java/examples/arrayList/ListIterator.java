@@ -143,10 +143,6 @@ public class ListIterator<E> {
                 lastRet < arrayList.size; // Inline part of ArrayList#set_pre
     }
 
-    public boolean add_pre() {
-        return true;
-    }
-
     public boolean remove_pre() {
         return lastRet >= 0 &&
                 lastRet < arrayList.size; // Inline part of ArrayList#remove_pre

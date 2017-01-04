@@ -124,7 +124,7 @@ public class InvariantsExtractor {
                     continue;
                 }
 
-                if (onlyAccessParameters(condition)) {
+                if (paramsPreconditions != null && onlyAccessParameters(condition)) {
                     paramsPreconditions.add(condition);
                     continue;
                 }

@@ -160,7 +160,8 @@ public class LazyEpaGenerator extends EpaGenerator {
         if (!conflictingActions.isEmpty()) {
             throw new IllegalStateException("Going through testedAction " + mainAction.toString() + " from state "
                     + state + " makes " + Arrays.toString(conflictingActions.toArray())
-                    + " both enabled and disabled.");
+                    + " both enabled and disabled.\n"
+                    + "Check " + mainAction.toString() + " preconditions");
         }
     }
 

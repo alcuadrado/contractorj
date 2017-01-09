@@ -85,34 +85,8 @@ public abstract class EpaGenerator {
                 query.getName());
 
         recordQueryRun(query, runnerResult);
-        printCorralCommand(query, absolutePathToBoogieSourceFile, runnerResult);
 
         return runnerResult;
-    }
-
-    private void printCorralCommand(Query query, final String absolutePathToBoogieSourceFile,
-                                    RunnerResult runnerRunnerResult) {
-
-        final QueryResult queryResult = runnerRunnerResult.queryResult;
-
-        String toPrint = corralRunner.getConsoleCommandToRun(absolutePathToBoogieSourceFile, query.getName());
-
-        ColorPrinter.printInColor(toPrint + "\n", getResultColor(queryResult));
-    }
-
-    private ColorPrinter.Color getResultColor(QueryResult queryResult) {
-
-        switch (queryResult) {
-
-            case TRUE_BUG:
-                return ColorPrinter.Color.GREEN;
-
-            case MAYBE_BUG:
-                return ColorPrinter.Color.BLUE;
-
-        }
-
-        return ColorPrinter.Color.WHITE;
     }
 
     private String appendToThreadLocalBoogieFile(String boogieCode) {

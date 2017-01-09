@@ -1,6 +1,23 @@
 package contractorj.construction;
 
 import com.google.common.collect.Sets;
+
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.Phaser;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import contractorj.construction.corral.CorralRunner;
 import contractorj.construction.corral.QueryResult;
 import contractorj.construction.corral.RunnerResult;
@@ -19,19 +36,6 @@ import contractorj.model.Transition;
 import contractorj.util.CombinationsGenerator;
 import j2bpl.Class;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.Phaser;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 public class LazyEpaGenerator extends EpaGenerator {
 
     private ExecutorService driverExecutorService;
@@ -44,6 +48,8 @@ public class LazyEpaGenerator extends EpaGenerator {
 
     private Phaser phaser;
 
+    private DebugLog debugLog;
+
     public LazyEpaGenerator(final String baseTranslation, final int numberOfThreads, final CorralRunner corralRunner) {
 
         super(baseTranslation, numberOfThreads, corralRunner);
@@ -54,6 +60,7 @@ public class LazyEpaGenerator extends EpaGenerator {
 
         try {
 
+            debugLog = new DebugLog();
 
             driverExecutorService = Executors.newCachedThreadPool();
             queriesExecutorService = Executors.newFixedThreadPool(numberOfThreads);
@@ -65,6 +72,7 @@ public class LazyEpaGenerator extends EpaGenerator {
 
             epa = new Epa(theClass.getQualifiedJavaName(), initialState);
 
+            debugLog.addInitialState(initialState);
             enqueueStateIfNecessary(initialState);
 
             phaser.arriveAndAwaitAdvance();
@@ -77,7 +85,16 @@ public class LazyEpaGenerator extends EpaGenerator {
             return epa;
 
         } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } finally {
+            printLog();
+        }
+    }
 
+    private void printLog() {
+        try (final PrintWriter debugFile = new PrintWriter("log", "UTF-8")) {
+            debugLog.writeLog(debugFile);
+        } catch (FileNotFoundException | UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
     }
@@ -100,6 +117,7 @@ public class LazyEpaGenerator extends EpaGenerator {
                 System.err.println("Unhandled exception on thread " + Thread.currentThread().getName() + ":"
                         + exception.getMessage());
                 exception.printStackTrace();
+                printLog();
                 System.exit(1);
             } finally {
                 phaser.arrive();
@@ -140,8 +158,12 @@ public class LazyEpaGenerator extends EpaGenerator {
 
                 final Transition transition = maybeTransition.get();
 
-                enqueueStateIfNecessary(transition.getTarget());
+                final boolean enqueued = enqueueStateIfNecessary(transition.getTarget());
                 epa.addTransition(transition);
+
+                if (enqueued) {
+                    debugLog.logEnqueuedTransition(transition);
+                }
             }
 
         }));
@@ -213,15 +235,17 @@ public class LazyEpaGenerator extends EpaGenerator {
                 });
     }
 
-    private synchronized void enqueueStateIfNecessary(State state) {
+    private synchronized boolean enqueueStateIfNecessary(State state) {
 
         if (statesAlreadyEnqueued.contains(state)) {
-            return;
+            return false;
         }
 
         statesAlreadyEnqueued.add(state);
 
         runOnDriverExecutorService(() -> analiseState(state));
+
+        return true;
     }
 
     private State createTargetState(final Set<Action> necessarilyEnabledActions,
@@ -284,6 +308,8 @@ public class LazyEpaGenerator extends EpaGenerator {
                 final RunnerResult runnerResult = runQuery(query);
                 final QueryResult queryResult = runnerResult.queryResult;
 
+                debugLog.logQuery(query, runnerResult);
+
                 return query.getAnswer(queryResult);
             } finally {
                 phaser.arrive();
@@ -314,5 +340,6 @@ public class LazyEpaGenerator extends EpaGenerator {
         void run();
 
     }
+
 
 }

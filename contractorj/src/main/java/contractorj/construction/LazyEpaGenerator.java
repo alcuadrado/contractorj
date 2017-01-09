@@ -62,6 +62,8 @@ public class LazyEpaGenerator extends EpaGenerator {
 
             debugLog = new DebugLog();
 
+            Runtime.getRuntime().addShutdownHook(new Thread(this::printLog));
+
             driverExecutorService = Executors.newCachedThreadPool();
             queriesExecutorService = Executors.newFixedThreadPool(numberOfThreads);
             statesAlreadyEnqueued = Sets.newHashSet();
@@ -117,7 +119,6 @@ public class LazyEpaGenerator extends EpaGenerator {
                 System.err.println("Unhandled exception on thread " + Thread.currentThread().getName() + ":"
                         + exception.getMessage());
                 exception.printStackTrace();
-                printLog();
                 System.exit(1);
             } finally {
                 phaser.arrive();
@@ -286,11 +287,8 @@ public class LazyEpaGenerator extends EpaGenerator {
                     final Answer disabledAnswer = getAnswer(necessarilyDisabledActionQuery);
 
                     if (enabledAnswer.equals(Answer.YES) && disabledAnswer.equals(Answer.YES)) {
-                        printLog();
                         System.err.println("Inconsistent necessity of action " + testedAction
                                 + " in state " + state);
-                        queriesExecutorService.shutdownNow();
-                        driverExecutorService.shutdownNow();
                         System.exit(1);
                     }
 

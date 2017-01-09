@@ -133,7 +133,7 @@ public class LazyEpaGenerator extends EpaGenerator {
                 mainAction
         );
 
-        ensureConsistentNecessaryActionResults(state, mainAction, necessaryActionResults);
+//        ensureConsistentNecessaryActionResults(state, mainAction, necessaryActionResults);
 
         final Set<Action> necessarilyEnabledActions = necessaryActionResults.stream()
                 .filter(necessaryActionResult -> necessaryActionResult.necessarilyEnabled.equals(Answer.YES))
@@ -281,10 +281,23 @@ public class LazyEpaGenerator extends EpaGenerator {
                     final NecessarilyDisabledActionQuery necessarilyDisabledActionQuery =
                             new NecessarilyDisabledActionQuery(state, mainAction, testedAction, invariant);
 
+
+                    final Answer enabledAnswer = getAnswer(necessarilyEnabledActionQuery);
+                    final Answer disabledAnswer = getAnswer(necessarilyDisabledActionQuery);
+
+                    if (enabledAnswer.equals(Answer.YES) && disabledAnswer.equals(Answer.YES)) {
+                        printLog();
+                        System.err.println("Inconsistent necessity of action " + testedAction
+                                + " in state " + state);
+                        queriesExecutorService.shutdownNow();
+                        driverExecutorService.shutdownNow();
+                        System.exit(1);
+                    }
+
                     return new NecessaryActionResult(
                             testedAction,
-                            getAnswer(necessarilyEnabledActionQuery),
-                            getAnswer(necessarilyDisabledActionQuery)
+                            enabledAnswer,
+                            disabledAnswer
                     );
                 })
                 .collect(Collectors.toSet());

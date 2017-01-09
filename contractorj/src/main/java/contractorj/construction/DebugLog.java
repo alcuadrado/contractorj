@@ -188,11 +188,16 @@ public class DebugLog {
     }
 
     private void printQueryInfo(String prefix, PrintWriter out,
-                                QueryInfo notThrowingInvariantPreservation) {
+                                QueryInfo queryInfo) {
 
-        out.println(prefix + "Answer: " + notThrowingInvariantPreservation.answer);
-        out.println(prefix + "Command:");
-        out.println(prefix + "\t" + notThrowingInvariantPreservation.result.command);
+        if (queryInfo == null) {
+            out.println(prefix + "Not present");
+        } else {
+            out.println(prefix + "Answer: " + queryInfo.answer);
+            out.println(prefix + "Command:");
+            out.println(prefix + "\t" + queryInfo.result.command);
+        }
+
         out.println();
     }
 

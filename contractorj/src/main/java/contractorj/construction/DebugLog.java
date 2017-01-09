@@ -117,8 +117,6 @@ public class DebugLog {
 
                     out.println("\t\t\tTested action: " + testedAction);
 
-                    out.println("\t\t\t\tEnabled:");
-
                     final QueryInfo enabledInfo = stateActionInfo.necessaryEnabledActions
                             .get(testedAction);
                     final QueryInfo disabledInfo = stateActionInfo.necessaryDisabledActions
@@ -128,6 +126,8 @@ public class DebugLog {
                             && disabledInfo.answer.equals(Answer.YES)) {
                         out.println("\t\t\t\tInconsistent");
                     }
+
+                    out.println("\t\t\t\tEnabled:");
 
                     printQueryInfo(
                             "\t\t\t\t\t",
@@ -211,9 +211,10 @@ public class DebugLog {
 
         if (query instanceof ThrowingTransitionQuery) {
             stateActionInfo.throwingTransitions.put(target, queryInfo);
+        } else {
+            stateActionInfo.notThrowingTransitions.put(target, queryInfo);
         }
 
-        stateActionInfo.notThrowingTransitions.put(target, queryInfo);
     }
 
     private void logInvariantQuery(InvariantQuery query, RunnerResult runnerResult) {
@@ -226,9 +227,10 @@ public class DebugLog {
 
         if (query instanceof ExceptionBreaksInvariantQuery) {
             stateActionInfo.throwingInvariantPreservation = queryInfo;
+        } else {
+            stateActionInfo.notThrowingInvariantPreservation = queryInfo;
         }
 
-        stateActionInfo.notThrowingInvariantPreservation = queryInfo;
     }
 
     private void logNecessaryActionQuery(NecessaryActionQuery query, RunnerResult runnerResult) {
@@ -243,9 +245,10 @@ public class DebugLog {
 
         if (query instanceof NecessarilyEnabledActionQuery) {
             stateActionInfo.necessaryEnabledActions.put(testedAction, queryInfo);
+        } else {
+            stateActionInfo.necessaryDisabledActions.put(testedAction, queryInfo);
         }
 
-        stateActionInfo.necessaryDisabledActions.put(testedAction, queryInfo);
     }
 
     private QueryInfo getQueryInfo(Query query, RunnerResult runnerResult) {

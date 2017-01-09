@@ -10,10 +10,14 @@ public class RunnerResult {
 
     public final String output;
 
-    RunnerResult(final QueryResult queryResult, final Duration runningTime, final String output) {
+    public final String command;
+
+    RunnerResult(final QueryResult queryResult, final Duration runningTime, final String output,
+                 final String command) {
 
         this.queryResult = queryResult;
         this.runningTime = runningTime;
         this.output = output;
+        this.command = command;
     }
 }

@@ -1,6 +1,5 @@
 package contractorj.construction.corral;
 
-import contractorj.util.CommandsRunner;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.PumpStreamHandler;
@@ -9,6 +8,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
+
+import contractorj.util.CommandsRunner;
 
 public class CorralRunner {
 
@@ -57,7 +58,8 @@ public class CorralRunner {
             queryQueryResult = QueryResult.MAYBE_BUG;
         }
 
-        return new RunnerResult(queryQueryResult, Duration.between(start, end), processOutput);
+        return new RunnerResult(queryQueryResult, Duration.between(start, end), processOutput,
+                consoleCommandToRun);
     }
 
     private String runtAndReturnOutput(final String lineToRun) {

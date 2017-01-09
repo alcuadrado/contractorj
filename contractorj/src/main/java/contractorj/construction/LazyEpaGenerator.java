@@ -288,7 +288,7 @@ public class LazyEpaGenerator extends EpaGenerator {
 
                     if (enabledAnswer.equals(Answer.YES) && disabledAnswer.equals(Answer.YES)) {
                         System.err.println("Inconsistent necessity of action " + testedAction
-                                + " in state " + state);
+                                + " in state " + state + " after " + mainAction);
                         System.exit(1);
                     }
 

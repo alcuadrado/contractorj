@@ -36,3 +36,6 @@ daikon-last-run.txt
 cached-daikon-results.txt
 annotated_source/*
 RegressionTest*
+
+# main log
+log

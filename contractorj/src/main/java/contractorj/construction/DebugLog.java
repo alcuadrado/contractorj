@@ -122,8 +122,7 @@ public class DebugLog {
                     final QueryInfo disabledInfo = stateActionInfo.necessaryDisabledActions
                             .get(testedAction);
 
-                    if (enabledInfo.answer.equals(Answer.YES)
-                            && disabledInfo.answer.equals(Answer.YES)) {
+                    if (areInconsistent(enabledInfo, disabledInfo)) {
                         out.println("\t\t\t\tInconsistent");
                     }
 
@@ -185,6 +184,11 @@ public class DebugLog {
 
 
         }
+    }
+
+    private boolean areInconsistent(QueryInfo enabledInfo, QueryInfo disabledInfo) {
+        return enabledInfo != null && disabledInfo != null && enabledInfo.answer.equals(Answer.YES)
+                && disabledInfo.answer.equals(Answer.YES);
     }
 
     private void printQueryInfo(String prefix, PrintWriter out,

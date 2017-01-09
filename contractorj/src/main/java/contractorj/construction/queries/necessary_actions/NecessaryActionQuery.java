@@ -34,6 +34,10 @@ public abstract class NecessaryActionQuery extends Query {
         return Optional.empty();
     }
 
+    public Action getTestedAction() {
+        return testedAction;
+    }
+
     @Override
     public Answer getAnswer(final QueryResult queryResult) {
 

@@ -93,4 +93,7 @@ public abstract class TransitionQuery extends Query {
                 .collect(Collectors.toList());
     }
 
+    public State getTarget() {
+        return target;
+    }
 }

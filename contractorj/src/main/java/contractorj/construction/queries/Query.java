@@ -51,6 +51,10 @@ public abstract class Query {
         return source;
     }
 
+    public Action getMainAction() {
+        return mainAction;
+    }
+
     public String getName() {
 
         final String name = "from" + NAME_PART_SEPARATOR + getStateName(source) + NAME_PART_SEPARATOR

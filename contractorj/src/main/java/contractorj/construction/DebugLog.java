@@ -119,10 +119,20 @@ public class DebugLog {
 
                     out.println("\t\t\t\tEnabled:");
 
+                    final QueryInfo enabledInfo = stateActionInfo.necessaryEnabledActions
+                            .get(testedAction);
+                    final QueryInfo disabledInfo = stateActionInfo.necessaryDisabledActions
+                            .get(testedAction);
+
+                    if (enabledInfo.answer.equals(Answer.YES)
+                            && disabledInfo.answer.equals(Answer.YES)) {
+                        out.println("\t\t\t\tInconsistent");
+                    }
+
                     printQueryInfo(
                             "\t\t\t\t\t",
                             out,
-                            stateActionInfo.necessaryEnabledActions.get(testedAction)
+                            enabledInfo
                     );
 
                     out.println("\t\t\t\tDisabled:");
@@ -130,7 +140,7 @@ public class DebugLog {
                     printQueryInfo(
                             "\t\t\t\t\t",
                             out,
-                            stateActionInfo.necessaryDisabledActions.get(testedAction)
+                            disabledInfo
                     );
 
                     out.println();

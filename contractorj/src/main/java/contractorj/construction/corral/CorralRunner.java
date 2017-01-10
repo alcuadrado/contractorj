@@ -52,6 +52,10 @@ public class CorralRunner {
 
         } else if (processOutput.contains("True bug")) {
 
+            if (processOutput.contains("query_assertion")) {
+                throw new RuntimeException("Unexpected bug running " + consoleCommandToRun);
+            }
+
             queryQueryResult = QueryResult.TRUE_BUG;
 
         } else {

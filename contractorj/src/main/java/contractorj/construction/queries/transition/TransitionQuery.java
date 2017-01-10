@@ -82,6 +82,8 @@ public abstract class TransitionQuery extends Query {
                 "\n" +
                 "\n" +
 
+                "query_assertion:\n" +
+
                 getNegatedStateGuardAssertion(target);
     }
 

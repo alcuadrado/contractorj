@@ -113,6 +113,7 @@ public class ListIterator<E> {
     public static boolean ListIterator_pre(ArrayList arrayList, int index) {
         return arrayList != null &&
                 arrayList.inv() &&
+                index <= arrayList.size &&
                 arrayList.listiterator_pre(index);
     }
 

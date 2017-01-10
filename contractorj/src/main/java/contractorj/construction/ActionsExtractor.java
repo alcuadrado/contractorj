@@ -1,19 +1,22 @@
 package contractorj.construction;
 
-import contractorj.model.Action;
-import j2bpl.Class;
-import j2bpl.Method;
-
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import contractorj.model.Action;
+import j2bpl.Class;
+import j2bpl.Method;
 
 public class ActionsExtractor {
 
     private final static String INVARIANT_METHOD_NAME = "inv()";
 
     private final Class theClass;
+
+    private final Set<String> methodNames;
 
     private final Map<String, Method> methodsMap = new HashMap<>();
 
@@ -38,9 +41,10 @@ public class ActionsExtractor {
         return invariant;
     }
 
-    public ActionsExtractor(Class theClass) {
+    public ActionsExtractor(Class theClass, Set<String> methodNames) {
 
         this.theClass = theClass;
+        this.methodNames = methodNames;
 
         computeMethodsMap();
         searchInvariant();
@@ -84,9 +88,15 @@ public class ActionsExtractor {
 
             if (method.isConstructor()) {
                 constructorActions.add(action);
-            } else {
-                instanceActions.add(action);
+                continue;
             }
+
+            if (!methodNames.isEmpty()
+                    && !methodNames.contains(method.getJavaNameWithArgumentTypes())) {
+                continue;
+            }
+
+            instanceActions.add(action);
         }
     }
 

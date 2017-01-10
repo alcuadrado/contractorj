@@ -56,13 +56,13 @@ public abstract class EpaGenerator {
         this.corralRunner = corralRunner;
     }
 
-    public Epa generateEpa(Class theClass) {
+    public Epa generateEpa(Class theClass, Set<String> methodNames) {
 
         queryingTimes.clear();
 
         final LocalDateTime start = LocalDateTime.now();
 
-        final ActionsExtractor actionsExtractor = new ActionsExtractor(theClass);
+        final ActionsExtractor actionsExtractor = new ActionsExtractor(theClass, methodNames);
 
         actions = actionsExtractor.getInstanceActions();
         invariant = actionsExtractor.getInvariant();

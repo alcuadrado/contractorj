@@ -1,15 +1,5 @@
 package contractorj;
 
-import contractorj.construction.EpaGenerator;
-import contractorj.construction.LazyEpaGenerator;
-import contractorj.construction.queries.Query;
-import contractorj.construction.corral.CorralRunner;
-import contractorj.model.Epa;
-import contractorj.serialization.DotEpaSerializer;
-import contractorj.serialization.XmlEpaSerializer;
-import contractorj.util.EmbeddedJarsHelper;
-import j2bpl.Class;
-import j2bpl.Translator;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -21,7 +11,21 @@ import org.apache.commons.cli.ParseException;
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
+
+import contractorj.construction.EpaGenerator;
+import contractorj.construction.LazyEpaGenerator;
+import contractorj.construction.corral.CorralRunner;
+import contractorj.construction.queries.Query;
+import contractorj.model.Epa;
+import contractorj.serialization.DotEpaSerializer;
+import contractorj.serialization.XmlEpaSerializer;
+import contractorj.util.EmbeddedJarsHelper;
+import j2bpl.Class;
+import j2bpl.Translator;
 
 public class Main {
 
@@ -30,6 +34,8 @@ public class Main {
     private static String classPath;
 
     private static String className;
+
+    private static Set<String> methodNames = new HashSet<>();
 
     private static File dotOutputFile;
 
@@ -63,7 +69,7 @@ public class Main {
                 corralRunner
         );
 
-        final Epa epa = epaEpaGenerator.generateEpa(classToMakeEpa.get());
+        final Epa epa = epaEpaGenerator.generateEpa(classToMakeEpa.get(), methodNames);
 
         System.out.println("Total running time: " + formatDuration(epaEpaGenerator.getTotalTime()));
         System.out.println("Time running queries: " + formatDuration(epaEpaGenerator.getTotalQueryingTime()));
@@ -127,6 +133,11 @@ public class Main {
         threadsOption.setType(Number.class);
         options.addOption(threadsOption);
 
+        final Option methodsOption = new Option("m", "methods", true,
+                "Comma separated names of the methods to analyze");
+        options.addOption(methodsOption);
+
+
         final CommandLineParser parser = new DefaultParser();
         final HelpFormatter formatter = new HelpFormatter();
 
@@ -150,6 +161,11 @@ public class Main {
 
         if (cmd.hasOption('t')) {
             numberOfThreads = Integer.valueOf(cmd.getOptionValue('t'));
+        }
+
+        if (cmd.hasOption('m')) {
+            final String[] methods = cmd.getOptionValue('m').split(" ");
+            Collections.addAll(methodNames, methods);
         }
     }
 

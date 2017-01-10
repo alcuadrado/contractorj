@@ -67,11 +67,12 @@ public abstract class NecessaryActionQuery extends Query {
                                 + "\n"
                 ).orElse("")
 
+                + "query_assertion_1:\n"
                 + getInvariantAssertion() + "\n"
                 + "\n"
                 + "\n"
 
-                + "query_assertion:\n"
+                + "query_assertion_2:\n"
                 + "assert " + (isTestingEnabledness() ? "" : "!") + getTestedActionReturnVariable().name + ";";
     }
 

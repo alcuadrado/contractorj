@@ -55,7 +55,8 @@ public abstract class InvariantQuery extends Query {
     @Override
     protected String getQueryCore() {
 
-        return getInvariantAssertion();
+        return "query_assertion_1:\n" +
+                getInvariantAssertion();
     }
 
 }

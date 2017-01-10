@@ -126,7 +126,7 @@ public class ListIterator<E> {
                 cursor <= arrayList.size &&
                 (
                         lastRet == -1 ||
-                                (cursor /* estaba esto: < arrayList.size */ == 0 && lastRet == cursor) ||
+                                (cursor < arrayList.size /* == 0? */ && lastRet == cursor) ||
                                 (cursor > 0 && lastRet == cursor - 1)
                 );
     }

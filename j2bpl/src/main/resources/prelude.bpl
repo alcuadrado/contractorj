@@ -55,6 +55,14 @@ function Bool2Union(boolValue: bool) : Union;
 
 function Int2Union(intValue: int) : Union;
 
+// Array hardcoded methods
+
+procedure java.util.Arrays.copyOf$Ref$int(param00 : Ref, param01 : int) returns (r : Ref) {
+    call r := Alloc();
+    assume $ArrayLength(r) == param01;
+}
+
+
 // Collections' length mock
 
 var $CollectionLength : [Ref]int;

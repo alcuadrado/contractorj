@@ -29,7 +29,9 @@ public class ExternalMethod extends Method {
             "java.util.ArrayList#?init?",
             "java.util.ArrayList#?init?$int",
             "java.util.ArrayList#size",
-            "java.util.ArrayList#clear"
+            "java.util.ArrayList#clear",
+
+            "java.util.Arrays.copyOf$Ref$int"
     );
 
     private Set<String> methodsWithHardcodedBooleanReturnType = Sets.newHashSet(

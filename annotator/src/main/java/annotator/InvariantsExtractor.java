@@ -29,7 +29,7 @@ public class InvariantsExtractor {
 
     private final Map<Method, List<String>> paramsPreconditionsForMethod = new HashMap<>();
 
-    private List<String> objectInvariantConditions;
+    private List<String> objectInvariantConditions = new ArrayList<>();
 
     public List<Invariant> computeInvariants(final String daikonOutput, final CompilationUnit compilationUnit) {
 

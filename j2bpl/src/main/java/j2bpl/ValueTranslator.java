@@ -300,17 +300,6 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
     }
 
     @Override
-    public void caseAndExpr(final AndExpr v) {
-
-        final String op1Translated = translateValue(v.getOp1());
-        final String op2Translated = translateValue(v.getOp2());
-
-        stringBuilder.append(op1Translated)
-                .append(" && ")
-                .append(op2Translated);
-    }
-
-    @Override
     public void defaultCase(Object v) {
 
         throw new UnsupportedOperationException("Unsupported value type " + v.getClass().getName());

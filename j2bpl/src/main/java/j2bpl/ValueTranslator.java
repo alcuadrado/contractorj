@@ -11,8 +11,12 @@ import soot.jimple.AbstractJimpleValueSwitch;
 import soot.jimple.AddExpr;
 import soot.jimple.AndExpr;
 import soot.jimple.ArrayRef;
+import soot.jimple.BinopExpr;
 import soot.jimple.CastExpr;
 import soot.jimple.ClassConstant;
+import soot.jimple.CmpExpr;
+import soot.jimple.CmpgExpr;
+import soot.jimple.CmplExpr;
 import soot.jimple.DivExpr;
 import soot.jimple.DynamicInvokeExpr;
 import soot.jimple.EqExpr;
@@ -25,6 +29,7 @@ import soot.jimple.InterfaceInvokeExpr;
 import soot.jimple.InvokeExpr;
 import soot.jimple.LeExpr;
 import soot.jimple.LengthExpr;
+import soot.jimple.LongConstant;
 import soot.jimple.LtExpr;
 import soot.jimple.MulExpr;
 import soot.jimple.NeExpr;
@@ -365,6 +370,34 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
                 .append(")");
     }
 
+
+    @Override
+    public void caseLongConstant(LongConstant v) {
+        stringBuilder.append(v.value);
+    }
+
+    @Override
+    public void caseCmpExpr(CmpExpr v) {
+        translateCompare(v);
+    }
+
+    @Override
+    public void caseCmpgExpr(CmpgExpr v) {
+        translateCompare(v);
+    }
+
+    @Override
+    public void caseCmplExpr(CmplExpr v) {
+        translateValue(v);
+    }
+
+    private void translateCompare(BinopExpr v) {
+        final String op1 = translateValue(v.getOp1());
+        final String op2 = translateValue(v.getOp2());
+
+
+        stringBuilder.append("(").append(op1).append(" - ").append(op2).append(")");
+    }
 
     public String getTranslation() {
 

@@ -3,8 +3,10 @@ package contractorj.construction;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import contractorj.model.Action;
 import j2bpl.Class;
@@ -44,14 +46,42 @@ public class ActionsExtractor {
     public ActionsExtractor(Class theClass, Set<String> methodNames) {
 
         this.theClass = theClass;
-        this.methodNames = methodNames;
+        this.methodNames = recomputeMethodNames(methodNames);
 
         computeMethodsMap();
         searchInvariant();
         generateActions();
     }
 
+    /**
+     * Some method names may not have its params, but if it's not overloaded that's ok
+     */
+    private Set<String> recomputeMethodNames(Set<String> methodNames) {
+
+        return methodNames.stream()
+                .map(name -> {
+                    if (name.contains("(")) {
+                        return name;
+                    }
+
+                    final List<Method> methods = theClass.getMethods().stream()
+                            .filter(method -> method.getBaseJavaName().equals(name))
+                            .collect(Collectors.toList());
+
+                    if (methods.size() != 1) {
+                        throw new RuntimeException("If a method name is provided without parms " +
+                                "it can't be overloaded.");
+                    }
+
+                    return methods.get(0).getJavaNameWithArgumentTypes();
+                })
+                .collect(Collectors.toSet());
+    }
+
     private void generateActions() {
+
+        final HashSet<String> ignoredMethods = new HashSet<>();
+        final HashSet<String> missingMethods = new HashSet<>(methodNames);
 
         for (String methodName : methodsMap.keySet()) {
 
@@ -91,12 +121,21 @@ public class ActionsExtractor {
                 continue;
             }
 
-            if (!methodNames.isEmpty()
-                    && !methodNames.contains(method.getJavaNameWithArgumentTypes())) {
+            if (!methodNames.isEmpty() && !methodNames.contains(methodName)) {
+                ignoredMethods.add(methodName);
                 continue;
             }
 
+            missingMethods.remove(methodName);
             instanceActions.add(action);
+        }
+
+        if (missingMethods.size() > 0) {
+            throw new RuntimeException(
+                    "Not all methods extracted.\n" +
+                            "Missing methods: " + Arrays.toString(missingMethods.toArray()) + "\n" +
+                            "Ignored methods: " + Arrays.toString(ignoredMethods.toArray())
+            );
         }
     }
 

@@ -11,6 +11,7 @@ import org.apache.commons.cli.ParseException;
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Optional;
@@ -164,9 +165,50 @@ public class Main {
         }
 
         if (cmd.hasOption('m')) {
-            final String[] methods = cmd.getOptionValue('m').split(" ");
-            Collections.addAll(methodNames, methods);
+            setMethodNames(cmd.getOptionValue('m'));
         }
+    }
+
+    private static void setMethodNames(String methodsList) {
+
+        final ArrayList<String> methods = splitMethodList(methodsList);
+
+        for (String name : methods) {
+
+            if (name.contains(className + "#")) {
+                name = name.substring(name.lastIndexOf("#") + 1);
+            }
+
+            methodNames.add(name);
+        }
+    }
+
+    private static ArrayList<String> splitMethodList(String methodsList) {
+
+        final ArrayList<String> methods = new ArrayList<>();
+
+        boolean insideParens = false;
+        for (int i = 0, start = 0; i < methodsList.length(); i++) {
+
+            if (methodsList.charAt(i) == '(') {
+                insideParens = true;
+            }
+
+            if (methodsList.charAt(i) == ')') {
+                insideParens = false;
+            }
+
+            if (methodsList.charAt(i) == ' ' && !insideParens) {
+                final String name = methodsList.substring(start, i).trim();
+                start = i + 1;
+
+                if (!name.isEmpty()) {
+                    methods.add(name);
+                }
+            }
+        }
+
+        return methods;
     }
 
     private static String formatDuration(Duration duration) {

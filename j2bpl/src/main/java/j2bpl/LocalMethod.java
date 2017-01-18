@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 
 public class LocalMethod extends Method {
 
-    private final List<Local> localsUsedAsParameters = new ArrayList<>();
+    private final HashMap<String, Local> parameterNamesToLocals = new HashMap<>();
 
     private final HashMap<InvokeStmt, String> generatedReturnVariableNames = new HashMap<>();
 
@@ -62,6 +62,8 @@ public class LocalMethod extends Method {
             parameters.add("$this : Ref");
         }
 
+        int i = 0;
+
         for (final IdentityStmt identityStmt : getIdentityStatements()) {
 
             final Value rightOp = identityStmt.getRightOp();
@@ -74,11 +76,15 @@ public class LocalMethod extends Method {
             final ParameterRef paramRef = (ParameterRef) rightOp;
             final Local local = (Local) leftOp;
 
+            final String parameterName = "param" + String.format("%02d", i);
+
+            parameterNamesToLocals.put(parameterName, local);
+
             final String translatedType = TypeTranslator.translate(paramRef.getType());
 
-            parameters.add(local.getName() + " : " + translatedType);
+            parameters.add(parameterName + " : " + translatedType);
 
-            localsUsedAsParameters.add(local);
+            i++;
         }
 
         return parameters;
@@ -117,11 +123,25 @@ public class LocalMethod extends Method {
                 .append("\n")
                 .append(StringUtils.indentList(getGeneratedLocalDeclarationsList()))
                 .append("\n\n")
+                .append(StringUtils.indentList(translateParametersAssignments()))
+                .append("\n\n")
                 .append(StringUtils.indentList(getTranslatedInstructions()))
                 .append("\n")
                 .append("}");
 
         return stringBuilder.toString();
+    }
+
+    private List<String> translateParametersAssignments() {
+
+        final ArrayList<String> assignments = new ArrayList<>();
+
+        for (String paramName : parameterNamesToLocals.keySet()) {
+            final Local local = parameterNamesToLocals.get(paramName);
+            assignments.add(local.getName() + " := " + paramName + ";");
+        }
+
+        return assignments;
     }
 
     @Override
@@ -148,7 +168,6 @@ public class LocalMethod extends Method {
     private List<String> getTranslatedLocalDeclarationsList() {
 
         return body.getLocals().stream()
-                .filter(local -> !localsUsedAsParameters.contains(local))
                 .map(this::translateLocalDeclaration)
                 .collect(Collectors.toList());
     }

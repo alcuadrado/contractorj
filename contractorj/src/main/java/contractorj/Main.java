@@ -12,7 +12,6 @@ import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -42,6 +41,8 @@ public class Main {
 
     private static File xmlOutputFile;
 
+    private static File logFile;
+
     private static int numberOfThreads = Runtime.getRuntime().availableProcessors();
 
     public static void main(String[] args) throws IOException {
@@ -67,7 +68,8 @@ public class Main {
         final EpaGenerator epaEpaGenerator = new LazyEpaGenerator(
                 translator.getTranslation(),
                 numberOfThreads,
-                corralRunner
+                corralRunner,
+                logFile
         );
 
         final Epa epa = epaEpaGenerator.generateEpa(classToMakeEpa.get(), methodNames);
@@ -129,6 +131,10 @@ public class Main {
         xmlPathOption.setRequired(true);
         options.addOption(xmlPathOption);
 
+        final Option logFileOption = new Option("l", "log", true,
+                "The path to the log file (default: $CWD/log)");
+        options.addOption(logFileOption);
+
         final Option threadsOption = new Option("t", "threads", true,
                 "The number of threads to use (default: the number of cores)");
         threadsOption.setType(Number.class);
@@ -154,11 +160,13 @@ public class Main {
             return;
         }
 
+
         pathToCorral = cmd.getOptionValue("co");
         classPath = cmd.getOptionValue("cp");
         className = cmd.getOptionValue("c");
         dotOutputFile = new File(cmd.getOptionValue("d"));
         xmlOutputFile = new File(cmd.getOptionValue("x"));
+        logFile = new File(cmd.getOptionValue("l", "log"));
 
         if (cmd.hasOption('t')) {
             numberOfThreads = Integer.valueOf(cmd.getOptionValue('t'));

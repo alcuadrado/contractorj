@@ -2,6 +2,7 @@ package contractorj.construction;
 
 import com.google.common.collect.Sets;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
@@ -38,6 +39,7 @@ import j2bpl.Class;
 
 public class LazyEpaGenerator extends EpaGenerator {
 
+    private final File logFile;
     private ExecutorService driverExecutorService;
 
     private ExecutorService queriesExecutorService;
@@ -50,9 +52,11 @@ public class LazyEpaGenerator extends EpaGenerator {
 
     private DebugLog debugLog;
 
-    public LazyEpaGenerator(final String baseTranslation, final int numberOfThreads, final CorralRunner corralRunner) {
+    public LazyEpaGenerator(final String baseTranslation, final int numberOfThreads, final CorralRunner corralRunner, File logFile) {
 
         super(baseTranslation, numberOfThreads, corralRunner);
+
+        this.logFile = logFile;
     }
 
     @Override
@@ -94,9 +98,9 @@ public class LazyEpaGenerator extends EpaGenerator {
     }
 
     private void printLog() {
-        try (final PrintWriter debugFile = new PrintWriter("log", "UTF-8")) {
+        try (final PrintWriter debugFile = new PrintWriter(logFile)) {
             debugLog.writeLog(debugFile);
-        } catch (FileNotFoundException | UnsupportedEncodingException e) {
+        } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }
     }

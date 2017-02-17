@@ -1,13 +1,11 @@
 package contractorj.construction;
 
 import contractorj.construction.corral.CorralRunner;
-import contractorj.construction.corral.QueryResult;
 import contractorj.construction.corral.RunnerResult;
 import contractorj.construction.queries.Answer;
 import contractorj.construction.queries.Query;
 import contractorj.model.Action;
 import contractorj.model.Epa;
-import contractorj.util.ColorPrinter;
 import j2bpl.Class;
 import j2bpl.Method;
 

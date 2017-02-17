@@ -155,11 +155,8 @@ public class LazyEpaGenerator extends EpaGenerator {
             .map(necessaryActionResult -> necessaryActionResult.testedAction)
             .collect(Collectors.toSet());
 
-    final Stream<Query> queryStream =
-        Stream.concat(
-            getInvariantTestQueries(state, mainAction),
-            getTransitionQueries(
-                state, mainAction, necessarilyEnabledActions, necessarilyDisabledActions));
+    final Stream<Query> queryStream = getTransitionQueries(state, mainAction,
+            necessarilyEnabledActions, necessarilyDisabledActions);
 
     queryStream.forEach(
         query ->
@@ -216,10 +213,7 @@ public class LazyEpaGenerator extends EpaGenerator {
               final NotThrowingTransitionQuery notThrowingTransitionQuery =
                   new NotThrowingTransitionQuery(state, mainAction, targetState, invariant);
 
-              final ThrowingTransitionQuery throwingTransitionQuery =
-                  new ThrowingTransitionQuery(state, mainAction, targetState, invariant);
-
-              return Stream.of(notThrowingTransitionQuery, throwingTransitionQuery);
+              return Stream.of(notThrowingTransitionQuery);
             });
   }
 

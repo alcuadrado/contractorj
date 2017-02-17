@@ -2,68 +2,63 @@ package examples;
 
 public class FiniteStack {
 
-    private int max;
-    private int next;
+  private int max;
+  private int next;
 
-    public static boolean FiniteStack_pre() {
-        return true;
+  public static boolean FiniteStack_pre() {
+    return true;
+  }
+
+  public FiniteStack() {
+    max = 5;
+    next = -1;
+  }
+
+  public static boolean FiniteStack_pre(int size) {
+    return size > 2;
+  }
+
+  public FiniteStack(int size) {
+    max = size;
+    next = -1;
+  }
+
+  public void Pop() {
+    next = next - 1;
+
+    // Sometimes break the invariant
+    if (next == 16) {
+      next = max + 1;
+    }
+  }
+
+  public void Push() {
+    final int originalNext = next;
+
+    // Throw without breaking the invariant
+    if (next == 5) {
+      throw new RuntimeException();
     }
 
-    public FiniteStack()
-    {
-        max = 5;
-        next = -1;
+    next = max + 1;
+
+    // Throw breaking the invariant during an temporal internal state
+    if (originalNext == 6) {
+      throw new RuntimeException();
     }
 
-    public static boolean FiniteStack_pre(int size)
-    {
-        return size > 2;
-    }
+    next = originalNext + 1;
+  }
 
-    public FiniteStack(int size)
-    {
-        max = size;
-        next = -1;
-    }
+  public boolean inv() {
+    return max > 2 && next >= -1 && max >= next;
+  }
 
-    public void Pop()
-    {
-        next = next - 1;
+  public boolean Pop_pre() {
+    return next > -1;
+  }
 
-        // Sometimes break the invariant
-        if (next == 16) {
-            next = max + 1;
-        }
-    }
-
-    public void Push()
-    {
-        final int originalNext = next;
-
-        // Throw without breaking the invariant
-        if (next == 5) {
-            throw new RuntimeException();
-        }
-
-        next = max + 1;
-
-        // Throw breaking the invariant during an temporal internal state
-        if (originalNext == 6) {
-            throw new RuntimeException();
-        }
-
-        next = originalNext + 1;
-    }
-
-    public boolean inv() {
-        return max > 2 && next >= -1 && max >= next;
-    }
-
-    public boolean Pop_pre() {
-        return next > -1;
-    }
-
-    public boolean Push_pre() {
-        return next < max;
-    }
+  public boolean Push_pre() {
+    return next < max;
+  }
 }

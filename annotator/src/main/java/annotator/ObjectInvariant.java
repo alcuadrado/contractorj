@@ -4,20 +4,20 @@ import java.util.List;
 
 class ObjectInvariant extends Invariant {
 
-    ObjectInvariant(final List<String> conditions) {
+  ObjectInvariant(final List<String> conditions) {
 
-        super(conditions);
-    }
+    super(conditions);
+  }
 
-    @Override
-    public String toString() {
+  @Override
+  public String toString() {
 
-        return "ObjectInvariant " + super.toString();
-    }
+    return "ObjectInvariant " + super.toString();
+  }
 
-    @Override
-    public String toMethod() {
+  @Override
+  public String toMethod() {
 
-        return "public boolean inv() " + super.toMethod();
-    }
+    return "public boolean inv() " + super.toMethod();
+  }
 }

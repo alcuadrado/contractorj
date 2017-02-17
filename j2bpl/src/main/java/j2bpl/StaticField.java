@@ -4,30 +4,35 @@ import soot.SootField;
 
 public class StaticField {
 
-    private final SootField sootField;
+  private final SootField sootField;
 
-    private final Class theClass;
+  private final Class theClass;
 
-    public StaticField(Class theClass, SootField sootField) {
+  public StaticField(Class theClass, SootField sootField) {
 
-        assert sootField.isStatic();
-        this.sootField = sootField;
-        this.theClass = theClass;
-    }
+    assert sootField.isStatic();
+    this.sootField = sootField;
+    this.theClass = theClass;
+  }
 
-    public StaticField(SootField sootField) {
+  public StaticField(SootField sootField) {
 
-        this(Class.create(sootField.getDeclaringClass()), sootField);
-    }
+    this(Class.create(sootField.getDeclaringClass()), sootField);
+  }
 
-    public String getTranslatedName() {
+  public String getTranslatedName() {
 
-        return theClass.getTranslatedName() + "." + StringUtils.scapeIllegalIdentifierCharacters(sootField.getName());
-    }
+    return theClass.getTranslatedName()
+        + "."
+        + StringUtils.scapeIllegalIdentifierCharacters(sootField.getName());
+  }
 
-    public String getTranslatedDeclaration() {
+  public String getTranslatedDeclaration() {
 
-        return "var " + getTranslatedName() + " : " + TypeTranslator.translate(sootField.getType()) + ";";
-    }
-
+    return "var "
+        + getTranslatedName()
+        + " : "
+        + TypeTranslator.translate(sootField.getType())
+        + ";";
+  }
 }

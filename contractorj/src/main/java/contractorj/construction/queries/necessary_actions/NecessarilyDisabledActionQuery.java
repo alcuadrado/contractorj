@@ -7,23 +7,24 @@ import j2bpl.Method;
 
 public class NecessarilyDisabledActionQuery extends NecessaryActionQuery {
 
-    public NecessarilyDisabledActionQuery(final State source,
-                                          final Action mainAction,
-                                          final Action testedAction,
-                                          final Method invariant) {
+  public NecessarilyDisabledActionQuery(
+      final State source,
+      final Action mainAction,
+      final Action testedAction,
+      final Method invariant) {
 
-        super(source, mainAction, testedAction, invariant);
-    }
+    super(source, mainAction, testedAction, invariant);
+  }
 
-    @Override
-    protected boolean isTestingEnabledness() {
+  @Override
+  protected boolean isTestingEnabledness() {
 
-        return false;
-    }
+    return false;
+  }
 
-    @Override
-    public String getName() {
+  @Override
+  public String getName() {
 
-        return "necessarily_disabled_test" + Query.NAME_PART_SEPARATOR + super.getName();
-    }
+    return "necessarily_disabled_test" + Query.NAME_PART_SEPARATOR + super.getName();
+  }
 }

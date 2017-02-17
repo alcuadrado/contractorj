@@ -1,5 +1,8 @@
 package j2bpl;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
 import soot.BooleanType;
 import soot.SootField;
 import soot.Type;
@@ -24,292 +27,304 @@ import soot.jimple.ReturnVoidStmt;
 import soot.jimple.ThisRef;
 import soot.jimple.ThrowStmt;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
-
 public class UnitTranslator extends AbstractStmtSwitch {
 
-    private final StringBuilder stringBuilder = new StringBuilder();
+  private final StringBuilder stringBuilder = new StringBuilder();
 
-    private final LocalMethod method;
+  private final LocalMethod method;
 
-    private final BasicBlock basicBlock;
+  private final BasicBlock basicBlock;
 
-    private final List<String> translation = new LinkedList<>();
+  private final List<String> translation = new LinkedList<>();
 
-    public UnitTranslator(LocalMethod method, BasicBlock basicBlock) {
+  public UnitTranslator(LocalMethod method, BasicBlock basicBlock) {
 
-        this.method = method;
-        this.basicBlock = basicBlock;
+    this.method = method;
+    this.basicBlock = basicBlock;
+  }
+
+  @Override
+  public void caseAssignStmt(AssignStmt stmt) {
+
+    final Value leftOp = stmt.getLeftOp();
+    final Value rightOp = stmt.getRightOp();
+
+    if (leftOp instanceof InstanceFieldRef) {
+      translateAssignmentToField((InstanceFieldRef) leftOp, rightOp);
+      return;
     }
 
-    @Override
-    public void caseAssignStmt(AssignStmt stmt) {
-
-        final Value leftOp = stmt.getLeftOp();
-        final Value rightOp = stmt.getRightOp();
-
-        if (leftOp instanceof InstanceFieldRef) {
-            translateAssignmentToField((InstanceFieldRef) leftOp, rightOp);
-            return;
-        }
-
-        if (rightOp instanceof NewArrayExpr) {
-            translateArrayCreation(leftOp, ((NewArrayExpr) rightOp));
-            return;
-        }
-
-        if (leftOp instanceof ArrayRef) {
-            translateAssignmentToArray(((ArrayRef) leftOp), rightOp);
-            return;
-        }
-
-        final StringBuilder stringBuilder = new StringBuilder();
-
-        if (rightOp instanceof NewExpr || rightOp instanceof InvokeExpr || rightOp instanceof DivExpr) {
-            stringBuilder.append("call ");
-        }
-
-        final String rightOptTranslation;
-
-        // We need a special case for booleans because they are 0 and 1 in jimple, but that doesn't
-        // type check in boogie.
-
-        if (leftOp.getType() == BooleanType.v() && rightOp instanceof IntConstant) {
-            final int value = ((IntConstant) rightOp).value;
-            rightOptTranslation = value == 0 ? "false" : "true";
-        } else {
-            rightOptTranslation = translateValue(rightOp);
-        }
-
-        final String translatedLeftOp = translateValue(leftOp);
-
-        stringBuilder.append(translatedLeftOp)
-                .append(" := ")
-                .append(rightOptTranslation)
-                .append(";");
-
-        translation.add(stringBuilder.toString());
-
-        if (rightOp instanceof InvokeExpr || rightOp instanceof DivExpr) {
-            translation.add("if ($Exception != null) {");
-            translation.add(StringUtils.indent("return;"));
-            translation.add("}");
-        }
+    if (rightOp instanceof NewArrayExpr) {
+      translateArrayCreation(leftOp, ((NewArrayExpr) rightOp));
+      return;
     }
 
-    private void translateArrayCreation(Value leftOp, NewArrayExpr newArrayExpr) {
-
-        final String translatedRef = translateValue(leftOp);
-        final String translatedSize = translateValue(newArrayExpr.getSize());
-
-        translation.add("call " + translatedRef + " := Alloc();");
-        translation.add("assume $ArrayLength(" + translatedRef + ") == " + translatedSize + ";");
+    if (leftOp instanceof ArrayRef) {
+      translateAssignmentToArray(((ArrayRef) leftOp), rightOp);
+      return;
     }
 
-    private void translateAssignmentToArray(ArrayRef arrayRef, Value value) {
+    final StringBuilder stringBuilder = new StringBuilder();
 
-        final String translatedValue = translateValue(value);
-        final String translatedIndex = translateValue(arrayRef.getIndex());
-        final String translatedRef = translateValue(arrayRef.getBase());
-
-        translateTransformationToUnion(arrayRef.getType(), value, translatedValue);
-        final String toUnion = getToUnion(arrayRef.getType(), value, translatedValue);
-
-        translation.add("assert " + translatedRef + " != null;");
-        translation.add("$ArrayContents := $ArrayContents[" + translatedRef + " := $ArrayContents[" + translatedRef
-                + "][" + translatedIndex + " := " + toUnion + "]];");
+    if (rightOp instanceof NewExpr || rightOp instanceof InvokeExpr || rightOp instanceof DivExpr) {
+      stringBuilder.append("call ");
     }
 
-    private String translateValue(Value value) {
+    final String rightOptTranslation;
 
-        final ValueTranslator translator = new ValueTranslator();
-        value.apply(translator);
-        return translator.getTranslation();
+    // We need a special case for booleans because they are 0 and 1 in jimple, but that doesn't
+    // type check in boogie.
+
+    if (leftOp.getType() == BooleanType.v() && rightOp instanceof IntConstant) {
+      final int value = ((IntConstant) rightOp).value;
+      rightOptTranslation = value == 0 ? "false" : "true";
+    } else {
+      rightOptTranslation = translateValue(rightOp);
     }
 
-    private void translateTransformationToUnion(Type type, Value value, String translatedValue) {
+    final String translatedLeftOp = translateValue(leftOp);
 
-        final String translateType = TypeTranslator.translate(type);
+    stringBuilder.append(translatedLeftOp).append(" := ").append(rightOptTranslation).append(";");
 
-        if (translateType.equals("int")) {
+    translation.add(stringBuilder.toString());
 
-            translation.add("assume Union2Int(Int2Union(" + translatedValue + ")) == " + translatedValue + ";");
-            return;
-        }
+    if (rightOp instanceof InvokeExpr || rightOp instanceof DivExpr) {
+      translation.add("if ($Exception != null) {");
+      translation.add(StringUtils.indent("return;"));
+      translation.add("}");
+    }
+  }
 
-        if (type == BooleanType.v()) {
+  private void translateArrayCreation(Value leftOp, NewArrayExpr newArrayExpr) {
 
-            if (value instanceof IntConstant) {
-                final boolean booleanValue = ((IntConstant) value).value != 0;
-                translatedValue = String.valueOf(booleanValue);
-            }
+    final String translatedRef = translateValue(leftOp);
+    final String translatedSize = translateValue(newArrayExpr.getSize());
 
-            translation.add("assume Union2Bool(Bool2Union(" + translatedValue + ")) == " + translatedValue + ";");
-            return;
-        }
+    translation.add("call " + translatedRef + " := Alloc();");
+    translation.add("assume $ArrayLength(" + translatedRef + ") == " + translatedSize + ";");
+  }
 
-        if (translateType.equals("Ref")) {
-            //Do nothing
-            return;
-        }
+  private void translateAssignmentToArray(ArrayRef arrayRef, Value value) {
 
-        throw new UnsupportedOperationException("Can't transform type " + type + " to Union");
+    final String translatedValue = translateValue(value);
+    final String translatedIndex = translateValue(arrayRef.getIndex());
+    final String translatedRef = translateValue(arrayRef.getBase());
+
+    translateTransformationToUnion(arrayRef.getType(), value, translatedValue);
+    final String toUnion = getToUnion(arrayRef.getType(), value, translatedValue);
+
+    translation.add("assert " + translatedRef + " != null;");
+    translation.add(
+        "$ArrayContents := $ArrayContents["
+            + translatedRef
+            + " := $ArrayContents["
+            + translatedRef
+            + "]["
+            + translatedIndex
+            + " := "
+            + toUnion
+            + "]];");
+  }
+
+  private String translateValue(Value value) {
+
+    final ValueTranslator translator = new ValueTranslator();
+    value.apply(translator);
+    return translator.getTranslation();
+  }
+
+  private void translateTransformationToUnion(Type type, Value value, String translatedValue) {
+
+    final String translateType = TypeTranslator.translate(type);
+
+    if (translateType.equals("int")) {
+
+      translation.add(
+          "assume Union2Int(Int2Union(" + translatedValue + ")) == " + translatedValue + ";");
+      return;
     }
 
-    private String getToUnion(Type type, Value value, String translatedValue) {
+    if (type == BooleanType.v()) {
 
-        final String translateType = TypeTranslator.translate(type);
+      if (value instanceof IntConstant) {
+        final boolean booleanValue = ((IntConstant) value).value != 0;
+        translatedValue = String.valueOf(booleanValue);
+      }
 
-        if (translateType.equals("int")) {
-            return "Int2Union(" + translatedValue + ")";
-        }
-
-        if (type == BooleanType.v()) {
-
-            if (value instanceof IntConstant) {
-
-                final boolean booleanValue = ((IntConstant) value).value != 0;
-                translatedValue = String.valueOf(booleanValue);
-            }
-
-            return "Bool2Union(" + translatedValue + ")";
-        }
-
-        if (translateType.equals("Ref")) {
-            return translatedValue;
-        }
-
-        throw new UnsupportedOperationException("Can't transform type " + type + " to Union");
+      translation.add(
+          "assume Union2Bool(Bool2Union(" + translatedValue + ")) == " + translatedValue + ";");
+      return;
     }
 
-    private void translateAssignmentToField(InstanceFieldRef instanceFieldRef, Value value) {
-
-        final SootField field = instanceFieldRef.getField();
-
-        final InstanceField instanceField = new InstanceField(field);
-
-        final Type type = field.getType();
-
-        final String translatedValue = translateValue(value);
-        final String translatedRef = translateValue(instanceFieldRef.getBase());
-
-        translateTransformationToUnion(type, value, translatedValue);
-
-        translation.add("$Heap := Write($Heap, " + translatedRef + ", " + instanceField.getTranslatedName() + ", " +
-                getToUnion(type, value, translatedValue) + ");");
+    if (translateType.equals("Ref")) {
+      //Do nothing
+      return;
     }
 
-    @Override
-    public void caseThrowStmt(ThrowStmt stmt) {
+    throw new UnsupportedOperationException("Can't transform type " + type + " to Union");
+  }
 
-        final String translatedValue = translateValue(stmt.getOp());
+  private String getToUnion(Type type, Value value, String translatedValue) {
 
-        translation.add("$Exception := " + translatedValue + ";");
-        translation.add("return;");
+    final String translateType = TypeTranslator.translate(type);
+
+    if (translateType.equals("int")) {
+      return "Int2Union(" + translatedValue + ")";
     }
 
-    @Override
-    public void caseIfStmt(IfStmt stmt) {
+    if (type == BooleanType.v()) {
 
-        final BasicBlock successorBasicBlock = basicBlock.getSuccessorBasicBlock(stmt.getTarget());
-        final String translatedValue = translateValue(stmt.getCondition());
+      if (value instanceof IntConstant) {
 
-        translation.add("if (" + translatedValue + ") {");
-        translation.add(StringUtils.indent("goto " + successorBasicBlock.getLabel() + ";"));
-        translation.add("}");
+        final boolean booleanValue = ((IntConstant) value).value != 0;
+        translatedValue = String.valueOf(booleanValue);
+      }
+
+      return "Bool2Union(" + translatedValue + ")";
     }
 
-    @Override
-    public void caseReturnStmt(ReturnStmt stmt) {
-
-        final Value value = stmt.getOp();
-
-        if (method.getTranslatedReturnType().equals("bool") && value instanceof IntConstant) {
-            final IntConstant intValue = (IntConstant) value;
-            translation.add("r := " + (intValue.value == 0 ? "false" : "true") + ";");
-        } else {
-            final String translatedValue = translateValue(value);
-            translation.add("r := " + translatedValue + ";");
-        }
-
-        translation.add("return;");
+    if (translateType.equals("Ref")) {
+      return translatedValue;
     }
 
-    @Override
-    public void caseIdentityStmt(IdentityStmt stmt) {
+    throw new UnsupportedOperationException("Can't transform type " + type + " to Union");
+  }
 
-        final String translatedLeftOp = translateValue(stmt.getLeftOp());
-        final Value rightOp = stmt.getRightOp();
+  private void translateAssignmentToField(InstanceFieldRef instanceFieldRef, Value value) {
 
-        if (rightOp instanceof ThisRef) {
+    final SootField field = instanceFieldRef.getField();
 
-            translation.add(translatedLeftOp + " := $this;");
-            return;
-        }
+    final InstanceField instanceField = new InstanceField(field);
 
-        if (rightOp instanceof CaughtExceptionRef) {
+    final Type type = field.getType();
 
-            translation.add(translatedLeftOp + " := $Exception;");
-            return;
-        }
+    final String translatedValue = translateValue(value);
+    final String translatedRef = translateValue(instanceFieldRef.getBase());
 
-        if (rightOp instanceof ParameterRef) {
-            // Do nothing: this is translated as a parameter.
-            return;
-        }
+    translateTransformationToUnion(type, value, translatedValue);
 
-        throw new UnsupportedOperationException("Can't handle this identity statement: " + stmt
-                + " with rightOp class:" + rightOp.getClass().getSimpleName());
+    translation.add(
+        "$Heap := Write($Heap, "
+            + translatedRef
+            + ", "
+            + instanceField.getTranslatedName()
+            + ", "
+            + getToUnion(type, value, translatedValue)
+            + ");");
+  }
+
+  @Override
+  public void caseThrowStmt(ThrowStmt stmt) {
+
+    final String translatedValue = translateValue(stmt.getOp());
+
+    translation.add("$Exception := " + translatedValue + ";");
+    translation.add("return;");
+  }
+
+  @Override
+  public void caseIfStmt(IfStmt stmt) {
+
+    final BasicBlock successorBasicBlock = basicBlock.getSuccessorBasicBlock(stmt.getTarget());
+    final String translatedValue = translateValue(stmt.getCondition());
+
+    translation.add("if (" + translatedValue + ") {");
+    translation.add(StringUtils.indent("goto " + successorBasicBlock.getLabel() + ";"));
+    translation.add("}");
+  }
+
+  @Override
+  public void caseReturnStmt(ReturnStmt stmt) {
+
+    final Value value = stmt.getOp();
+
+    if (method.getTranslatedReturnType().equals("bool") && value instanceof IntConstant) {
+      final IntConstant intValue = (IntConstant) value;
+      translation.add("r := " + (intValue.value == 0 ? "false" : "true") + ";");
+    } else {
+      final String translatedValue = translateValue(value);
+      translation.add("r := " + translatedValue + ";");
     }
 
-    @Override
-    public void caseReturnVoidStmt(ReturnVoidStmt stmt) {
+    translation.add("return;");
+  }
 
-        translation.add("return;");
+  @Override
+  public void caseIdentityStmt(IdentityStmt stmt) {
+
+    final String translatedLeftOp = translateValue(stmt.getLeftOp());
+    final Value rightOp = stmt.getRightOp();
+
+    if (rightOp instanceof ThisRef) {
+
+      translation.add(translatedLeftOp + " := $this;");
+      return;
     }
 
-    @Override
-    public void caseGotoStmt(GotoStmt stmt) {
+    if (rightOp instanceof CaughtExceptionRef) {
 
-        final BasicBlock successorBasicBlock = basicBlock.getSuccessorBasicBlock(stmt.getTarget());
-        translation.add("goto " + successorBasicBlock.getLabel() + ";");
+      translation.add(translatedLeftOp + " := $Exception;");
+      return;
     }
 
-    @Override
-    public void caseInvokeStmt(InvokeStmt stmt) {
-
-        final Optional<String> returnVariableName = method.getGeneratedReturnVariableName(stmt);
-
-        final InvokeExpr invokeExpr = stmt.getInvokeExpr();
-
-        String callInstruction = "call ";
-
-        if (returnVariableName.isPresent()) {
-            callInstruction += returnVariableName.get() + " := ";
-        }
-
-        callInstruction += translateValue(invokeExpr) + ";";
-
-        translation.add(callInstruction);
-        translation.add("if ($Exception != null) {");
-        translation.add(StringUtils.indent("return;"));
-        translation.add("}");
+    if (rightOp instanceof ParameterRef) {
+      // Do nothing: this is translated as a parameter.
+      return;
     }
 
-    @Override
-    public void defaultCase(Object obj) {
+    throw new UnsupportedOperationException(
+        "Can't handle this identity statement: "
+            + stmt
+            + " with rightOp class:"
+            + rightOp.getClass().getSimpleName());
+  }
 
-        throw new UnsupportedOperationException("Unsupported statement of type "
-                + obj.getClass().getName() + " in basic block " + basicBlock.getLabel());
+  @Override
+  public void caseReturnVoidStmt(ReturnVoidStmt stmt) {
+
+    translation.add("return;");
+  }
+
+  @Override
+  public void caseGotoStmt(GotoStmt stmt) {
+
+    final BasicBlock successorBasicBlock = basicBlock.getSuccessorBasicBlock(stmt.getTarget());
+    translation.add("goto " + successorBasicBlock.getLabel() + ";");
+  }
+
+  @Override
+  public void caseInvokeStmt(InvokeStmt stmt) {
+
+    final Optional<String> returnVariableName = method.getGeneratedReturnVariableName(stmt);
+
+    final InvokeExpr invokeExpr = stmt.getInvokeExpr();
+
+    String callInstruction = "call ";
+
+    if (returnVariableName.isPresent()) {
+      callInstruction += returnVariableName.get() + " := ";
     }
 
-    public List<String> getTranslation() {
+    callInstruction += translateValue(invokeExpr) + ";";
 
-        return translation;
-    }
+    translation.add(callInstruction);
+    translation.add("if ($Exception != null) {");
+    translation.add(StringUtils.indent("return;"));
+    translation.add("}");
+  }
 
+  @Override
+  public void defaultCase(Object obj) {
+
+    throw new UnsupportedOperationException(
+        "Unsupported statement of type "
+            + obj.getClass().getName()
+            + " in basic block "
+            + basicBlock.getLabel());
+  }
+
+  public List<String> getTranslation() {
+
+    return translation;
+  }
 }
-
-

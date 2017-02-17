@@ -2,98 +2,98 @@ package contractorj.model;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Sets;
-
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
 public class State {
 
-    private final Set<Action> enabledActions;
+  private final Set<Action> enabledActions;
 
-    private final Set<Action> disabledActions;
+  private final Set<Action> disabledActions;
 
-    private boolean isConstructorsState = false;
+  private boolean isConstructorsState = false;
 
-    public static final State ERROR = new State(new HashSet<>(), new HashSet<>());
+  public static final State ERROR = new State(new HashSet<>(), new HashSet<>());
 
-    public State(Set<Action> enabledActions, Set<Action> disabledActions) {
-        this.enabledActions = enabledActions;
-        this.disabledActions = disabledActions;
+  public State(Set<Action> enabledActions, Set<Action> disabledActions) {
+    this.enabledActions = enabledActions;
+    this.disabledActions = disabledActions;
 
-        if (!Sets.intersection(enabledActions, disabledActions).isEmpty()) {
-            throw new IllegalArgumentException("Invalid state: enabled and disabled actions can't overlap");
-        }
-
-        ensureAllOrNoneActionsAreConstructors();
+    if (!Sets.intersection(enabledActions, disabledActions).isEmpty()) {
+      throw new IllegalArgumentException(
+          "Invalid state: enabled and disabled actions can't overlap");
     }
 
-    public boolean isConstructorsState() {
-        return isConstructorsState;
+    ensureAllOrNoneActionsAreConstructors();
+  }
+
+  public boolean isConstructorsState() {
+    return isConstructorsState;
+  }
+
+  public Set<Action> getAllActions() {
+    return Sets.union(getEnabledActions(), getDisabledActions());
+  }
+
+  private void ensureAllOrNoneActionsAreConstructors() {
+
+    long numberOfConstructors =
+        getAllActions().stream().filter(action -> action.getMethod().isConstructor()).count();
+
+    if (numberOfConstructors != 0 && numberOfConstructors != getTotalNumberOfActions()) {
+      throw new IllegalArgumentException("Invalid state: can't mix methods and constructors");
     }
 
-    public Set<Action> getAllActions() {
-        return Sets.union(getEnabledActions(), getDisabledActions());
+    if (numberOfConstructors > 0) {
+      isConstructorsState = true;
+    }
+  }
+
+  private int getTotalNumberOfActions() {
+
+    return getEnabledActions().size() + getDisabledActions().size();
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof State)) {
+      return false;
     }
 
-    private void ensureAllOrNoneActionsAreConstructors() {
+    final State state = (State) o;
+    return Objects.equals(getEnabledActions(), state.getEnabledActions())
+        && Objects.equals(getDisabledActions(), state.getDisabledActions());
+  }
 
-        long numberOfConstructors = getAllActions().stream()
-                .filter(action -> action.getMethod().isConstructor())
-                .count();
+  @Override
+  public int hashCode() {
 
-        if (numberOfConstructors != 0 && numberOfConstructors != getTotalNumberOfActions()) {
-            throw new IllegalArgumentException("Invalid state: can't mix methods and constructors");
-        }
+    return Objects.hash(getEnabledActions(), getDisabledActions());
+  }
 
-        if (numberOfConstructors > 0) {
-            isConstructorsState = true;
-        }
-    }
+  @Override
+  public String toString() {
 
-    private int getTotalNumberOfActions() {
+    return "State{"
+        + "enabledActions="
+        + Joiner.on(", ").join(getEnabledActions())
+        + ", disabledActions="
+        + Joiner.on(", ").join(getDisabledActions())
+        + '}';
+  }
 
-        return getEnabledActions().size() + getDisabledActions().size();
-    }
+  public Set<Action> getEnabledActions() {
 
-    @Override
-    public boolean equals(final Object o) {
+    return enabledActions;
+  }
 
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof State)) {
-            return false;
-        }
+  public Set<Action> getDisabledActions() {
 
-        final State state = (State) o;
-        return Objects.equals(getEnabledActions(), state.getEnabledActions()) &&
-                Objects.equals(getDisabledActions(), state.getDisabledActions());
-    }
-
-    @Override
-    public int hashCode() {
-
-        return Objects.hash(getEnabledActions(), getDisabledActions());
-    }
-
-    @Override
-    public String toString() {
-
-        return "State{" +
-                "enabledActions=" + Joiner.on(", ").join(getEnabledActions()) +
-                ", disabledActions=" + Joiner.on(", ").join(getDisabledActions()) +
-                '}';
-    }
-
-    public Set<Action> getEnabledActions() {
-
-        return enabledActions;
-    }
-
-    public Set<Action> getDisabledActions() {
-
-        return disabledActions;
-    }
-
+    return disabledActions;
+  }
 }

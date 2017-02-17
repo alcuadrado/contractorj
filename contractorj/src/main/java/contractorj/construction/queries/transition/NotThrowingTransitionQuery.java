@@ -6,29 +6,27 @@ import j2bpl.Method;
 
 public class NotThrowingTransitionQuery extends TransitionQuery {
 
-    public NotThrowingTransitionQuery(final State source,
-                                      final Action mainAction,
-                                      final State target,
-                                      final Method invariant) {
+  public NotThrowingTransitionQuery(
+      final State source, final Action mainAction, final State target, final Method invariant) {
 
-        super(source, mainAction, target, invariant);
-    }
+    super(source, mainAction, target, invariant);
+  }
 
-    @Override
-    protected boolean throwsException() {
+  @Override
+  protected boolean throwsException() {
 
-        return false;
-    }
+    return false;
+  }
 
-    @Override
-    protected String getMainActionCallExceptionHandling() {
+  @Override
+  protected String getMainActionCallExceptionHandling() {
 
-        return "assume $Exception == null;";
-    }
+    return "assume $Exception == null;";
+  }
 
-    @Override
-    public String getName() {
+  @Override
+  public String getName() {
 
-        return super.getName() + NAME_PART_SEPARATOR + "not_throwing";
-    }
+    return super.getName() + NAME_PART_SEPARATOR + "not_throwing";
+  }
 }

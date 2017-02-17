@@ -1,208 +1,206 @@
 package j2bpl;
 
 import com.google.common.base.Joiner;
-import soot.RefType;
-import soot.SootMethod;
-import soot.Type;
-import soot.VoidType;
-import soot.jimple.JimpleBody;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import soot.RefType;
+import soot.SootMethod;
+import soot.Type;
+import soot.VoidType;
+import soot.jimple.JimpleBody;
 
 public abstract class Method {
 
-    private static final HashMap<String, LocalMethod> localMethodsFactoryCache = new HashMap<>();
+  private static final HashMap<String, LocalMethod> localMethodsFactoryCache = new HashMap<>();
 
-    private Class theClass;
+  private Class theClass;
 
-    protected final SootMethod sootMethod;
+  protected final SootMethod sootMethod;
 
-    public static Method create(Class theClass, SootMethod sootMethod) {
+  public static Method create(Class theClass, SootMethod sootMethod) {
 
-        if (!theClass.isApplicationClass()) {
+    if (!theClass.isApplicationClass()) {
 
-            final ExternalMethod externalMethod = new ExternalMethod(theClass, sootMethod);
+      final ExternalMethod externalMethod = new ExternalMethod(theClass, sootMethod);
 
-            theClass.addMethod(externalMethod);
+      theClass.addMethod(externalMethod);
 
-            return externalMethod;
-        }
-
-        final String translatedMethodName = getTranslatedMethodName(theClass, sootMethod);
-
-        if (!localMethodsFactoryCache.containsKey(translatedMethodName)) {
-
-            final JimpleBody jimpleBody = (JimpleBody) sootMethod.getActiveBody();
-            final LocalMethod localMethod = new LocalMethod(theClass, jimpleBody);
-
-            theClass.addMethod(localMethod);
-
-            localMethodsFactoryCache.put(translatedMethodName, localMethod);
-        }
-
-        return localMethodsFactoryCache.get(translatedMethodName);
+      return externalMethod;
     }
 
-    /**
-     * Returns the translated name of the method.
-     * <p>
-     * <p>The name is the method's fully qualified name with boogie-identifier illegal characters escaped, and mangled
-     * with its parameter types.
-     */
-    private static String getTranslatedMethodName(Class theClass, SootMethod sootMethod) {
+    final String translatedMethodName = getTranslatedMethodName(theClass, sootMethod);
 
-        final String baseName = theClass.getTranslatedName() +
-                (sootMethod.isStatic() ? "." : "#") +
-                StringUtils.scapeIllegalIdentifierCharacters(sootMethod.getName());
+    if (!localMethodsFactoryCache.containsKey(translatedMethodName)) {
 
-        return mangleMethodName(sootMethod, baseName);
+      final JimpleBody jimpleBody = (JimpleBody) sootMethod.getActiveBody();
+      final LocalMethod localMethod = new LocalMethod(theClass, jimpleBody);
+
+      theClass.addMethod(localMethod);
+
+      localMethodsFactoryCache.put(translatedMethodName, localMethod);
     }
 
-    /**
-     * Mangles the name of a method.
-     */
-    private static String mangleMethodName(SootMethod sootMethod, String nonMangledName) {
+    return localMethodsFactoryCache.get(translatedMethodName);
+  }
 
-        final StringBuilder stringBuilder = new StringBuilder(nonMangledName);
+  /**
+   * Returns the translated name of the method.
+   *
+   * <p>
+   *
+   * <p>The name is the method's fully qualified name with boogie-identifier illegal characters
+   * escaped, and mangled with its parameter types.
+   */
+  private static String getTranslatedMethodName(Class theClass, SootMethod sootMethod) {
 
-        @SuppressWarnings("unchecked")
-        final List<Type> parameterTypes = sootMethod.getParameterTypes();
+    final String baseName =
+        theClass.getTranslatedName()
+            + (sootMethod.isStatic() ? "." : "#")
+            + StringUtils.scapeIllegalIdentifierCharacters(sootMethod.getName());
 
-        for (final Type parameterType : parameterTypes) {
+    return mangleMethodName(sootMethod, baseName);
+  }
 
-            final String paramTypeName;
+  /** Mangles the name of a method. */
+  private static String mangleMethodName(SootMethod sootMethod, String nonMangledName) {
 
-            if (parameterType instanceof RefType) {
+    final StringBuilder stringBuilder = new StringBuilder(nonMangledName);
 
-                final RefType refType = (RefType) parameterType;
-                final Class aClass = Class.create(refType.getSootClass());
-                paramTypeName = aClass.getQualifiedJavaName();
+    @SuppressWarnings("unchecked")
+    final List<Type> parameterTypes = sootMethod.getParameterTypes();
 
-            } else {
-                paramTypeName = TypeTranslator.translate(parameterType);
-            }
+    for (final Type parameterType : parameterTypes) {
 
-            stringBuilder.append("$")
-                    .append(StringUtils.scapeIllegalIdentifierCharacters(paramTypeName));
+      final String paramTypeName;
 
-        }
+      if (parameterType instanceof RefType) {
 
-        return stringBuilder.toString();
+        final RefType refType = (RefType) parameterType;
+        final Class aClass = Class.create(refType.getSootClass());
+        paramTypeName = aClass.getQualifiedJavaName();
+
+      } else {
+        paramTypeName = TypeTranslator.translate(parameterType);
+      }
+
+      stringBuilder.append("$").append(StringUtils.scapeIllegalIdentifierCharacters(paramTypeName));
+    }
+
+    return stringBuilder.toString();
+  }
+
+  @SuppressWarnings("unchecked")
+  public List<Type> getParameterTypes() {
+
+    return sootMethod.getParameterTypes();
+  }
+
+  public abstract String getTranslatedProcedure();
+
+  public abstract boolean isClassInitializer();
+
+  protected Method(Class theClass, SootMethod sootMethod) {
+
+    this.theClass = theClass;
+    this.sootMethod = sootMethod;
+  }
+
+  public String getTranslatedName() {
+
+    return getTranslatedMethodName(theClass, sootMethod);
+  }
+
+  public String getJavaName() {
+
+    return theClass.getQualifiedJavaName() + (isStatic() ? "." : "#") + sootMethod.getName();
+  }
+
+  public String getBaseJavaName() {
+
+    return sootMethod.getName();
+  }
+
+  public String getJavaNameWithArgumentTypes() {
+
+    @SuppressWarnings("unckeched")
+    final List<Type> parameterTypes = sootMethod.getParameterTypes();
+    final List<String> typeNames =
+        parameterTypes.stream().map(Type::toString).collect(Collectors.toList());
+
+    final String baseName =
+        sootMethod.isConstructor() ? theClass.getBaseJavaName() : sootMethod.getName();
+
+    return baseName + "(" + Joiner.on(", ").join(typeNames) + ")";
+  }
+
+  public boolean isStatic() {
+
+    return sootMethod.isStatic();
+  }
+
+  public boolean isConstructor() {
+
+    return sootMethod.isConstructor();
+  }
+
+  public boolean hasReturnType() {
+
+    return sootMethod.getReturnType() != VoidType.v();
+  }
+
+  public String getTranslatedReturnType() {
+
+    return TypeTranslator.translate(sootMethod.getReturnType());
+  }
+
+  public List<String> getTranslatedArgumentTypes() {
+
+    final ArrayList<String> translatedArguments = new ArrayList<>();
+
+    if (!isStatic()) {
+      translatedArguments.add("Ref");
     }
 
     @SuppressWarnings("unchecked")
-    public List<Type> getParameterTypes() {
+    final Iterator<Type> iterator = sootMethod.getParameterTypes().iterator();
 
-        return sootMethod.getParameterTypes();
+    while (iterator.hasNext()) {
+      final Type type = iterator.next();
+      translatedArguments.add(TypeTranslator.translate(type));
     }
 
-    public abstract String getTranslatedProcedure();
+    return translatedArguments;
+  }
 
-    public abstract boolean isClassInitializer();
+  @Override
+  public boolean equals(Object other) {
 
-    protected Method(Class theClass, SootMethod sootMethod) {
-
-        this.theClass = theClass;
-        this.sootMethod = sootMethod;
+    if (this == other) {
+      return true;
     }
 
-    public String getTranslatedName() {
-
-        return getTranslatedMethodName(theClass, sootMethod);
+    if (!(other instanceof Method)) {
+      return false;
     }
 
-    public String getJavaName() {
+    final Method method = (Method) other;
 
-        return theClass.getQualifiedJavaName() + (isStatic() ? "." : "#") + sootMethod.getName();
-    }
+    return Objects.equals(getTranslatedName(), method.getTranslatedName());
+  }
 
-    public String getBaseJavaName() {
+  @Override
+  public int hashCode() {
 
-        return sootMethod.getName();
-    }
+    return Objects.hash(getTranslatedName());
+  }
 
-    public String getJavaNameWithArgumentTypes() {
+  @Override
+  public String toString() {
 
-        @SuppressWarnings("unckeched")
-        final List<Type> parameterTypes = sootMethod.getParameterTypes();
-        final List<String> typeNames = parameterTypes.stream()
-                .map(Type::toString)
-                .collect(Collectors.toList());
-
-        final String baseName = sootMethod.isConstructor() ? theClass.getBaseJavaName() : sootMethod.getName();
-
-        return baseName + "(" + Joiner.on(", ").join(typeNames) + ")";
-    }
-
-    public boolean isStatic() {
-
-        return sootMethod.isStatic();
-    }
-
-    public boolean isConstructor() {
-
-        return sootMethod.isConstructor();
-    }
-
-    public boolean hasReturnType() {
-
-        return sootMethod.getReturnType() != VoidType.v();
-    }
-
-    public String getTranslatedReturnType() {
-
-        return TypeTranslator.translate(sootMethod.getReturnType());
-    }
-
-    public List<String> getTranslatedArgumentTypes() {
-
-        final ArrayList<String> translatedArguments = new ArrayList<>();
-
-        if (!isStatic()) {
-            translatedArguments.add("Ref");
-        }
-
-        @SuppressWarnings("unchecked")
-        final Iterator<Type> iterator = sootMethod.getParameterTypes().iterator();
-
-        while (iterator.hasNext()) {
-            final Type type = iterator.next();
-            translatedArguments.add(TypeTranslator.translate(type));
-        }
-
-        return translatedArguments;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-
-        if (this == other) {
-            return true;
-        }
-
-        if (!(other instanceof Method)) {
-            return false;
-        }
-
-        final Method method = (Method) other;
-
-        return Objects.equals(getTranslatedName(), method.getTranslatedName());
-    }
-
-    @Override
-    public int hashCode() {
-
-        return Objects.hash(getTranslatedName());
-    }
-
-    @Override
-    public String toString() {
-
-        return getClass().getSimpleName() + "<" + getTranslatedName() + ">";
-    }
+    return getClass().getSimpleName() + "<" + getTranslatedName() + ">";
+  }
 }

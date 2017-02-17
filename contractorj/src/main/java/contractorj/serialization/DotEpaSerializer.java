@@ -6,7 +6,6 @@ import com.google.common.collect.Sets;
 import contractorj.model.Epa;
 import contractorj.model.State;
 import contractorj.model.Transition;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -20,159 +19,165 @@ import java.util.stream.Collectors;
 
 public class DotEpaSerializer implements EpaSerializer {
 
-    @Override
-    public String serialize(final Epa epa) {
+  @Override
+  public String serialize(final Epa epa) {
 
-        final Map<State, Map<State, List<String>>> collapsedEdges = new HashMap<>();
+    final Map<State, Map<State, List<String>>> collapsedEdges = new HashMap<>();
 
-        for (Transition transition : epa.getTransitions()) {
+    for (Transition transition : epa.getTransitions()) {
 
-            final State from = transition.getSource();
-            final State to = transition.getTarget();
+      final State from = transition.getSource();
+      final State to = transition.getTarget();
 
-            if (!collapsedEdges.containsKey(from)) {
-                collapsedEdges.put(from, new HashMap<>());
-            }
+      if (!collapsedEdges.containsKey(from)) {
+        collapsedEdges.put(from, new HashMap<>());
+      }
 
-            final Map<State, List<String>> startingInFrom = collapsedEdges.get(from);
+      final Map<State, List<String>> startingInFrom = collapsedEdges.get(from);
 
-            if (!startingInFrom.containsKey(to)) {
-                startingInFrom.put(to, new LinkedList<>());
-            }
+      if (!startingInFrom.containsKey(to)) {
+        startingInFrom.put(to, new LinkedList<>());
+      }
 
-            final String transitionName = getTransitionName(transition);
-            startingInFrom.get(to).add(transitionName);
-        }
-
-        final StringBuilder stringBuilder = new StringBuilder();
-
-        stringBuilder.append("digraph EPA {\n")
-                .append("\tlabel=\"").append(epa.getClassName()).append("\";\n")
-                .append("\tfontsize=22;\n")
-                .append("\tlabelloc=top;\n")
-                .append("\tlabeljust=center;\n");
-
-        for (State state : getSortedStates(epa)) {
-            stringBuilder.append("\t")
-                    .append(getStateDeclaration(epa, state))
-                    .append("\n");
-        }
-
-        for (State from : collapsedEdges.keySet()) {
-
-            final Map<State, List<String>> startingInFrom = collapsedEdges.get(from);
-
-            for (State to : startingInFrom.keySet()) {
-
-                final List<String> methodNames = Lists.newArrayList(
-                        Sets.newHashSet(
-                                startingInFrom.get(to).iterator()
-                        ).iterator()
-                );
-                Collections.sort(methodNames);
-
-                final String color = getDarkishColor();
-
-                stringBuilder.append("\t")
-                        .append(getStateNode(from))
-                        .append(" -> ")
-                        .append(getStateNode(to))
-                        .append("[label=\"")
-                        .append(Joiner.on("\\n").join(methodNames))
-                        .append("\",color=\"")
-                        .append(color)
-                        .append("\",fontcolor=\"")
-                        .append(color)
-                        .append("\"];\n");
-            }
-        }
-
-        stringBuilder.append("}");
-
-        return stringBuilder.toString();
+      final String transitionName = getTransitionName(transition);
+      startingInFrom.get(to).add(transitionName);
     }
 
-    private String getStateDeclaration(final Epa epa, final State state) {
+    final StringBuilder stringBuilder = new StringBuilder();
 
-        return getStateNode(state)
-                + "["
-                + "label=\"" + getStateDotName(state) + "\","
-                + "style=filled," +
-                "color=\"" + (state.equals(State.ERROR) ? getErrorColor() : getLightColor()) + "\"" +
-                (state.equals(epa.getInitialState()) ? ",peripheries=2" : "") +
-                "]";
+    stringBuilder
+        .append("digraph EPA {\n")
+        .append("\tlabel=\"")
+        .append(epa.getClassName())
+        .append("\";\n")
+        .append("\tfontsize=22;\n")
+        .append("\tlabelloc=top;\n")
+        .append("\tlabeljust=center;\n");
 
+    for (State state : getSortedStates(epa)) {
+      stringBuilder.append("\t").append(getStateDeclaration(epa, state)).append("\n");
     }
 
-    private List<State> getSortedStates(Epa epa) {
+    for (State from : collapsedEdges.keySet()) {
 
-        final ArrayList<State> states = new ArrayList<>();
+      final Map<State, List<String>> startingInFrom = collapsedEdges.get(from);
 
-        final Queue<State> statesToVisit = new LinkedList<>();
-        statesToVisit.add(epa.getInitialState());
+      for (State to : startingInFrom.keySet()) {
 
-        while (!statesToVisit.isEmpty()) {
+        final List<String> methodNames =
+            Lists.newArrayList(Sets.newHashSet(startingInFrom.get(to).iterator()).iterator());
+        Collections.sort(methodNames);
 
-            final State state = statesToVisit.remove();
-            states.add(state);
+        final String color = getDarkishColor();
 
-            epa.getTransitionsWithSource(state).stream()
-                    .map(transition -> transition.getTarget())
-                    .filter(targetState -> !statesToVisit.contains(targetState))
-                    .filter(targetState -> !states.contains(targetState))
-                    .forEach(statesToVisit::add);
-        }
-
-        return states;
+        stringBuilder
+            .append("\t")
+            .append(getStateNode(from))
+            .append(" -> ")
+            .append(getStateNode(to))
+            .append("[label=\"")
+            .append(Joiner.on("\\n").join(methodNames))
+            .append("\",color=\"")
+            .append(color)
+            .append("\",fontcolor=\"")
+            .append(color)
+            .append("\"];\n");
+      }
     }
 
-    private String getStateNode(final State state) {
+    stringBuilder.append("}");
 
-        return "n" + Math.abs(state.hashCode());
+    return stringBuilder.toString();
+  }
+
+  private String getStateDeclaration(final Epa epa, final State state) {
+
+    return getStateNode(state)
+        + "["
+        + "label=\""
+        + getStateDotName(state)
+        + "\","
+        + "style=filled,"
+        + "color=\""
+        + (state.equals(State.ERROR) ? getErrorColor() : getLightColor())
+        + "\""
+        + (state.equals(epa.getInitialState()) ? ",peripheries=2" : "")
+        + "]";
+  }
+
+  private List<State> getSortedStates(Epa epa) {
+
+    final ArrayList<State> states = new ArrayList<>();
+
+    final Queue<State> statesToVisit = new LinkedList<>();
+    statesToVisit.add(epa.getInitialState());
+
+    while (!statesToVisit.isEmpty()) {
+
+      final State state = statesToVisit.remove();
+      states.add(state);
+
+      epa.getTransitionsWithSource(state)
+          .stream()
+          .map(transition -> transition.getTarget())
+          .filter(targetState -> !statesToVisit.contains(targetState))
+          .filter(targetState -> !states.contains(targetState))
+          .forEach(statesToVisit::add);
     }
 
-    private String getTransitionName(final Transition transition) {
+    return states;
+  }
 
-        return (transition.isThrowing() ? "\u26A1" : "")
-                + transition.getAction().getMethod().getJavaNameWithArgumentTypes()
-                + (transition.isUncertain() ? "?" : "");
+  private String getStateNode(final State state) {
+
+    return "n" + Math.abs(state.hashCode());
+  }
+
+  private String getTransitionName(final Transition transition) {
+
+    return (transition.isThrowing() ? "\u26A1" : "")
+        + transition.getAction().getMethod().getJavaNameWithArgumentTypes()
+        + (transition.isUncertain() ? "?" : "");
+  }
+
+  private String getStateDotName(State state) {
+
+    if (state.equals(State.ERROR)) {
+      return "ERROR";
     }
 
-    private String getStateDotName(State state) {
+    final Set<String> names =
+        state
+            .getEnabledActions()
+            .stream()
+            .map(action -> action.getMethod().getJavaNameWithArgumentTypes())
+            .collect(Collectors.toSet());
 
-        if (state.equals(State.ERROR)) {
-            return "ERROR";
-        }
+    return Joiner.on("\\n").join(names);
+  }
 
-        final Set<String> names = state.getEnabledActions().stream()
-                .map(action -> action.getMethod().getJavaNameWithArgumentTypes())
-                .collect(Collectors.toSet());
+  private String getLightColor() {
 
-        return Joiner.on("\\n").join(names);
-    }
+    return getColor(180, 230);
+  }
 
-    private String getLightColor() {
+  private String getDarkishColor() {
 
-        return getColor(180, 230);
-    }
+    return getColor(64, 180);
+  }
 
-    private String getDarkishColor() {
+  private String getErrorColor() {
+    return "#db3d4d";
+  }
 
-        return getColor(64, 180);
-    }
+  private String getColor(int minValue, int maxValue) {
 
-    private String getErrorColor() {
-        return "#db3d4d";
-    }
+    final Random rand = new Random();
 
-    private String getColor(int minValue, int maxValue) {
+    int r = rand.nextInt(maxValue - minValue + 1) + minValue;
+    int g = rand.nextInt(maxValue - minValue + 1) + minValue;
+    int b = rand.nextInt(maxValue - minValue + 1) + minValue;
 
-        final Random rand = new Random();
-
-        int r = rand.nextInt(maxValue - minValue + 1) + minValue;
-        int g = rand.nextInt(maxValue - minValue + 1) + minValue;
-        int b = rand.nextInt(maxValue - minValue + 1) + minValue;
-
-        return String.format("#%02x%02x%02x", r, g, b);
-    }
+    return String.format("#%02x%02x%02x", r, g, b);
+  }
 }

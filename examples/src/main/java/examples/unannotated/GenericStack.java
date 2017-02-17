@@ -2,37 +2,36 @@ package examples.unannotated;
 
 public class GenericStack<T> {
 
-    private final int capacity;
+  private final int capacity;
 
-    private final Object[] data;
+  private final Object[] data;
 
-    private int size = 0;
+  private int size = 0;
 
-    public GenericStack(final int capacity) {
+  public GenericStack(final int capacity) {
 
-        if (capacity <= 0) {
-            throw new IllegalArgumentException();
-        }
-
-        this.capacity = capacity;
-        data = new Object[capacity];
+    if (capacity <= 0) {
+      throw new IllegalArgumentException();
     }
 
-    public GenericStack() {
-        this(5);
-    }
+    this.capacity = capacity;
+    data = new Object[capacity];
+  }
 
-    public void Push(T item) {
-        data[size++] = item;
-    }
+  public GenericStack() {
+    this(5);
+  }
 
-    @SuppressWarnings("unchecked")
-    public T Pop() {
-        return (T) data[--size];
-    }
+  public void Push(T item) {
+    data[size++] = item;
+  }
 
-    public int getSize() {
-        return size;
-    }
+  @SuppressWarnings("unchecked")
+  public T Pop() {
+    return (T) data[--size];
+  }
 
+  public int getSize() {
+    return size;
+  }
 }

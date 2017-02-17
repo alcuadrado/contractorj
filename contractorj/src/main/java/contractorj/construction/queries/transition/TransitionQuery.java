@@ -9,7 +9,6 @@ import contractorj.model.State;
 import contractorj.model.Transition;
 import j2bpl.Method;
 import j2bpl.StringUtils;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -17,85 +16,90 @@ import java.util.stream.Stream;
 
 public abstract class TransitionQuery extends Query {
 
-    private State target;
+  private State target;
 
-    public TransitionQuery(final State source, final Action mainAction, final State target, final Method invariant) {
+  public TransitionQuery(
+      final State source, final Action mainAction, final State target, final Method invariant) {
 
-        super(source, mainAction, invariant);
+    super(source, mainAction, invariant);
 
-        this.target = target;
+    this.target = target;
+  }
+
+  protected abstract boolean throwsException();
+
+  @Override
+  public Optional<Transition> getTransition(final Answer answer) {
+
+    if (answer.equals(Answer.NO)) {
+      return Optional.empty();
     }
 
-    protected abstract boolean throwsException();
+    return Optional.of(
+        new Transition(source, mainAction, target, answer.equals(Answer.MAYBE), throwsException()));
+  }
 
-    @Override
-    public Optional<Transition> getTransition(final Answer answer) {
+  @Override
+  public String getName() {
 
-        if (answer.equals(Answer.NO)) {
-            return Optional.empty();
-        }
+    final String name =
+        "transition"
+            + NAME_PART_SEPARATOR
+            + super.getName()
+            + NAME_PART_SEPARATOR
+            + "to"
+            + NAME_PART_SEPARATOR
+            + getStateName(target)
+            + NAME_PART_SEPARATOR;
 
-        return Optional.of(new Transition(
-                source,
-                mainAction, target,
-                answer.equals(Answer.MAYBE),
-                throwsException()
-        ));
+    return StringUtils.scapeIllegalIdentifierCharacters(name);
+  }
+
+  @Override
+  public Answer getAnswer(final QueryResult queryResult) {
+
+    switch (queryResult) {
+      case TRUE_BUG:
+        return Answer.YES;
+
+      case NO_BUG:
+        return Answer.NO;
+
+      case MAYBE_BUG:
+        return Answer.MAYBE;
     }
 
-    @Override
-    public String getName() {
+    throw new IllegalArgumentException(
+        "QueryResult "
+            + queryResult.toString()
+            + " is an error for query type "
+            + getClass().getName());
+  }
 
-        final String name = "transition" + NAME_PART_SEPARATOR + super.getName() + NAME_PART_SEPARATOR
-                + "to" + NAME_PART_SEPARATOR + getStateName(target) + NAME_PART_SEPARATOR;
+  @Override
+  protected String getQueryCore() {
 
-        return StringUtils.scapeIllegalIdentifierCharacters(name);
-    }
+    return getStateGuardCalls(target)
+        + "\n"
+        + "\n"
+        + "\n"
+        + getInvariantAssumption()
+        + "\n"
+        + "\n"
+        + "\n"
+        + "query_assertion:\n"
+        + getNegatedStateGuardAssertion(target);
+  }
 
-    @Override
-    public Answer getAnswer(final QueryResult queryResult) {
+  @Override
+  protected List<Variable> getLocalVariables() {
 
-        switch (queryResult) {
+    return Stream.concat(super.getLocalVariables().stream(), getStateGuardVariables(target))
+        .distinct()
+        .collect(Collectors.toList());
+  }
 
-            case TRUE_BUG:
-                return Answer.YES;
-
-            case NO_BUG:
-                return Answer.NO;
-
-            case MAYBE_BUG:
-                return Answer.MAYBE;
-        }
-
-        throw new IllegalArgumentException("QueryResult " + queryResult.toString() + " is an error for query type "
-                + getClass().getName());
-    }
-
-    @Override
-    protected String getQueryCore() {
-
-        return getStateGuardCalls(target) + "\n" +
-                "\n" +
-                "\n" +
-
-                getInvariantAssumption() + "\n" +
-                "\n" +
-                "\n" +
-
-                "query_assertion:\n" +
-
-                getNegatedStateGuardAssertion(target);
-    }
-
-    @Override
-    protected List<Variable> getLocalVariables() {
-
-        return Stream.concat(super.getLocalVariables().stream(), getStateGuardVariables(target))
-                .distinct()
-                .collect(Collectors.toList());
-    }
-
-    public State getTarget() {
-        return target;
-    }
+  public State getTarget() {
+    return target;
+  }
 }

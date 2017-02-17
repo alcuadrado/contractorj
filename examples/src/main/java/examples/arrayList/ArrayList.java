@@ -29,242 +29,214 @@ import java.util.Arrays;
 
 public class ArrayList<E> {
 
-    /**
-     * The array buffer into which the elements of the ArrayList are stored.
-     * The capacity of the ArrayList is the length of this array buffer.
-     */
-    public transient Object[] elementData;
+  /**
+   * The array buffer into which the elements of the ArrayList are stored. The capacity of the
+   * ArrayList is the length of this array buffer.
+   */
+  public transient Object[] elementData;
 
-    /**
-     * The size of the ArrayList (the number of elements it contains).
-     *
-     * @serial
-     */
-    public int size;
+  /**
+   * The size of the ArrayList (the number of elements it contains).
+   *
+   * @serial
+   */
+  public int size;
 
-    /**
-     * The number of times this list has been <i>structurally modified</i>.
-     * Structural modifications are those that change the size of the
-     * list, or otherwise perturb it in such a fashion that iterations in
-     * progress may yield incorrect results.
-     *
-     * <p>This field is used by the iterator and list iterator implementation
-     * returned by the {@code iterator} and {@code listIterator} methods.
-     * If the value of this field changes unexpectedly, the iterator (or list
-     * iterator) will throw a {@code ConcurrentModificationException} in
-     * response to the {@code next}, {@code remove}, {@code previous},
-     * {@code set} or {@code add} operations.  This provides
-     * <i>fail-fast</i> behavior, rather than non-deterministic behavior in
-     * the face of concurrent modification during iteration.
-     *
-     * <p><b>Use of this field by subclasses is optional.</b> If a subclass
-     * wishes to provide fail-fast iterators (and list iterators), then it
-     * merely has to increment this field in its {@code add(int, E)} and
-     * {@code remove(int)} methods (and any other methods that it overrides
-     * that result in structural modifications to the list).  A single call to
-     * {@code add(int, E)} or {@code remove(int)} must add no more than
-     * one to this field, or the iterators (and list iterators) will throw
-     * bogus {@code ConcurrentModificationExceptions}.  If an implementation
-     * does not wish to provide fail-fast iterators, this field may be
-     * ignored.
-     */
-    public transient int modCount = 0;
+  /**
+   * The number of times this list has been <i>structurally modified</i>. Structural modifications
+   * are those that change the size of the list, or otherwise perturb it in such a fashion that
+   * iterations in progress may yield incorrect results.
+   *
+   * <p>This field is used by the iterator and list iterator implementation returned by the {@code
+   * iterator} and {@code listIterator} methods. If the value of this field changes unexpectedly,
+   * the iterator (or list iterator) will throw a {@code ConcurrentModificationException} in
+   * response to the {@code next}, {@code remove}, {@code previous}, {@code set} or {@code add}
+   * operations. This provides <i>fail-fast</i> behavior, rather than non-deterministic behavior in
+   * the face of concurrent modification during iteration.
+   *
+   * <p><b>Use of this field by subclasses is optional.</b> If a subclass wishes to provide
+   * fail-fast iterators (and list iterators), then it merely has to increment this field in its
+   * {@code add(int, E)} and {@code remove(int)} methods (and any other methods that it overrides
+   * that result in structural modifications to the list). A single call to {@code add(int, E)} or
+   * {@code remove(int)} must add no more than one to this field, or the iterators (and list
+   * iterators) will throw bogus {@code ConcurrentModificationExceptions}. If an implementation does
+   * not wish to provide fail-fast iterators, this field may be ignored.
+   */
+  public transient int modCount = 0;
 
-    /**
-     * Constructs an empty list with the specified initial capacity.
-     *
-     * @param   initialCapacity   the initial capacity of the list
-     * @exception IllegalArgumentException if the specified initial capacity
-     *            is negative
-     */
-    public ArrayList(int initialCapacity) {
-        super();
-        if (initialCapacity < 0)
-            throw new IllegalArgumentException("Illegal Capacity: "+
-                                               initialCapacity);
-        this.elementData = new Object[initialCapacity];
+  /**
+   * Constructs an empty list with the specified initial capacity.
+   *
+   * @param initialCapacity the initial capacity of the list
+   * @exception IllegalArgumentException if the specified initial capacity is negative
+   */
+  public ArrayList(int initialCapacity) {
+    super();
+    if (initialCapacity < 0)
+      throw new IllegalArgumentException("Illegal Capacity: " + initialCapacity);
+    this.elementData = new Object[initialCapacity];
+  }
+
+  /** Constructs an empty list with an initial capacity of ten. */
+  public ArrayList() {
+    this(10);
+  }
+
+  /**
+   * Increases the capacity of this <tt>ArrayList</tt> instance, if necessary, to ensure that it can
+   * hold at least the number of elements specified by the minimum capacity argument.
+   *
+   * @param minCapacity the desired minimum capacity
+   */
+  public void ensureCapacity(int minCapacity) {
+    modCount++;
+    int oldCapacity = elementData.length;
+    if (minCapacity > oldCapacity) {
+      Object oldData[] = elementData;
+      int newCapacity = (oldCapacity * 3) / 2 + 1;
+      if (newCapacity < minCapacity) newCapacity = minCapacity;
+      // minCapacity is usually close to size, so this is a win:
+      elementData = Arrays.copyOf(elementData, newCapacity);
     }
+  }
 
-    /**
-     * Constructs an empty list with an initial capacity of ten.
-     */
-    public ArrayList() {
-        this(10);
-    }
+  // Positional Access Operations
 
-    /**
-     * Increases the capacity of this <tt>ArrayList</tt> instance, if
-     * necessary, to ensure that it can hold at least the number of elements
-     * specified by the minimum capacity argument.
-     *
-     * @param   minCapacity   the desired minimum capacity
-     */
-    public void ensureCapacity(int minCapacity) {
-        modCount++;
-        int oldCapacity = elementData.length;
-        if (minCapacity > oldCapacity) {
-            Object oldData[] = elementData;
-            int newCapacity = (oldCapacity * 3)/2 + 1;
-            if (newCapacity < minCapacity)
-                newCapacity = minCapacity;
-            // minCapacity is usually close to size, so this is a win:
-            elementData = Arrays.copyOf(elementData, newCapacity);
-        }
-    }
+  @SuppressWarnings("unchecked")
+  E elementData(int index) {
+    return (E) elementData[index];
+  }
 
-    // Positional Access Operations
+  /**
+   * Replaces the element at the specified position in this list with the specified element.
+   *
+   * @param index index of the element to replace
+   * @param element element to be stored at the specified position
+   * @return the element previously at the specified position
+   * @throws IndexOutOfBoundsException {@inheritDoc}
+   */
+  public E set(int index, E element) {
+    rangeCheck(index);
 
-    @SuppressWarnings("unchecked")
-    E elementData(int index) {
-        return (E) elementData[index];
-    }
+    E oldValue = elementData(index);
+    elementData[index] = element;
+    return oldValue;
+  }
 
-    /**
-     * Replaces the element at the specified position in this list with
-     * the specified element.
-     *
-     * @param index index of the element to replace
-     * @param element element to be stored at the specified position
-     * @return the element previously at the specified position
-     * @throws IndexOutOfBoundsException {@inheritDoc}
-     */
-    public E set(int index, E element) {
-        rangeCheck(index);
+  /**
+   * Inserts the specified element at the specified position in this list. Shifts the element
+   * currently at that position (if any) and any subsequent elements to the right (adds one to their
+   * indices).
+   *
+   * @param index index at which the specified element is to be inserted
+   * @param element element to be inserted
+   * @throws IndexOutOfBoundsException {@inheritDoc}
+   */
+  public void add(int index, E element) {
+    rangeCheckForAdd(index);
 
-        E oldValue = elementData(index);
-        elementData[index] = element;
-        return oldValue;
-    }
+    ensureCapacity(size + 1); // Increments modCount!!
+    System.arraycopy(elementData, index, elementData, index + 1, size - index);
+    elementData[index] = element;
+    size++;
+  }
 
-    /**
-     * Inserts the specified element at the specified position in this
-     * list. Shifts the element currently at that position (if any) and
-     * any subsequent elements to the right (adds one to their indices).
-     *
-     * @param index index at which the specified element is to be inserted
-     * @param element element to be inserted
-     * @throws IndexOutOfBoundsException {@inheritDoc}
-     */
-    public void add(int index, E element) {
-        rangeCheckForAdd(index);
+  /**
+   * Removes the element at the specified position in this list. Shifts any subsequent elements to
+   * the left (subtracts one from their indices).
+   *
+   * @param index the index of the element to be removed
+   * @return the element that was removed from the list
+   * @throws IndexOutOfBoundsException {@inheritDoc}
+   */
+  public E remove(int index) {
+    rangeCheck(index);
 
-        ensureCapacity(size+1);  // Increments modCount!!
-        System.arraycopy(elementData, index, elementData, index + 1,
-                         size - index);
-        elementData[index] = element;
-        size++;
-    }
+    modCount++;
+    E oldValue = elementData(index);
 
-    /**
-     * Removes the element at the specified position in this list.
-     * Shifts any subsequent elements to the left (subtracts one from their
-     * indices).
-     *
-     * @param index the index of the element to be removed
-     * @return the element that was removed from the list
-     * @throws IndexOutOfBoundsException {@inheritDoc}
-     */
-    public E remove(int index) {
-        rangeCheck(index);
+    int numMoved = size - index - 1;
+    if (numMoved > 0) System.arraycopy(elementData, index + 1, elementData, index, numMoved);
+    elementData[--size] = null; // Let gc do its work
 
-        modCount++;
-        E oldValue = elementData(index);
+    return oldValue;
+  }
 
-        int numMoved = size - index - 1;
-        if (numMoved > 0)
-            System.arraycopy(elementData, index+1, elementData, index,
-                    numMoved);
-        elementData[--size] = null; // Let gc do its work
+  /**
+   * Checks if the given index is in range. If not, throws an appropriate runtime exception. This
+   * method does *not* check if the index is negative: It is always used immediately prior to an
+   * array access, which throws an ArrayIndexOutOfBoundsException if index is negative.
+   */
+  private void rangeCheck(int index) {
+    if (index >= size) throw new IndexOutOfBoundsException(outOfBoundsMsg(index));
+  }
 
-        return oldValue;
-    }
+  /** A version of rangeCheck used by add and addAll. */
+  private void rangeCheckForAdd(int index) {
+    if (index > size || index < 0) throw new IndexOutOfBoundsException(outOfBoundsMsg(index));
+  }
 
-    /**
-     * Checks if the given index is in range.  If not, throws an appropriate
-     * runtime exception.  This method does *not* check if the index is
-     * negative: It is always used immediately prior to an array access,
-     * which throws an ArrayIndexOutOfBoundsException if index is negative.
-     */
-    private void rangeCheck(int index) {
-        if (index >= size)
-            throw new IndexOutOfBoundsException(outOfBoundsMsg(index));
-    }
+  /**
+   * Constructs an IndexOutOfBoundsException detail message. Of the many possible refactorings of
+   * the error handling code, this "outlining" performs best with both server and client VMs.
+   */
+  private String outOfBoundsMsg(int index) {
+    return "Index: " + index + ", Size: " + size;
+  }
 
-    /**
-     * A version of rangeCheck used by add and addAll.
-     */
-    private void rangeCheckForAdd(int index) {
-        if (index > size || index < 0)
-            throw new IndexOutOfBoundsException(outOfBoundsMsg(index));
-    }
+  /**
+   * Returns a list iterator over the elements in this list (in proper sequence), starting at the
+   * specified position in the list. The specified index indicates the first element that would be
+   * returned by an initial call to {@link ListIterator#next next}. An initial call to {@link
+   * ListIterator#previous previous} would return the element with the specified index minus one.
+   *
+   * <p>The returned list iterator is <a href="#fail-fast"><i>fail-fast</i></a>.
+   *
+   * @throws IndexOutOfBoundsException {@inheritDoc}
+   */
+  public ListIterator<E> listIterator(int index) {
+    if (index < 0 || index > size) throw new IndexOutOfBoundsException("Index: " + index);
+    return new ListIterator(this, index);
+  }
 
-    /**
-     * Constructs an IndexOutOfBoundsException detail message.
-     * Of the many possible refactorings of the error handling code,
-     * this "outlining" performs best with both server and client VMs.
-     */
-    private String outOfBoundsMsg(int index) {
-        return "Index: "+index+", Size: "+size;
-    }
+  /**
+   * Returns a list iterator over the elements in this list (in proper sequence).
+   *
+   * <p>The returned list iterator is <a href="#fail-fast"><i>fail-fast</i></a>.
+   *
+   * @see #listIterator(int)
+   */
+  public ListIterator<E> listIterator() {
+    return new ListIterator(this, 0);
+  }
 
-    /**
-     * Returns a list iterator over the elements in this list (in proper
-     * sequence), starting at the specified position in the list.
-     * The specified index indicates the first element that would be
-     * returned by an initial call to {@link ListIterator#next next}.
-     * An initial call to {@link ListIterator#previous previous} would
-     * return the element with the specified index minus one.
-     *
-     * <p>The returned list iterator is <a href="#fail-fast"><i>fail-fast</i></a>.
-     *
-     * @throws IndexOutOfBoundsException {@inheritDoc}
-     */
-    public ListIterator<E> listIterator(int index) {
-        if (index < 0 || index > size)
-            throw new IndexOutOfBoundsException("Index: "+index);
-        return new ListIterator(this, index);
-    }
+  // Contracts
 
-    /**
-     * Returns a list iterator over the elements in this list (in proper
-     * sequence).
-     *
-     * <p>The returned list iterator is <a href="#fail-fast"><i>fail-fast</i></a>.
-     *
-     * @see #listIterator(int)
-     */
-    public ListIterator<E> listIterator() {
-        return new ListIterator(this, 0);
-    }
+  public static boolean ArrayList_pre(int initialCapacity) {
+    return initialCapacity >= 0;
+  }
 
-    // Contracts
+  public boolean inv() {
+    return elementData != null
+        && size >= 0
+        && elementData.length >= 0
+        && size <= elementData.length
+        && modCount >= 0;
+  }
 
-    public static boolean ArrayList_pre(int initialCapacity) {
-        return initialCapacity >= 0;
-    }
+  public boolean set_pre(int index, E e) {
+    return index >= 0; // Params & State: && index < size;
+  }
 
-    public boolean inv() {
-        return elementData != null &&
-                size >= 0 &&
-                elementData.length >= 0 &&
-                size <= elementData.length &&
-                modCount >= 0;
-    }
+  public boolean add_pre(int index, E e) {
+    return index >= 0; // Params & State: && index <= size;
+  }
 
-    public boolean set_pre(int index, E e) {
-        return index >= 0; // Params & State: && index < size;
-    }
+  public boolean remove_pre(int index) {
+    return index >= 0; // Params & State: && index < size;
+  }
 
-    public boolean add_pre(int index, E e) {
-        return index >= 0; // Params & State: && index <= size;
-    }
-
-    public boolean remove_pre(int index) {
-        return index >= 0; // Params & State: && index < size;
-    }
-
-    public boolean listiterator_pre(int index) {
-        return index >= 0; // Params & State: && index <= size;
-    }
-
+  public boolean listiterator_pre(int index) {
+    return index >= 0; // Params & State: && index <= size;
+  }
 }

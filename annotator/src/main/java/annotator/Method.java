@@ -3,91 +3,93 @@ package annotator;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.visitor.EqualsVisitor;
-
 import java.util.Objects;
 
 class Method {
 
-    private final MethodDeclaration methodDeclaration;
+  private final MethodDeclaration methodDeclaration;
 
-    private final ConstructorDeclaration constructorDeclaration;
+  private final ConstructorDeclaration constructorDeclaration;
 
-    private EqualsVisitor simpleName;
+  private EqualsVisitor simpleName;
 
-    public static Method fromMethodDeclaration(MethodDeclaration methodDeclaration) {
+  public static Method fromMethodDeclaration(MethodDeclaration methodDeclaration) {
 
-        return new Method(methodDeclaration, null);
+    return new Method(methodDeclaration, null);
+  }
+
+  public static Method fromConstructorDeclaration(ConstructorDeclaration constructorDeclaration) {
+
+    return new Method(null, constructorDeclaration);
+  }
+
+  private Method(
+      final MethodDeclaration methodDeclaration,
+      final ConstructorDeclaration constructorDeclaration) {
+
+    this.methodDeclaration = methodDeclaration;
+    this.constructorDeclaration = constructorDeclaration;
+  }
+
+  public int getNumberOfParameters() {
+
+    if (methodDeclaration != null) {
+      return methodDeclaration.getParameters().size();
     }
 
-    public static Method fromConstructorDeclaration(ConstructorDeclaration constructorDeclaration) {
+    return constructorDeclaration.getParameters().size();
+  }
 
-        return new Method(null, constructorDeclaration);
+  public String getSimpleName() {
+
+    if (methodDeclaration != null) {
+      return methodDeclaration.getName().toString();
     }
 
-    private Method(final MethodDeclaration methodDeclaration,
-                   final ConstructorDeclaration constructorDeclaration) {
+    return constructorDeclaration.getName().toString();
+  }
 
-        this.methodDeclaration = methodDeclaration;
-        this.constructorDeclaration = constructorDeclaration;
+  public String getDeclarationAsString(
+      final boolean includingModifiers,
+      final boolean includingThrows,
+      final boolean includingParameterName) {
+
+    if (methodDeclaration != null) {
+      return methodDeclaration.getDeclarationAsString(
+          includingModifiers, includingThrows, includingParameterName);
     }
 
-    public int getNumberOfParameters() {
+    return constructorDeclaration.getDeclarationAsString(
+        includingModifiers, includingThrows, includingParameterName);
+  }
 
-        if (methodDeclaration != null) {
-            return methodDeclaration.getParameters().size();
-        }
+  public boolean isConstructor() {
+    return constructorDeclaration != null;
+  }
 
-        return constructorDeclaration.getParameters().size();
+  @Override
+  public boolean equals(final Object o) {
+
+    if (this == o) {
+      return true;
     }
-
-    public String getSimpleName() {
-
-        if (methodDeclaration != null) {
-            return methodDeclaration.getName().toString();
-        }
-
-        return constructorDeclaration.getName().toString();
+    if (!(o instanceof Method)) {
+      return false;
     }
+    final Method method = (Method) o;
+    return Objects.equals(methodDeclaration, method.methodDeclaration)
+        && Objects.equals(constructorDeclaration, method.constructorDeclaration);
+  }
 
-    public String getDeclarationAsString(final boolean includingModifiers, final boolean includingThrows,
-                                         final boolean includingParameterName) {
+  @Override
+  public int hashCode() {
 
-        if (methodDeclaration != null) {
-            return methodDeclaration.getDeclarationAsString(includingModifiers, includingThrows,
-                    includingParameterName);
-        }
+    return Objects.hash(methodDeclaration, constructorDeclaration);
+  }
 
-        return constructorDeclaration.getDeclarationAsString(includingModifiers, includingThrows,
-                includingParameterName);
-    }
+  @Override
+  public String toString() {
 
-    public boolean isConstructor() {
-        return constructorDeclaration != null;
-    }
-
-    @Override
-    public boolean equals(final Object o) {
-
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof Method)) {
-            return false;
-        }
-        final Method method = (Method) o;
-        return Objects.equals(methodDeclaration, method.methodDeclaration) &&
-                Objects.equals(constructorDeclaration, method.constructorDeclaration);
-    }
-
-    @Override
-    public int hashCode() {
-
-        return Objects.hash(methodDeclaration, constructorDeclaration);
-    }
-
-    @Override
-    public String toString() {
-
-        return getDeclarationAsString(true, true, true);
-    }
+    return getDeclarationAsString(true, true, true);
+  }
 }

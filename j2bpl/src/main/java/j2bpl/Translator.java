@@ -1,89 +1,88 @@
 package j2bpl;
 
 import com.google.common.collect.Lists;
-import soot.Pack;
-import soot.PackManager;
-import soot.Transform;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
 import java.util.List;
 import java.util.Optional;
+import soot.Pack;
+import soot.PackManager;
+import soot.Transform;
 
 public class Translator {
 
-    /**
-     * Translates all the classes in the class path.
-     *
-     * @param classPath   The classpath
-     * @param pathToRrJar The path to the rt.jar lib.
-     *
-     * @see <a href="http://docs.oracle.com/javase/7/docs/technotes/tools/solaris/jdkfiles.html#jdk1.7.0_lib">rt.jar</a>
-     */
-    public void translate(String classPath, final File pathToRrJar, final boolean dumpJimple) {
+  /**
+   * Translates all the classes in the class path.
+   *
+   * @param classPath The classpath
+   * @param pathToRrJar The path to the rt.jar lib.
+   * @see <a
+   *     href="http://docs.oracle.com/javase/7/docs/technotes/tools/solaris/jdkfiles.html#jdk1.7.0_lib">rt.jar</a>
+   */
+  public void translate(String classPath, final File pathToRrJar, final boolean dumpJimple) {
 
-        if (classPath.contains(":") || classPath.contains(".jar")) {
-            throw new UnsupportedOperationException("J2Bpl only supports a single directory as classpath.");
-        }
-
-        final PrintStream originalOut = System.out;
-        final PrintStream originalErr = System.err;
-
-        final ByteArrayOutputStream outReplacement = new ByteArrayOutputStream();
-        final ByteArrayOutputStream errReplacement = new ByteArrayOutputStream();
-
-        System.setOut(new PrintStream(outReplacement));
-        System.setErr(new PrintStream(errReplacement));
-
-        try {
-
-            Pack pack = PackManager.v().getPack("jtp");
-
-            pack.add(new Transform("jtp.bpl", J2BplTransformer.getInstance()));
-
-            final String completeClassPath = pathToRrJar.getAbsolutePath() + ":" + classPath;
-
-            final List<String> args = Lists.newArrayList(
-                    "-keep-line-number",
-                    "-cp",
-                    completeClassPath,
-                    "-f",
-                    "jimple",
-                    "-src-prec",
-                    "class",
-                    "-process-path",
-                    classPath
-            );
-
-            if (dumpJimple) {
-                args.add("-d");
-                args.add("/Users/pato/facultad/tesis/contractorj/dump");
-            }
-
-            soot.Main.main(args.toArray(new String[args.size()]));
-
-        } catch (Exception exception) {
-
-            originalOut.print(outReplacement.toString());
-            originalErr.print(errReplacement.toString());
-
-            throw exception;
-
-        } finally {
-            System.setOut(originalOut);
-            System.setErr(originalErr);
-        }
+    if (classPath.contains(":") || classPath.contains(".jar")) {
+      throw new UnsupportedOperationException(
+          "J2Bpl only supports a single directory as classpath.");
     }
 
-    public Optional<Class> getTranslatedClass(String className) {
+    final PrintStream originalOut = System.out;
+    final PrintStream originalErr = System.err;
 
-        return J2BplTransformer.getInstance().getClass(className);
+    final ByteArrayOutputStream outReplacement = new ByteArrayOutputStream();
+    final ByteArrayOutputStream errReplacement = new ByteArrayOutputStream();
+
+    System.setOut(new PrintStream(outReplacement));
+    System.setErr(new PrintStream(errReplacement));
+
+    try {
+
+      Pack pack = PackManager.v().getPack("jtp");
+
+      pack.add(new Transform("jtp.bpl", J2BplTransformer.getInstance()));
+
+      final String completeClassPath = pathToRrJar.getAbsolutePath() + ":" + classPath;
+
+      final List<String> args =
+          Lists.newArrayList(
+              "-keep-line-number",
+              "-cp",
+              completeClassPath,
+              "-f",
+              "jimple",
+              "-src-prec",
+              "class",
+              "-process-path",
+              classPath);
+
+      if (dumpJimple) {
+        args.add("-d");
+        args.add("/Users/pato/facultad/tesis/contractorj/dump");
+      }
+
+      soot.Main.main(args.toArray(new String[args.size()]));
+
+    } catch (Exception exception) {
+
+      originalOut.print(outReplacement.toString());
+      originalErr.print(errReplacement.toString());
+
+      throw exception;
+
+    } finally {
+      System.setOut(originalOut);
+      System.setErr(originalErr);
     }
+  }
 
-    public String getTranslation() {
+  public Optional<Class> getTranslatedClass(String className) {
 
-        return J2BplTransformer.getInstance().getTranslation();
-    }
+    return J2BplTransformer.getInstance().getClass(className);
+  }
 
+  public String getTranslation() {
+
+    return J2BplTransformer.getInstance().getTranslation();
+  }
 }

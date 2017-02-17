@@ -7,30 +7,27 @@ import j2bpl.Method;
 
 public class ThrowingTransitionQuery extends TransitionQuery {
 
-    public ThrowingTransitionQuery(final State source,
-                                   final Action mainAction,
-                                   final State target,
-                                   final Method invariant) {
+  public ThrowingTransitionQuery(
+      final State source, final Action mainAction, final State target, final Method invariant) {
 
-        super(source, mainAction, target, invariant);
-    }
+    super(source, mainAction, target, invariant);
+  }
 
-    @Override
-    protected boolean throwsException() {
+  @Override
+  protected boolean throwsException() {
 
-        return true;
-    }
+    return true;
+  }
 
-    @Override
-    protected String getMainActionCallExceptionHandling() {
+  @Override
+  protected String getMainActionCallExceptionHandling() {
 
-        return "assume $Exception != null;\n" +
-                "$Exception := null;";
-    }
+    return "assume $Exception != null;\n" + "$Exception := null;";
+  }
 
-    @Override
-    public String getName() {
+  @Override
+  public String getName() {
 
-        return super.getName() + Query.NAME_PART_SEPARATOR + "throwing";
-    }
+    return super.getName() + Query.NAME_PART_SEPARATOR + "throwing";
+  }
 }

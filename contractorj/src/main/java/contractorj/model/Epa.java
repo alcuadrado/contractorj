@@ -9,58 +9,62 @@ import java.util.stream.Stream;
 
 public class Epa {
 
-    private final List<Transition> transitions = new LinkedList<>();
+  private final List<Transition> transitions = new LinkedList<>();
 
-    private final String className;
+  private final String className;
 
-    private final State initialState;
+  private final State initialState;
 
-    private final Set<State> states = new HashSet<>();
+  private final Set<State> states = new HashSet<>();
 
-    public Epa(String className, final State initialState) {
+  public Epa(String className, final State initialState) {
 
-        this.className = className;
-        this.initialState = initialState;
-    }
+    this.className = className;
+    this.initialState = initialState;
+  }
 
-    public synchronized void addTransition(Transition transition) {
+  public synchronized void addTransition(Transition transition) {
 
-        states.add(transition.getSource());
-        states.add(transition.getTarget());
+    states.add(transition.getSource());
+    states.add(transition.getTarget());
 
-        transitions.add(transition);
-    }
+    transitions.add(transition);
+  }
 
-    public List<Transition> getTransitions() {
+  public List<Transition> getTransitions() {
 
-        return transitions;
-    }
+    return transitions;
+  }
 
-    public String getClassName() {
+  public String getClassName() {
 
-        return className;
-    }
+    return className;
+  }
 
-    public State getInitialState() {
+  public State getInitialState() {
 
-        return initialState;
-    }
+    return initialState;
+  }
 
-    public Set<State> getStates() {
+  public Set<State> getStates() {
 
-        return states;
-    }
+    return states;
+  }
 
-    public Set<Action> getActions() {
-        return states.stream()
-                .flatMap(state -> Stream.concat(state.getEnabledActions().stream(), state.getDisabledActions().stream()))
-                .collect(Collectors.toSet());
-    }
+  public Set<Action> getActions() {
+    return states
+        .stream()
+        .flatMap(
+            state ->
+                Stream.concat(
+                    state.getEnabledActions().stream(), state.getDisabledActions().stream()))
+        .collect(Collectors.toSet());
+  }
 
-    public Set<Transition> getTransitionsWithSource(State source) {
-        return transitions.stream()
-                .filter(transition -> transition.getSource().equals(source))
-                .collect(Collectors.toSet());
-    }
-
+  public Set<Transition> getTransitionsWithSource(State source) {
+    return transitions
+        .stream()
+        .filter(transition -> transition.getSource().equals(source))
+        .collect(Collectors.toSet());
+  }
 }

@@ -138,8 +138,6 @@ public class LazyEpaGenerator extends EpaGenerator {
                 mainAction
         );
 
-//        ensureConsistentNecessaryActionResults(state, mainAction, necessaryActionResults);
-
         final Set<Action> necessarilyEnabledActions = necessaryActionResults.stream()
                 .filter(necessaryActionResult -> necessaryActionResult.necessarilyEnabled.equals(Answer.YES))
                 .map(necessaryActionResult -> necessaryActionResult.testedAction)
@@ -172,24 +170,6 @@ public class LazyEpaGenerator extends EpaGenerator {
             }
 
         }));
-    }
-
-    private void ensureConsistentNecessaryActionResults(final State state,
-                                                        final Action mainAction,
-                                                        final Set<NecessaryActionResult> necessaryActionResults) {
-
-        final List<Action> conflictingActions = necessaryActionResults.stream()
-                .filter(necessaryActionResult -> necessaryActionResult.necessarilyDisabled.equals(Answer.YES)
-                        && necessaryActionResult.necessarilyEnabled.equals(Answer.YES))
-                .map(necessaryActionResult -> necessaryActionResult.testedAction)
-                .collect(Collectors.toList());
-
-        if (!conflictingActions.isEmpty()) {
-            throw new IllegalStateException("Going through testedAction " + mainAction.toString() + " from state "
-                    + state + " makes " + Arrays.toString(conflictingActions.toArray())
-                    + " both enabled and disabled.\n"
-                    + "Check " + mainAction.toString() + " preconditions");
-        }
     }
 
     private Stream<Query> getInvariantTestQueries(final State state, final Action mainAction) {

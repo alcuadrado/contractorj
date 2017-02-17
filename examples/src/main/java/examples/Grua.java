@@ -14,53 +14,53 @@ public class Grua {
     return !hayContainer || !(containerVacio && containerCerrado);
   }
 
-  public boolean TomarContainer_pre() {
+  public boolean tomarContainer_pre() {
     return !hayContainer;
   }
 
-  public void TomarContainer() {
+  public void tomarContainer() {
     hayContainer = true;
     containerCerrado = false;
     containerVacio = true;
   }
 
-  public boolean Cargar_pre() {
+  public boolean cargar_pre() {
     return hayContainer && !containerCerrado;
   }
 
-  public void Cargar(int peso) {
+  public void cargar(int peso) {
     containerVacio = false;
   }
 
-  public boolean Vaciar_pre() {
+  public boolean vaciar_pre() {
     return hayContainer && !containerCerrado && !containerVacio;
   }
 
-  public void Vaciar() {
+  public void vaciar() {
     containerVacio = true;
   }
 
-  public boolean Cerrar_pre() {
+  public boolean cerrar_pre() {
     return hayContainer && !containerCerrado && !containerVacio;
   }
 
-  public void Cerrar() {
+  public void cerrar() {
     containerCerrado = true;
   }
 
-  public boolean Abrir_pre() {
+  public boolean abrir_pre() {
     return hayContainer && containerCerrado;
   }
 
-  public void Abrir() {
+  public void abrir() {
     containerCerrado = false;
   }
 
-  public boolean Despachar_pre() {
+  public boolean despachar_pre() {
     return hayContainer && containerCerrado;
   }
 
-  public void Despachar() {
+  public void despachar() {
     hayContainer = false;
   }
 }

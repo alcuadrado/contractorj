@@ -174,6 +174,7 @@ public class Main {
 
     final ArrayList<String> methods = splitMethodList(methodsList);
 
+
     for (String name : methods) {
 
       if (name.contains(className + "#")) {
@@ -189,7 +190,8 @@ public class Main {
     final ArrayList<String> methods = new ArrayList<>();
 
     boolean insideParens = false;
-    for (int i = 0, start = 0; i < methodsList.length(); i++) {
+    int start = 0;
+    for (int i = 0; i < methodsList.length(); i++) {
 
       if (methodsList.charAt(i) == '(') {
         insideParens = true;
@@ -207,6 +209,11 @@ public class Main {
           methods.add(name);
         }
       }
+    }
+
+    final String name = methodsList.substring(start, methodsList.length()).trim();
+    if (!name.isEmpty()) {
+      methods.add(name);
     }
 
     return methods;

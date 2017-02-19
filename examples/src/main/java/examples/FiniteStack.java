@@ -25,29 +25,10 @@ public class FiniteStack {
 
   public void Pop() {
     next = next - 1;
-
-    // Sometimes break the invariant
-    if (next == 16) {
-      next = max + 1;
-    }
   }
 
   public void Push() {
-    final int originalNext = next;
-
-    // Throw without breaking the invariant
-    if (next == 5) {
-      throw new RuntimeException();
-    }
-
-    next = max + 1;
-
-    // Throw breaking the invariant during an temporal internal state
-    if (originalNext == 6) {
-      throw new RuntimeException();
-    }
-
-    next = originalNext + 1;
+    next = next + 1;
   }
 
   public boolean inv() {

@@ -23,11 +23,20 @@ public class GenericStack<T> {
   }
 
   public void Push(T item) {
+
+    if (size == capacity) {
+      throw new RuntimeException("Stack is full");
+    }
+
     data[size++] = item;
   }
 
   @SuppressWarnings("unchecked")
   public T Pop() {
+    if (size == 0) {
+      throw new RuntimeException("Stack is empty");
+    }
+
     return (T) data[--size];
   }
 

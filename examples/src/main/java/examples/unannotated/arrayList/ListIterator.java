@@ -98,5 +98,5 @@ public class ListIterator<E> {
       throw new ConcurrentModificationException();
     }
   }
-  
+
 }

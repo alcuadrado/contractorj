@@ -41,7 +41,7 @@ public class DaikonRunner {
             + classesFolder.getAbsolutePath()
             + "'"
             + " daikon.Chicory"
-            + "--heap-size=20g"
+            + " --heap-size=20g"
             + " RegressionTestDriver";
 
     final String secondCommand =

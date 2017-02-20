@@ -30,9 +30,8 @@ public class DaikonRunner {
 
     final String command =
         "java"
-            + " -Xmx 20000m"
+            + " -Xmx20000m"
             + " -XX:MaxPermSize=20000m"
-            + " --heap-size=20000m"
             + " -cp '"
             + daikonJar.getAbsolutePath()
             + ":"
@@ -43,7 +42,8 @@ public class DaikonRunner {
             + classesFolder.getAbsolutePath()
             + "'"
             + " daikon.Chicory"
-            + " --daikon RegressionTestDriver";
+            + " --daikon RegressionTestDriver"
+            + " --heap-size=20000m";
 
     CommandsRunner.runtAndReturnOutput(command);
 

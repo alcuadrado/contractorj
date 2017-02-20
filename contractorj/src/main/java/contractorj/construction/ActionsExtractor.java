@@ -123,12 +123,13 @@ public class ActionsExtractor {
         continue;
       }
 
+      missingMethods.remove(methodName);
+
       if (method.isConstructor()) {
         constructorActions.add(action);
         continue;
       }
 
-      missingMethods.remove(methodName);
       instanceActions.add(action);
     }
 

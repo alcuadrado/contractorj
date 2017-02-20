@@ -4,6 +4,8 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
+
+import com.google.common.collect.Interner;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -178,7 +180,23 @@ public class InvariantsExtractor {
     return getIdentifiers(condition)
         .stream()
         .filter(s -> !s.equals("$$size"))
+        .filter(s -> !isLiteral(s))
         .allMatch(this::isFieldReference);
+  }
+
+  private boolean isLiteral(String s) {
+    if (s.equals("true") || s.equals("false")) {
+      return true;
+    }
+
+    try {
+      Integer.parseInt(s);
+      return true;
+    } catch (Exception e) {
+      // Do nothing
+    }
+
+    return false;
   }
 
   private boolean isFieldReference(String s) {
@@ -194,7 +212,9 @@ public class InvariantsExtractor {
 
   private boolean onlyAccessParameters(final String condition) {
 
-    return getIdentifiers(condition).stream().noneMatch(this::isFieldReference);
+    return getIdentifiers(condition).stream()
+            .filter(s -> !isLiteral(s))
+            .noneMatch(this::isFieldReference);
   }
 
   private List<String> getIdentifiers(final String condition) {

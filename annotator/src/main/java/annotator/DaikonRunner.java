@@ -30,7 +30,9 @@ public class DaikonRunner {
 
     final String command =
         "java"
-            + "-Xmx 16000M"
+            + " -Xmx 20000m"
+            + " -XX:MaxPermSize=20000m"
+            + " --heap-size=20000m"
             + " -cp '"
             + daikonJar.getAbsolutePath()
             + ":"

@@ -30,6 +30,7 @@ public class DaikonRunner {
 
     final String command =
         "java"
+            + "-Xmx 16000M"
             + " -cp '"
             + daikonJar.getAbsolutePath()
             + ":"

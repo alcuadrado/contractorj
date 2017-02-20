@@ -1,42 +1,29 @@
 package examples.unannotated;
 
-public class GenericStack<T> {
-
-  private final int capacity;
+public class FiniteStack<T> {
 
   private final Object[] data;
 
   private int size = 0;
 
-  public GenericStack(final int capacity) {
+  public FiniteStack(final int capacity) {
 
     if (capacity <= 0) {
       throw new IllegalArgumentException();
     }
 
-    this.capacity = capacity;
     data = new Object[capacity];
   }
 
-  public GenericStack() {
+  public FiniteStack() {
     this(5);
   }
 
   public void Push(T item) {
-
-    if (size == capacity) {
-      throw new RuntimeException("Stack is full");
-    }
-
     data[size++] = item;
   }
 
-  @SuppressWarnings("unchecked")
   public T Pop() {
-    if (size == 0) {
-      throw new RuntimeException("Stack is empty");
-    }
-
     return (T) data[--size];
   }
 

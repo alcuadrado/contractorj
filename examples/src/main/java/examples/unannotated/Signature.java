@@ -35,7 +35,7 @@ public class Signature {
    * @param publicKey the public key of the identity whose signature is going to be verified.
    * @exception InvalidKeyException if the key is invalid.
    */
-  public final void initVerify(PublicKey publicKey) throws InvalidKeyException {
+  public final void initVerify(String publicKey) throws InvalidKeyException {
     //        engineInitVerify(publicKey);
     //Added check
     if (publicKey == null) {
@@ -52,7 +52,7 @@ public class Signature {
    * @param privateKey the private key of the identity whose signature is going to be generated.
    * @exception InvalidKeyException if the key is invalid.
    */
-  public final void initSign(PrivateKey privateKey) throws InvalidKeyException {
+  public final void initSign(String privateKey) throws InvalidKeyException {
     // engineInitSign(privateKey);
     //Added check
     if (privateKey == null) {
@@ -80,13 +80,13 @@ public class Signature {
    *     less than the actual signature length.
    * @since 1.2
    */
-  public final int sign(byte[] outbuf, int offset, int len) throws SignatureException {
+  public final int sign(String outbuf, int offset, int len) throws SignatureException {
     if (outbuf == null) {
       throw new IllegalArgumentException("No output buffer given");
     }
-    if (outbuf.length - offset < len) {
-      throw new IllegalArgumentException("Output buffer too small for specified offset and length");
-    }
+//    if (outbuf.length - offset < len) {
+//      throw new IllegalArgumentException("Output buffer too small for specified offset and length");
+//    }
     if (state != SIGN) {
       throw new SignatureException("object not initialized for " + "signing");
     }
@@ -116,14 +116,14 @@ public class Signature {
    *     byte array.
    * @since 1.4
    */
-  public final boolean verify(byte[] signature, int offset, int length) throws SignatureException {
+  public final boolean verify(String signature, int offset, int length) throws SignatureException {
     if (state == VERIFY) {
-      if ((signature == null)
-          || (offset < 0)
-          || (length < 0)
-          || (offset + length > signature.length)) {
-        throw new IllegalArgumentException("Bad arguments");
-      }
+//      if ((signature == null)
+//          || (offset < 0)
+//          || (length < 0)
+//          || (offset + length > signature.length)) {
+//        throw new IllegalArgumentException("Bad arguments");
+//      }
 
       //            return engineVerify(signature, offset, length);
       return false;
@@ -140,7 +140,7 @@ public class Signature {
    * @param len the number of bytes to use, starting at offset.
    * @exception SignatureException if this signature object is not initialized properly.
    */
-  public final void update(byte[] data, int off, int len) throws SignatureException {
+  public final void update(String data, int off, int len) throws SignatureException {
     if (state == SIGN || state == VERIFY) {
       //            engineUpdate(data, off, len);
     } else {

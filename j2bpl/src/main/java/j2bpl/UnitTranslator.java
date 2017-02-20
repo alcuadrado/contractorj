@@ -113,7 +113,7 @@ public class UnitTranslator extends AbstractStmtSwitch {
     translateTransformationToUnion(arrayRef.getType(), value, translatedValue);
     final String toUnion = getToUnion(arrayRef.getType(), value, translatedValue);
 
-    translation.add("assert " + translatedRef + " != null;");
+    translation.add("if ( " + translatedRef + " == null) { call $Exception := Alloc(); return; }");
     translation.add(
         "$ArrayContents := $ArrayContents["
             + translatedRef

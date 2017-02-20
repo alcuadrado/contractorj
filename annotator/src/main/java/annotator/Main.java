@@ -154,11 +154,11 @@ public class Main {
   private void deleteRandoopClasses() {
 
     try {
-      Files.list(new File(".").toPath())
-          .map(Path::toFile)
-          .filter(file -> file.getName().startsWith("RegressionTest"))
-          .filter(file -> file.getName().endsWith(".java"))
-          .forEach(File::delete);
+//      Files.list(new File(".").toPath())
+//          .map(Path::toFile)
+//          .filter(file -> file.getName().startsWith("RegressionTest"))
+//          .filter(file -> file.getName().endsWith(".java"))
+//          .forEach(File::delete);
 
       Files.list(classPath.toPath())
           .map(Path::toFile)

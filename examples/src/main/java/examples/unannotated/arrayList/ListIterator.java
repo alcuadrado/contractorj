@@ -89,17 +89,7 @@ public class ListIterator<E> {
   }
 
   public ListIterator(int index) {
-    ArrayList<E> objectArrayList = new ArrayList<>();
-    objectArrayList.add(0, null);
-    objectArrayList.add(0, null);
-    objectArrayList.add(0, null);
-    objectArrayList.add(0, null);
-    objectArrayList.add(0, null);
-    objectArrayList.add(0, null);
-    objectArrayList.add(0, null);
-    objectArrayList.add(0, null);
-    objectArrayList.add(0, null);
-    objectArrayList.add(0, null);
+    ArrayList<E> objectArrayList = new ArrayList<E>();
     this.arrayList = objectArrayList;
     cursor = index;
     expectedModCount = arrayList.modCount;

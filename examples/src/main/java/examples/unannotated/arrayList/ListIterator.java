@@ -13,48 +13,6 @@ public class ListIterator<E> {
   public int lastRet = -1; // index of last element returned; -1 if no such
   public int expectedModCount;
 
-  public static ListIterator constructorVacio(int index) {
-    ArrayList<Object> objectArrayList = new ArrayList<>();
-    return new ListIterator(objectArrayList, index);
-  }
-
-  public static ListIterator constructorUno(int index) {
-    ArrayList<Object> objectArrayList = new ArrayList<>();
-    objectArrayList.add(0, new Object());
-    return new ListIterator(objectArrayList, index);
-  }
-
-  public static ListIterator constructorDos(int index) {
-    ArrayList<Object> objectArrayList = new ArrayList<>();
-    objectArrayList.add(0, new Object());
-    objectArrayList.add(0, new Object());
-    return new ListIterator(objectArrayList, index);
-  }
-
-  public static ListIterator constructorTres(int index) {
-    ArrayList<Object> objectArrayList = new ArrayList<>();
-    objectArrayList.add(0, new Object());
-    objectArrayList.add(0, new Object());
-    objectArrayList.add(0, new Object());
-    return new ListIterator(objectArrayList, index);
-  }
-
-  public static ListIterator constructorDiez(int index) {
-    ArrayList<Object> objectArrayList = new ArrayList<>();
-    objectArrayList.add(0, new Object());
-    objectArrayList.add(0, new Object());
-    objectArrayList.add(0, new Object());
-    objectArrayList.add(0, new Object());
-    objectArrayList.add(0, new Object());
-    objectArrayList.add(0, new Object());
-    objectArrayList.add(0, new Object());
-    objectArrayList.add(0, new Object());
-    objectArrayList.add(0, new Object());
-    objectArrayList.add(0, new Object());
-    return new ListIterator(objectArrayList, index);
-  }
-
-
   public boolean hasNext() {
     return cursor != arrayList.size;
   }
@@ -90,6 +48,16 @@ public class ListIterator<E> {
 
   public ListIterator(int index) {
     ArrayList<E> objectArrayList = new ArrayList<E>();
+    objectArrayList.add(0, null);
+    objectArrayList.add(0, null);
+    objectArrayList.add(0, null);
+    objectArrayList.add(0, null);
+    objectArrayList.add(0, null);
+    objectArrayList.add(0, null);
+    objectArrayList.add(0, null);
+    objectArrayList.add(0, null);
+    objectArrayList.add(0, null);
+    objectArrayList.add(0, null);
     this.arrayList = objectArrayList;
     cursor = index;
     expectedModCount = arrayList.modCount;

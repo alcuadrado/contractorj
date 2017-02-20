@@ -46,7 +46,7 @@ public class ListIterator {
     if (arrayList.modCount != expectedModCount) throw new ConcurrentModificationException();
   }
 
-  public ListIterator(int index, int elements) {
+  public ListIterator(int index, int elements, boolean unused) {
     ArrayList arrayList = new ArrayList();
 
     for (int i = 0; i < Math.min(elements, 15); i++) {

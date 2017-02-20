@@ -31,10 +31,14 @@ public class InvariantsExtractor {
 
   private List<String> objectInvariantConditions = new ArrayList<>();
 
+  private CompilationUnit compilationUnit;
+
   public List<Invariant> computeInvariants(
       final String daikonOutput, final CompilationUnit compilationUnit) {
 
-    computeInvariantsConditions(daikonOutput, compilationUnit);
+    this.compilationUnit = compilationUnit;
+
+    computeInvariantsConditions(daikonOutput);
 
     final List<Invariant> invariants =
         Lists.newArrayList(new ObjectInvariant(objectInvariantConditions));
@@ -76,8 +80,7 @@ public class InvariantsExtractor {
     return paramsPreconditions;
   }
 
-  private void computeInvariantsConditions(
-      final String daikonOutput, final CompilationUnit compilationUnit) {
+  private void computeInvariantsConditions(final String daikonOutput) {
 
     final String[] parts = daikonOutput.split("={3,}");
 
@@ -114,7 +117,7 @@ public class InvariantsExtractor {
       final List<String> paramsPreconditions;
 
       if (paramTypes.size() != 0) {
-        paramsPreconditions = getMethodPreconditions(compilationUnit, methodName, paramTypes);
+        paramsPreconditions = getMethodPreconditions(methodName, paramTypes);
       } else {
         paramsPreconditions = null;
       }
@@ -139,12 +142,10 @@ public class InvariantsExtractor {
     }
   }
 
-  private List<String> getMethodPreconditions(
-      final CompilationUnit compilationUnit,
-      final String methodName,
+  private List<String> getMethodPreconditions(final String methodName,
       final List<String> paramTypes) {
 
-    final List<Method> methodsByName = getMethodsByName(compilationUnit, methodName);
+    final List<Method> methodsByName = getMethodsByName(methodName);
 
     final List<Method> matchedMethodDeclarations =
         methodsByName
@@ -208,6 +209,10 @@ public class InvariantsExtractor {
       return true;
     }
 
+    if (s.startsWith(CompilationUnitHelper.getQualifiedClassName(compilationUnit))) {
+      return true;
+    }
+
     // Class.this.field case
     int lastDot = s.lastIndexOf(".");
     return lastDot > ".this".length()
@@ -255,7 +260,7 @@ public class InvariantsExtractor {
     return qualifiedName.substring(qualifiedName.lastIndexOf(".") + 1);
   }
 
-  private List<Method> getMethodsByName(final CompilationUnit compilationUnit, final String name) {
+  private List<Method> getMethodsByName(final String name) {
 
     final ClassOrInterfaceDeclaration theClass =
         compilationUnit.getClassByName(CompilationUnitHelper.getClassName(compilationUnit));

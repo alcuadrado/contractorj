@@ -4,6 +4,7 @@ import examples.List;
 
 import java.util.ConcurrentModificationException;
 import java.util.NoSuchElementException;
+import java.util.Random;
 
 /** An optimized version of AbstractList.ListItr */
 public class ListIterator {
@@ -46,10 +47,13 @@ public class ListIterator {
     if (arrayList.modCount != expectedModCount) throw new ConcurrentModificationException();
   }
 
-  public ListIterator(int index, int elements) {
+  public ListIterator(int index) {
     ArrayList arrayList = new ArrayList();
 
-    for (int i = 0; i < Math.min(elements, 15); i++) {
+    final Random random = new Random();
+    int bound = random.nextInt(40);
+
+    for (int i = 0; i < bound; i++) {
       arrayList.add(0, null);
     }
 

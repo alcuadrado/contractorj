@@ -185,29 +185,12 @@ public class ArrayList {
   }
 
   /**
-   * Returns a list iterator over the elements in this list (in proper sequence), starting at the
-   * specified position in the list. The specified index indicates the first element that would be
-   * returned by an initial call to {@link ListIterator#next next}. An initial call to {@link
-   * ListIterator#previous previous} would return the element with the specified index minus one.
-   *
-   * <p>The returned list iterator is <a href="#fail-fast"><i>fail-fast</i></a>.
-   *
-   * @throws IndexOutOfBoundsException {@inheritDoc}
-   */
-  public ListIterator listIterator(int index) {
-    if (index < 0 || index > size) throw new IndexOutOfBoundsException("Index: " + index);
-    return new ListIterator(this, index);
-  }
-
-  /**
    * Returns a list iterator over the elements in this list (in proper sequence).
    *
    * <p>The returned list iterator is <a href="#fail-fast"><i>fail-fast</i></a>.
-   *
-   * @see #listIterator(int)
    */
   public ListIterator listIterator() {
-    return new ListIterator(this, 0);
+    return new ListIterator(this);
   }
 
 }

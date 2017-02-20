@@ -6,10 +6,10 @@ import java.util.NoSuchElementException;
 /** An optimized version of AbstractList.ListItr */
 public class ListIterator<E> {
 
-  private ArrayList<E> arrayList;
-  int cursor; // index of next element to return
-  int lastRet = -1; // index of last element returned; -1 if no such
-  int expectedModCount;
+  public ArrayList<E> arrayList;
+  public int cursor; // index of next element to return
+  public int lastRet = -1; // index of last element returned; -1 if no such
+  public int expectedModCount;
 
   public boolean hasNext() {
     return cursor != arrayList.size;

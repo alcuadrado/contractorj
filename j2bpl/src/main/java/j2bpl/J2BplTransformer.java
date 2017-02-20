@@ -114,7 +114,12 @@ public class J2BplTransformer extends BodyTransformer {
       stringBuilder.append("\n").append(aClass.getTranslation()).append("\n");
 
       for (StaticField staticField : aClass.getStaticFields()) {
-        stringBuilder.append("\n").append(staticField.getTranslatedDeclaration()).append("\n");
+        try {
+          stringBuilder.append("\n").append(staticField.getTranslatedDeclaration()).append("\n");
+        } catch (RuntimeException e) {
+          // Do nothing
+          // TODO: This ignores fields of types that we don't understand.
+        }
       }
 
       for (InstanceField instanceField : aClass.getInstanceFields()) {

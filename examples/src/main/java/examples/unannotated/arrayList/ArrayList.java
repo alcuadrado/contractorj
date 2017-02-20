@@ -27,7 +27,7 @@ package examples.unannotated.arrayList;
 
 import java.util.Arrays;
 
-public class ArrayList<E> {
+public class ArrayList {
 
   /**
    * The array buffer into which the elements of the ArrayList are stored. The capacity of the
@@ -103,8 +103,8 @@ public class ArrayList<E> {
   // Positional Access Operations
 
   @SuppressWarnings("unchecked")
-  E elementData(int index) {
-    return (E) elementData[index];
+  Object elementData(int index) {
+    return elementData[index];
   }
 
   /**
@@ -115,10 +115,10 @@ public class ArrayList<E> {
    * @return the element previously at the specified position
    * @throws IndexOutOfBoundsException {@inheritDoc}
    */
-  public E set(int index, E element) {
+  public Object set(int index, Object element) {
     rangeCheck(index);
 
-    E oldValue = elementData(index);
+    Object oldValue = elementData(index);
     elementData[index] = element;
     return oldValue;
   }
@@ -132,7 +132,7 @@ public class ArrayList<E> {
    * @param element element to be inserted
    * @throws IndexOutOfBoundsException {@inheritDoc}
    */
-  public void add(int index, E element) {
+  public void add(int index, Object element) {
     rangeCheckForAdd(index);
 
     ensureCapacity(size + 1); // Increments modCount!!
@@ -149,11 +149,11 @@ public class ArrayList<E> {
    * @return the element that was removed from the list
    * @throws IndexOutOfBoundsException {@inheritDoc}
    */
-  public E remove(int index) {
+  public Object remove(int index) {
     rangeCheck(index);
 
     modCount++;
-    E oldValue = elementData(index);
+    Object oldValue = elementData(index);
 
     int numMoved = size - index - 1;
     if (numMoved > 0) System.arraycopy(elementData, index + 1, elementData, index, numMoved);
@@ -194,7 +194,7 @@ public class ArrayList<E> {
    *
    * @throws IndexOutOfBoundsException {@inheritDoc}
    */
-  public ListIterator<E> listIterator(int index) {
+  public ListIterator listIterator(int index) {
     if (index < 0 || index > size) throw new IndexOutOfBoundsException("Index: " + index);
     return new ListIterator(this, index);
   }
@@ -206,7 +206,7 @@ public class ArrayList<E> {
    *
    * @see #listIterator(int)
    */
-  public ListIterator<E> listIterator() {
+  public ListIterator listIterator() {
     return new ListIterator(this, 0);
   }
 

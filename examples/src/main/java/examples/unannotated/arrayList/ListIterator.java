@@ -6,9 +6,9 @@ import java.util.ConcurrentModificationException;
 import java.util.NoSuchElementException;
 
 /** An optimized version of AbstractList.ListItr */
-public class ListIterator<E> {
+public class ListIterator {
 
-  public ArrayList<E> arrayList;
+  public ArrayList arrayList;
   public int cursor; // index of next element to return
   public int lastRet = -1; // index of last element returned; -1 if no such
   public int expectedModCount;
@@ -18,14 +18,14 @@ public class ListIterator<E> {
   }
 
   @SuppressWarnings("unchecked")
-  public E next() {
+  public Object next() {
     checkForComodification();
     int i = cursor;
     if (i >= arrayList.size) throw new NoSuchElementException();
     Object[] elementData = arrayList.elementData;
     if (i >= elementData.length) throw new ConcurrentModificationException();
     cursor = i + 1;
-    return (E) elementData[lastRet = i];
+    return elementData[lastRet = i];
   }
 
   public void remove() {
@@ -46,24 +46,19 @@ public class ListIterator<E> {
     if (arrayList.modCount != expectedModCount) throw new ConcurrentModificationException();
   }
 
-  public ListIterator(int index) {
-    ArrayList<E> objectArrayList = new ArrayList<E>();
-    objectArrayList.add(0, null);
-    objectArrayList.add(0, null);
-    objectArrayList.add(0, null);
-    objectArrayList.add(0, null);
-    objectArrayList.add(0, null);
-    objectArrayList.add(0, null);
-    objectArrayList.add(0, null);
-    objectArrayList.add(0, null);
-    objectArrayList.add(0, null);
-    objectArrayList.add(0, null);
-    this.arrayList = objectArrayList;
+  public ListIterator(int index, int elements) {
+    ArrayList arrayList = new ArrayList();
+
+    for (int i = 0; i < Math.min(elements, 15); i++) {
+      arrayList.add(0, null);
+    }
+
+    this.arrayList = arrayList;
     cursor = index;
-    expectedModCount = arrayList.modCount;
+    expectedModCount = this.arrayList.modCount;
   }
 
-  public ListIterator(ArrayList<E> arrayList, int index) {
+  public ListIterator(ArrayList arrayList, int index) {
     super();
     this.arrayList = arrayList;
     cursor = index;
@@ -83,17 +78,17 @@ public class ListIterator<E> {
   }
 
   @SuppressWarnings("unchecked")
-  public E previous() {
+  public Object previous() {
     checkForComodification();
     int i = cursor - 1;
     if (i < 0) throw new NoSuchElementException();
     Object[] elementData = arrayList.elementData;
     if (i >= elementData.length) throw new ConcurrentModificationException();
     cursor = i;
-    return (E) elementData[lastRet = i];
+    return elementData[lastRet = i];
   }
 
-  public void set(E e) {
+  public void set(Object e) {
     if (lastRet < 0) throw new IllegalStateException();
     checkForComodification();
 
@@ -104,7 +99,7 @@ public class ListIterator<E> {
     }
   }
 
-  public void add(E e) {
+  public void add(Object e) {
     checkForComodification();
 
     try {

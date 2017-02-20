@@ -84,9 +84,9 @@ public class Signature {
     if (outbuf == null) {
       throw new IllegalArgumentException("No output buffer given");
     }
-//    if (outbuf.length - offset < len) {
-//      throw new IllegalArgumentException("Output buffer too small for specified offset and length");
-//    }
+    if (outbuf.length() - offset < len) {
+      throw new IllegalArgumentException("Output buffer too small for specified offset and length");
+    }
     if (state != SIGN) {
       throw new SignatureException("object not initialized for " + "signing");
     }
@@ -118,12 +118,12 @@ public class Signature {
    */
   public final boolean verify(String signature, int offset, int length) throws SignatureException {
     if (state == VERIFY) {
-//      if ((signature == null)
-//          || (offset < 0)
-//          || (length < 0)
-//          || (offset + length > signature.length)) {
-//        throw new IllegalArgumentException("Bad arguments");
-//      }
+      if ((signature == null)
+          || (offset < 0)
+          || (length < 0)
+          || (offset + length > signature.length())) {
+        throw new IllegalArgumentException("Bad arguments");
+      }
 
       //            return engineVerify(signature, offset, length);
       return false;

@@ -46,7 +46,16 @@ public class DaikonRunner {
             + " --heap-size=20000m"
             + " '--var-omit-pattern=.*RegressionTest.*'";
 
-    CommandsRunner.runtAndReturnOutput(command);
+    try {
+      CommandsRunner.runtAndReturnOutput(command);
+    } catch (RuntimeException e) {
+      // Daikon saves it's progress on OOM
+      if (!e.getMessage().contains("OutOfMemory")) {
+        throw e;
+      }
+
+      System.out.println("OOM while running Daikon, using partial results.");
+    }
 
     try {
       Files.write(classSourceFile.getAbsolutePath(), DAIKON_LAST_RUN, StandardCharsets.UTF_8);

@@ -43,7 +43,8 @@ public class DaikonRunner {
             + "'"
             + " daikon.Chicory"
             + " --daikon RegressionTestDriver"
-            + " --heap-size=20000m";
+            + " --heap-size=20000m"
+            + " '--var-omit-pattern=.*RegressionTest.*'";
 
     CommandsRunner.runtAndReturnOutput(command);
 

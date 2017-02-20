@@ -91,6 +91,9 @@ public class Main {
 
       final RandoopRunner randoopRunner = new RandoopRunner(randoopJar);
 
+      System.out.println("Deleting any previous Randoop generated test");
+      deleteRandoopGeneratedSources();
+
       System.out.println("Running Randoop");
       randoopRunner.run(classPath, qualifiedClassName);
 
@@ -151,14 +154,21 @@ public class Main {
     }
   }
 
+  private void deleteRandoopGeneratedSources() {
+    try {
+      Files.list(new File(".").toPath())
+      .map(Path::toFile)
+      .filter(file -> file.getName().startsWith("RegressionTest"))
+      .filter(file -> file.getName().endsWith(".java"))
+      .forEach(File::delete);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   private void deleteRandoopClasses() {
 
     try {
-//      Files.list(new File(".").toPath())
-//          .map(Path::toFile)
-//          .filter(file -> file.getName().startsWith("RegressionTest"))
-//          .filter(file -> file.getName().endsWith(".java"))
-//          .forEach(File::delete);
 
       Files.list(classPath.toPath())
           .map(Path::toFile)

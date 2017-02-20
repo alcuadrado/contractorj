@@ -118,7 +118,7 @@ public class ActionsExtractor {
 
       final Action action = new Action(method, statePrecondition, paramsPrecondition);
 
-      if (method.isConstructor()) {
+      if (method.isConstructor() && !methodNames.contains(methodName)) {
         constructorActions.add(action);
         continue;
       }

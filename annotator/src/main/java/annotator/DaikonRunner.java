@@ -28,10 +28,9 @@ public class DaikonRunner {
 
   public void runDaikon(final File classSourceFile, final File classesFolder) {
 
-    final String command =
+    final String firstCommand =
         "java"
-            + " -Xmx20000m"
-            + " -XX:MaxPermSize=20000m"
+            + " -Xmx20g"
             + " -cp '"
             + daikonJar.getAbsolutePath()
             + ":"
@@ -42,21 +41,19 @@ public class DaikonRunner {
             + classesFolder.getAbsolutePath()
             + "'"
             + " daikon.Chicory"
-            + " --daikon RegressionTestDriver"
-            + " --heap-size=20000m"
-            + " '--var-omit-pattern=.*RegressionTest.*'"
-            + " '--ppt-omit-pattern=.*RegressionTest.*'";
+            + " RegressionTestDriver";
 
-    try {
-      CommandsRunner.runtAndReturnOutput(command);
-    } catch (RuntimeException e) {
-      // Daikon saves it's progress on OOM
-      if (!e.getMessage().contains("OutOfMemory")) {
-        throw e;
-      }
+    final String secondCommand =
+        "java"
+            + " -Xmx20g"
+            + " -cp '"
+            + daikonJar.getAbsolutePath()
+            + "'"
+            + " -ea daikon.Daikon"
+            + " ./RegressionTestDriver.dtrace.gz";
 
-      System.out.println("OOM while running Daikon, using partial results.");
-    }
+    CommandsRunner.runtAndReturnOutput(firstCommand);
+    CommandsRunner.runtAndReturnOutput(secondCommand);
 
     try {
       Files.write(classSourceFile.getAbsolutePath(), DAIKON_LAST_RUN, StandardCharsets.UTF_8);

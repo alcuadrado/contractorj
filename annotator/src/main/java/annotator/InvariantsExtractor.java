@@ -189,6 +189,10 @@ public class InvariantsExtractor {
       return true;
     }
 
+    if (s.equals("null")) {
+      return true;
+    }
+
     try {
       Integer.parseInt(s);
       return true;

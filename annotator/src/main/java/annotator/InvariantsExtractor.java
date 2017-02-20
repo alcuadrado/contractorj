@@ -180,6 +180,7 @@ public class InvariantsExtractor {
 
     return getIdentifiers(condition)
         .stream()
+        .filter(s -> !isConstantRef(s))
         .filter(s -> !s.equals("$$size"))
         .filter(s -> !isLiteral(s))
         .allMatch(this::isFieldReference);
@@ -204,12 +205,13 @@ public class InvariantsExtractor {
     return false;
   }
 
+  private boolean isConstantRef(String s) {
+    return s.startsWith(CompilationUnitHelper.getQualifiedClassName(compilationUnit)) &&
+            !s.startsWith(CompilationUnitHelper.getQualifiedClassName(compilationUnit) + ".this");
+  }
+
   private boolean isFieldReference(String s) {
     if (s.startsWith("this.")) {
-      return true;
-    }
-
-    if (s.startsWith(CompilationUnitHelper.getQualifiedClassName(compilationUnit))) {
       return true;
     }
 
@@ -222,6 +224,7 @@ public class InvariantsExtractor {
   private boolean onlyAccessParameters(final String condition) {
 
     return getIdentifiers(condition).stream()
+            .filter(s -> !isConstantRef(s))
             .filter(s -> !isLiteral(s))
             .noneMatch(this::isFieldReference);
   }

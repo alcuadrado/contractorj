@@ -88,7 +88,7 @@ public class ListIterator<E> {
     if (arrayList.modCount != expectedModCount) throw new ConcurrentModificationException();
   }
 
-  private ListIterator(ArrayList<E> arrayList, int index) {
+  public ListIterator(ArrayList<E> arrayList, int index) {
     super();
     this.arrayList = arrayList;
     cursor = index;

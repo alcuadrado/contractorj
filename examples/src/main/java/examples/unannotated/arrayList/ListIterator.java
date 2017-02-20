@@ -1,15 +1,59 @@
 package examples.unannotated.arrayList;
 
+import examples.List;
+
 import java.util.ConcurrentModificationException;
 import java.util.NoSuchElementException;
 
 /** An optimized version of AbstractList.ListItr */
 public class ListIterator<E> {
 
-  private ArrayList<E> arrayList;
-  int cursor; // index of next element to return
-  int lastRet = -1; // index of last element returned; -1 if no such
-  int expectedModCount;
+  public ArrayList<E> arrayList;
+  public int cursor; // index of next element to return
+  public int lastRet = -1; // index of last element returned; -1 if no such
+  public int expectedModCount;
+
+  public static ListIterator constructorVacio(int index) {
+    ArrayList<Object> objectArrayList = new ArrayList<>();
+    return new ListIterator(objectArrayList, index);
+  }
+
+  public static ListIterator constructorUno(int index) {
+    ArrayList<Object> objectArrayList = new ArrayList<>();
+    objectArrayList.add(0, new Object());
+    return new ListIterator(objectArrayList, index);
+  }
+
+  public static ListIterator constructorDos(int index) {
+    ArrayList<Object> objectArrayList = new ArrayList<>();
+    objectArrayList.add(0, new Object());
+    objectArrayList.add(0, new Object());
+    return new ListIterator(objectArrayList, index);
+  }
+
+  public static ListIterator constructorTres(int index) {
+    ArrayList<Object> objectArrayList = new ArrayList<>();
+    objectArrayList.add(0, new Object());
+    objectArrayList.add(0, new Object());
+    objectArrayList.add(0, new Object());
+    return new ListIterator(objectArrayList, index);
+  }
+
+  public static ListIterator constructorDiez(int index) {
+    ArrayList<Object> objectArrayList = new ArrayList<>();
+    objectArrayList.add(0, new Object());
+    objectArrayList.add(0, new Object());
+    objectArrayList.add(0, new Object());
+    objectArrayList.add(0, new Object());
+    objectArrayList.add(0, new Object());
+    objectArrayList.add(0, new Object());
+    objectArrayList.add(0, new Object());
+    objectArrayList.add(0, new Object());
+    objectArrayList.add(0, new Object());
+    objectArrayList.add(0, new Object());
+    return new ListIterator(objectArrayList, index);
+  }
+
 
   public boolean hasNext() {
     return cursor != arrayList.size;
@@ -44,7 +88,7 @@ public class ListIterator<E> {
     if (arrayList.modCount != expectedModCount) throw new ConcurrentModificationException();
   }
 
-  public ListIterator(ArrayList<E> arrayList, int index) {
+  private ListIterator(ArrayList<E> arrayList, int index) {
     super();
     this.arrayList = arrayList;
     cursor = index;

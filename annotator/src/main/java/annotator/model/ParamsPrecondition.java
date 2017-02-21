@@ -1,8 +1,8 @@
-package annotator;
+package annotator.model;
 
 import java.util.List;
 
-class ParamsPrecondition extends Invariant {
+public class ParamsPrecondition extends Invariant {
 
   private final Method method;
 

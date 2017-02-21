@@ -7,7 +7,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-public class Rewriter {
+import annotator.model.Invariant;
+
+public class AnnotatedClassWriter {
 
   public File writeAnnotatedClass(
       final File annotatedSourceDir,

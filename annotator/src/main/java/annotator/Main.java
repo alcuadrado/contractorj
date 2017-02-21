@@ -3,6 +3,11 @@ package annotator;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.google.common.collect.Lists;
+
+import annotator.external.DaikonRunner;
+import annotator.external.JavacRunner;
+import annotator.external.RandoopRunner;
+import annotator.model.Invariant;
 import contractorj.util.EmbeddedJarsHelper;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -24,7 +29,7 @@ public class Main {
 
   private File classSourceFile;
 
-  private final Compiler compiler;
+  private final JavacRunner javacRunner;
 
   private String pathToCorral;
 
@@ -60,7 +65,7 @@ public class Main {
 
     parseArguments(args);
 
-    compiler = initCompiler(classPath);
+    javacRunner = initCompiler(classPath);
 
     try {
       compilationUnit = JavaParser.parse(classSourceFile);
@@ -69,13 +74,13 @@ public class Main {
     }
   }
 
-  private Compiler initCompiler(final File classesDir) {
+  private JavacRunner initCompiler(final File classesDir) {
 
     final List<File> classPathParts = Lists.newArrayList(hamcrestCoreJar, jUnitJar);
 
     classPathParts.add(classesDir);
 
-    return new Compiler(classPathParts, classesDir);
+    return new JavacRunner(classPathParts, classesDir);
   }
 
   private void createEpa() {
@@ -83,7 +88,7 @@ public class Main {
     final String qualifiedClassName = CompilationUnitHelper.getQualifiedClassName(compilationUnit);
 
     System.out.println("Compiling your class");
-    compiler.compile(classSourceFile);
+    javacRunner.compile(classSourceFile);
 
     final DaikonRunner daikonRunner = new DaikonRunner(daikonJar, hamcrestCoreJar, jUnitJar);
 
@@ -98,7 +103,7 @@ public class Main {
       randoopRunner.run(classPath, qualifiedClassName);
 
       System.out.println("Compiling Randoop's results");
-      compiler.compile(randoopRunner.getResultFiles());
+      javacRunner.compile(randoopRunner.getResultFiles());
 
       System.out.println("Running Daikon");
       daikonRunner.runDaikon(classSourceFile, classPath);
@@ -116,17 +121,17 @@ public class Main {
     final List<Invariant> invariants =
         invariantsExtractor.computeInvariants(daikonResults, compilationUnit);
 
-    final Rewriter rewriter = new Rewriter();
+    final AnnotatedClassWriter annotatedClassWriter = new AnnotatedClassWriter();
 
     System.out.println("Writing annotated class");
 
     final File annotatedSourceDir = new File("annotated_source");
     final File annotatedClass =
-        rewriter.writeAnnotatedClass(
+        annotatedClassWriter.writeAnnotatedClass(
             annotatedSourceDir, classSourceFile, compilationUnit, invariants);
 
     System.out.println("Compiling annotated class");
-    compiler.compile(annotatedClass);
+    javacRunner.compile(annotatedClass);
 
     System.out.println("Running ContractorJ");
     runContractorJ(qualifiedClassName);

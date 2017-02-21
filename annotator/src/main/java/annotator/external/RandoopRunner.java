@@ -1,4 +1,4 @@
-package annotator;
+package annotator.external;
 
 import contractorj.util.CommandsRunner;
 import java.io.File;

@@ -1,8 +1,8 @@
-package annotator;
+package annotator.model;
 
 import java.util.List;
 
-abstract class Invariant {
+public abstract class Invariant {
 
   private final List<String> conditions;
 

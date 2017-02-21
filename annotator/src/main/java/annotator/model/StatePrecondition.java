@@ -1,8 +1,10 @@
-package annotator;
+package annotator.model;
 
 import java.util.List;
 
-class StatePrecondition extends Invariant {
+import annotator.model.Invariant;
+
+public class StatePrecondition extends Invariant {
 
   private final String methodName;
 

@@ -1,11 +1,11 @@
-package annotator;
+package annotator.model;
 
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.visitor.EqualsVisitor;
 import java.util.Objects;
 
-class Method {
+public class Method {
 
   private final MethodDeclaration methodDeclaration;
 

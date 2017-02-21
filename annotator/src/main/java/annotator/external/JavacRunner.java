@@ -1,4 +1,4 @@
-package annotator;
+package annotator.external;
 
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
@@ -11,7 +11,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Compiler {
+public class JavacRunner {
 
   public static final Pattern PACKAGE_PATTERN = Pattern.compile("package\\s+(?<name>.*?)\\s*;");
 
@@ -19,7 +19,7 @@ public class Compiler {
 
   private final File classesFolder;
 
-  public Compiler(final List<File> libs, final File classesFolder) {
+  public JavacRunner(final List<File> libs, final File classesFolder) {
 
     this.classesFolder = classesFolder;
 

@@ -5,7 +5,6 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 
-import com.google.common.collect.Interner;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,6 +14,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import annotator.model.Invariant;
+import annotator.model.Method;
+import annotator.model.ObjectInvariant;
+import annotator.model.ParamsPrecondition;
+import annotator.model.StatePrecondition;
 
 public class InvariantsExtractor {
 

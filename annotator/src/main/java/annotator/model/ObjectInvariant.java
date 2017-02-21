@@ -1,8 +1,10 @@
-package annotator;
+package annotator.model;
 
 import java.util.List;
 
-class ObjectInvariant extends Invariant {
+import annotator.model.Invariant;
+
+public class ObjectInvariant extends Invariant {
 
   ObjectInvariant(final List<String> conditions) {
 

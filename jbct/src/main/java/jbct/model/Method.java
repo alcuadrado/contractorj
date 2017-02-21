@@ -1,4 +1,4 @@
-package jbct;
+package jbct.model;
 
 import com.google.common.base.Joiner;
 import java.util.ArrayList;
@@ -12,6 +12,9 @@ import soot.SootMethod;
 import soot.Type;
 import soot.VoidType;
 import soot.jimple.JimpleBody;
+
+import jbct.utils.StringUtils;
+import jbct.soot.TypeTranslator;
 
 public abstract class Method {
 

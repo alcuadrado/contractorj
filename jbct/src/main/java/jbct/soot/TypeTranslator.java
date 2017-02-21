@@ -1,4 +1,4 @@
-package jbct;
+package jbct.soot;
 
 import soot.ArrayType;
 import soot.BooleanType;

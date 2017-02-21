@@ -3,7 +3,7 @@ package contractorj.construction.queries.necessary_actions;
 import contractorj.construction.queries.Query;
 import contractorj.model.Action;
 import contractorj.model.State;
-import jbct.Method;
+import jbct.model.Method;
 
 public class NecessarilyDisabledActionQuery extends NecessaryActionQuery {
 

@@ -10,6 +10,9 @@ import soot.Pack;
 import soot.PackManager;
 import soot.Transform;
 
+import jbct.model.Class;
+import jbct.soot.JbctTransformer;
+
 public class Translator {
 
   /**

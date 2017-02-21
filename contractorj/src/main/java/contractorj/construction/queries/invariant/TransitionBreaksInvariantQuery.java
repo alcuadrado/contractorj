@@ -2,7 +2,7 @@ package contractorj.construction.queries.invariant;
 
 import contractorj.model.Action;
 import contractorj.model.State;
-import jbct.Method;
+import jbct.model.Method;
 
 public class TransitionBreaksInvariantQuery extends InvariantQuery {
 

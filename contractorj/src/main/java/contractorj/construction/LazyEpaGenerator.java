@@ -17,7 +17,7 @@ import contractorj.model.Epa;
 import contractorj.model.State;
 import contractorj.model.Transition;
 import contractorj.util.CombinationsGenerator;
-import jbct.Class;
+import jbct.model.Class;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;

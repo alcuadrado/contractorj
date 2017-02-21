@@ -1,4 +1,4 @@
-package jbct;
+package jbct.soot;
 
 import com.google.common.collect.Lists;
 import com.google.common.io.Resources;
@@ -24,7 +24,13 @@ import soot.jimple.InvokeExpr;
 import soot.jimple.JimpleBody;
 import soot.jimple.Stmt;
 
+import jbct.utils.StringUtils;
 import jbct.exceptions.UnsupportedTypeException;
+import jbct.model.Class;
+import jbct.model.InstanceField;
+import jbct.model.LocalMethod;
+import jbct.model.Method;
+import jbct.model.StaticField;
 
 public class JbctTransformer extends BodyTransformer {
 

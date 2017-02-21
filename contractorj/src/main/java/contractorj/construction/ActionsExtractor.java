@@ -1,8 +1,8 @@
 package contractorj.construction;
 
 import contractorj.model.Action;
-import jbct.Class;
-import jbct.Method;
+import jbct.model.Class;
+import jbct.model.Method;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;

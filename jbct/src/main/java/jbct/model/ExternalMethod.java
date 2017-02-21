@@ -1,4 +1,4 @@
-package jbct;
+package jbct.model;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Sets;
@@ -8,6 +8,8 @@ import java.util.Set;
 import soot.SootMethod;
 import soot.Type;
 import soot.VoidType;
+
+import jbct.soot.TypeTranslator;
 
 public class ExternalMethod extends Method {
 

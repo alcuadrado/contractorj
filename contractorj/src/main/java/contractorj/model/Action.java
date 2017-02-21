@@ -1,6 +1,6 @@
 package contractorj.model;
 
-import jbct.Method;
+import jbct.model.Method;
 import java.util.Objects;
 import java.util.Optional;
 

@@ -1,6 +1,8 @@
-package jbct;
+package jbct.model;
 
 import soot.SootField;
+
+import jbct.utils.StringUtils;
 
 public class InstanceField {
 

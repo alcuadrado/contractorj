@@ -1,4 +1,4 @@
-package jbct;
+package jbct.model;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -9,6 +9,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import soot.SootClass;
 import soot.SootField;
+
+import jbct.utils.StringUtils;
 
 public class Class {
 

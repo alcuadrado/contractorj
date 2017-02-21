@@ -1,4 +1,4 @@
-package jbct;
+package jbct.model;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,6 +8,9 @@ import java.util.Map;
 import java.util.Optional;
 import soot.Unit;
 import soot.toolkits.graph.Block;
+
+import jbct.utils.StringUtils;
+import jbct.soot.UnitTranslator;
 
 public class BasicBlock {
 

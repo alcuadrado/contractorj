@@ -1,4 +1,4 @@
-package jbct;
+package jbct.model;
 
 import com.google.common.base.Joiner;
 import java.util.ArrayList;
@@ -20,6 +20,10 @@ import soot.jimple.ParameterRef;
 import soot.jimple.StringConstant;
 import soot.toolkits.graph.Block;
 import soot.toolkits.graph.ExceptionalBlockGraph;
+
+import jbct.utils.StringUtils;
+import jbct.soot.TypeTranslator;
+import jbct.soot.ValueTranslator;
 
 public class LocalMethod extends Method {
 

@@ -8,7 +8,7 @@ import contractorj.model.Epa;
 import contractorj.serialization.DotEpaSerializer;
 import contractorj.serialization.XmlEpaSerializer;
 import contractorj.util.EmbeddedJarsHelper;
-import jbct.Class;
+import jbct.model.Class;
 import jbct.Translator;
 import java.io.File;
 import java.io.IOException;

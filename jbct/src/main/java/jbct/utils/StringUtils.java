@@ -1,4 +1,4 @@
-package jbct;
+package jbct.utils;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;

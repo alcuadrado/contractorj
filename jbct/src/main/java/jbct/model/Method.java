@@ -7,14 +7,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import jbct.soot.TypeTranslator;
+import jbct.utils.StringUtils;
 import soot.RefType;
 import soot.SootMethod;
 import soot.Type;
 import soot.VoidType;
 import soot.jimple.JimpleBody;
-
-import jbct.utils.StringUtils;
-import jbct.soot.TypeTranslator;
 
 public abstract class Method {
 

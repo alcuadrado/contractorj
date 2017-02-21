@@ -1,13 +1,12 @@
 package annotator;
 
+import annotator.model.Invariant;
 import com.github.javaparser.ast.CompilationUnit;
 import com.google.common.io.Files;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-
-import annotator.model.Invariant;
 
 public class AnnotatedClassWriter {
 

@@ -2,8 +2,6 @@ package annotator.model;
 
 import java.util.List;
 
-import annotator.model.Invariant;
-
 public class StatePrecondition extends Invariant {
 
   private final String methodName;

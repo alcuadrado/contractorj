@@ -7,6 +7,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import jbct.soot.TypeTranslator;
+import jbct.soot.ValueTranslator;
+import jbct.utils.StringUtils;
 import soot.Local;
 import soot.SootMethod;
 import soot.Unit;
@@ -20,10 +23,6 @@ import soot.jimple.ParameterRef;
 import soot.jimple.StringConstant;
 import soot.toolkits.graph.Block;
 import soot.toolkits.graph.ExceptionalBlockGraph;
-
-import jbct.utils.StringUtils;
-import jbct.soot.TypeTranslator;
-import jbct.soot.ValueTranslator;
 
 public class LocalMethod extends Method {
 

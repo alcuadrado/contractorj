@@ -17,7 +17,6 @@ import contractorj.model.Epa;
 import contractorj.model.State;
 import contractorj.model.Transition;
 import contractorj.util.CombinationsGenerator;
-import jbct.model.Class;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -31,6 +30,7 @@ import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import jbct.model.Class;
 
 public class LazyEpaGenerator extends EpaGenerator {
 

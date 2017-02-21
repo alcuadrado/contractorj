@@ -1,8 +1,8 @@
 package contractorj.model;
 
-import jbct.model.Method;
 import java.util.Objects;
 import java.util.Optional;
+import jbct.model.Method;
 
 /** An actions models a method with its precondition. */
 public class Action {

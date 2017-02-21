@@ -7,12 +7,12 @@ import contractorj.construction.queries.Variable;
 import contractorj.model.Action;
 import contractorj.model.State;
 import contractorj.model.Transition;
-import jbct.model.Method;
-import jbct.utils.StringUtils;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import jbct.model.Method;
+import jbct.utils.StringUtils;
 
 public abstract class TransitionQuery extends Query {
 

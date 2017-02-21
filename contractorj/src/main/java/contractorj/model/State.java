@@ -42,8 +42,8 @@ public class State {
         getAllActions().stream().filter(action -> action.getMethod().isConstructor()).count();
 
     if (numberOfConstructors != 0 && numberOfConstructors != getTotalNumberOfActions()) {
-        throw new IllegalArgumentException("Invalid state: can't mix methods and constructors."
-                + " State " + this.toString());
+      throw new IllegalArgumentException(
+          "Invalid state: can't mix methods and constructors." + " State " + this.toString());
     }
 
     if (numberOfConstructors > 0) {

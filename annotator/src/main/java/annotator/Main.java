@@ -1,13 +1,12 @@
 package annotator;
 
-import com.github.javaparser.JavaParser;
-import com.github.javaparser.ast.CompilationUnit;
-import com.google.common.collect.Lists;
-
 import annotator.external.DaikonRunner;
 import annotator.external.JavacRunner;
 import annotator.external.RandoopRunner;
 import annotator.model.Invariant;
+import com.github.javaparser.JavaParser;
+import com.github.javaparser.ast.CompilationUnit;
+import com.google.common.collect.Lists;
 import contractorj.util.EmbeddedJarsHelper;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -162,10 +161,10 @@ public class Main {
   private void deleteRandoopGeneratedSources() {
     try {
       Files.list(new File(".").toPath())
-      .map(Path::toFile)
-      .filter(file -> file.getName().startsWith("RegressionTest"))
-      .filter(file -> file.getName().endsWith(".java"))
-      .forEach(File::delete);
+          .map(Path::toFile)
+          .filter(file -> file.getName().startsWith("RegressionTest"))
+          .filter(file -> file.getName().endsWith(".java"))
+          .forEach(File::delete);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

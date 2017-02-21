@@ -3,6 +3,12 @@ package jbct.soot;
 import com.google.common.base.Joiner;
 import java.util.ArrayList;
 import java.util.List;
+import jbct.model.Class;
+import jbct.model.ExternalMethod;
+import jbct.model.InstanceField;
+import jbct.model.Method;
+import jbct.model.StaticField;
+import jbct.utils.StringUtils;
 import soot.BooleanType;
 import soot.Local;
 import soot.SootField;
@@ -41,13 +47,6 @@ import soot.jimple.StaticInvokeExpr;
 import soot.jimple.StringConstant;
 import soot.jimple.SubExpr;
 import soot.jimple.VirtualInvokeExpr;
-
-import jbct.utils.StringUtils;
-import jbct.model.Class;
-import jbct.model.ExternalMethod;
-import jbct.model.InstanceField;
-import jbct.model.Method;
-import jbct.model.StaticField;
 
 public class ValueTranslator extends AbstractJimpleValueSwitch {
 

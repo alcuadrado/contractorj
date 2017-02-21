@@ -7,5 +7,4 @@ public class UnsupportedTypeException extends RuntimeException {
   public UnsupportedTypeException(Type type) {
     super("Unsupported type " + type.toString());
   }
-
 }

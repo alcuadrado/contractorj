@@ -5,11 +5,10 @@ import com.google.common.collect.Sets;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import jbct.soot.TypeTranslator;
 import soot.SootMethod;
 import soot.Type;
 import soot.VoidType;
-
-import jbct.soot.TypeTranslator;
 
 public class ExternalMethod extends Method {
 

@@ -3,6 +3,10 @@ package jbct.soot;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import jbct.model.BasicBlock;
+import jbct.model.InstanceField;
+import jbct.model.LocalMethod;
+import jbct.utils.StringUtils;
 import soot.BooleanType;
 import soot.SootField;
 import soot.Type;
@@ -26,11 +30,6 @@ import soot.jimple.ReturnStmt;
 import soot.jimple.ReturnVoidStmt;
 import soot.jimple.ThisRef;
 import soot.jimple.ThrowStmt;
-
-import jbct.utils.StringUtils;
-import jbct.model.BasicBlock;
-import jbct.model.InstanceField;
-import jbct.model.LocalMethod;
 
 public class UnitTranslator extends AbstractStmtSwitch {
 

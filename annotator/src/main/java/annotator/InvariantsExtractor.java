@@ -1,10 +1,14 @@
 package annotator;
 
+import annotator.model.Invariant;
+import annotator.model.Method;
+import annotator.model.ObjectInvariant;
+import annotator.model.ParamsPrecondition;
+import annotator.model.StatePrecondition;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
-
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,12 +18,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import annotator.model.Invariant;
-import annotator.model.Method;
-import annotator.model.ObjectInvariant;
-import annotator.model.ParamsPrecondition;
-import annotator.model.StatePrecondition;
 
 public class InvariantsExtractor {
 
@@ -147,8 +145,8 @@ public class InvariantsExtractor {
     }
   }
 
-  private List<String> getMethodPreconditions(final String methodName,
-      final List<String> paramTypes) {
+  private List<String> getMethodPreconditions(
+      final String methodName, final List<String> paramTypes) {
 
     final List<Method> methodsByName = getMethodsByName(methodName);
 
@@ -211,8 +209,8 @@ public class InvariantsExtractor {
   }
 
   private boolean isConstantRef(String s) {
-    return s.startsWith(CompilationUnitHelper.getQualifiedClassName(compilationUnit)) &&
-            !s.startsWith(CompilationUnitHelper.getQualifiedClassName(compilationUnit) + ".this");
+    return s.startsWith(CompilationUnitHelper.getQualifiedClassName(compilationUnit))
+        && !s.startsWith(CompilationUnitHelper.getQualifiedClassName(compilationUnit) + ".this");
   }
 
   private boolean isFieldReference(String s) {
@@ -228,10 +226,11 @@ public class InvariantsExtractor {
 
   private boolean onlyAccessParameters(final String condition) {
 
-    return getIdentifiers(condition).stream()
-            .filter(s -> !isConstantRef(s))
-            .filter(s -> !isLiteral(s))
-            .noneMatch(this::isFieldReference);
+    return getIdentifiers(condition)
+        .stream()
+        .filter(s -> !isConstantRef(s))
+        .filter(s -> !isLiteral(s))
+        .noneMatch(this::isFieldReference);
   }
 
   private List<String> getIdentifiers(final String condition) {

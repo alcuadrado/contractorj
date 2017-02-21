@@ -192,5 +192,4 @@ public class ArrayList {
   public ListIterator listIterator() {
     return new ListIterator(this);
   }
-
 }

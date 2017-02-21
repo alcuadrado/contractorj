@@ -6,8 +6,6 @@ import contractorj.construction.queries.Answer;
 import contractorj.construction.queries.Query;
 import contractorj.model.Action;
 import contractorj.model.Epa;
-import jbct.model.Class;
-import jbct.model.Method;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -23,6 +21,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import jbct.model.Class;
+import jbct.model.Method;
 
 public abstract class EpaGenerator {
 

@@ -6,11 +6,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import jbct.soot.UnitTranslator;
+import jbct.utils.StringUtils;
 import soot.Unit;
 import soot.toolkits.graph.Block;
-
-import jbct.utils.StringUtils;
-import jbct.soot.UnitTranslator;
 
 public class BasicBlock {
 

@@ -15,6 +15,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import jbct.exceptions.UnsupportedTypeException;
+import jbct.model.Class;
+import jbct.model.InstanceField;
+import jbct.model.LocalMethod;
+import jbct.model.Method;
+import jbct.model.StaticField;
+import jbct.utils.StringUtils;
 import soot.Body;
 import soot.BodyTransformer;
 import soot.SootClass;
@@ -23,14 +30,6 @@ import soot.Unit;
 import soot.jimple.InvokeExpr;
 import soot.jimple.JimpleBody;
 import soot.jimple.Stmt;
-
-import jbct.utils.StringUtils;
-import jbct.exceptions.UnsupportedTypeException;
-import jbct.model.Class;
-import jbct.model.InstanceField;
-import jbct.model.LocalMethod;
-import jbct.model.Method;
-import jbct.model.StaticField;
 
 public class JbctTransformer extends BodyTransformer {
 

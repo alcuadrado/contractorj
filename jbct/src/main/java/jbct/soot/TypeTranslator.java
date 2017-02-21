@@ -1,5 +1,6 @@
 package jbct.soot;
 
+import jbct.exceptions.UnsupportedTypeException;
 import soot.ArrayType;
 import soot.BooleanType;
 import soot.ByteType;
@@ -8,8 +9,6 @@ import soot.LongType;
 import soot.RefType;
 import soot.ShortType;
 import soot.Type;
-
-import jbct.exceptions.UnsupportedTypeException;
 
 public class TypeTranslator {
 

@@ -1,7 +1,5 @@
 package examples.unannotated.arrayList;
 
-import examples.List;
-
 import java.util.ConcurrentModificationException;
 import java.util.NoSuchElementException;
 
@@ -112,5 +110,4 @@ public class ListIterator {
       throw new ConcurrentModificationException();
     }
   }
-
 }

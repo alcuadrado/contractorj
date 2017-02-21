@@ -6,12 +6,11 @@ import java.io.File;
 import java.io.PrintStream;
 import java.util.List;
 import java.util.Optional;
+import jbct.model.Class;
+import jbct.soot.JbctTransformer;
 import soot.Pack;
 import soot.PackManager;
 import soot.Transform;
-
-import jbct.model.Class;
-import jbct.soot.JbctTransformer;
 
 public class Translator {
 

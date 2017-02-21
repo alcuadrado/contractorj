@@ -8,8 +8,6 @@ import contractorj.model.Epa;
 import contractorj.serialization.DotEpaSerializer;
 import contractorj.serialization.XmlEpaSerializer;
 import contractorj.util.EmbeddedJarsHelper;
-import jbct.model.Class;
-import jbct.Translator;
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
@@ -17,6 +15,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import jbct.Translator;
+import jbct.model.Class;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -173,7 +173,6 @@ public class Main {
   private static void setMethodNames(String methodsList) {
 
     final ArrayList<String> methods = splitMethodList(methodsList);
-
 
     for (String name : methods) {
 

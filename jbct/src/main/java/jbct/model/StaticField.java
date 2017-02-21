@@ -1,9 +1,8 @@
 package jbct.model;
 
-import soot.SootField;
-
-import jbct.utils.StringUtils;
 import jbct.soot.TypeTranslator;
+import jbct.utils.StringUtils;
+import soot.SootField;
 
 public class StaticField {
 

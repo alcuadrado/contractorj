@@ -126,7 +126,7 @@ public abstract class Method {
 
   public String getJavaNameWithArgumentTypes() {
 
-    @SuppressWarnings("unckeched")
+    @SuppressWarnings("unchecked")
     final List<Type> parameterTypes = sootMethod.getParameterTypes();
     final List<String> typeNames =
         parameterTypes.stream().map(Type::toString).collect(Collectors.toList());

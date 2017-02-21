@@ -24,6 +24,8 @@ import soot.jimple.InvokeExpr;
 import soot.jimple.JimpleBody;
 import soot.jimple.Stmt;
 
+import jbct.exceptions.UnsupportedTypeException;
+
 public class JbctTransformer extends BodyTransformer {
 
   private static JbctTransformer instance = new JbctTransformer();
@@ -116,9 +118,8 @@ public class JbctTransformer extends BodyTransformer {
       for (StaticField staticField : aClass.getStaticFields()) {
         try {
           stringBuilder.append("\n").append(staticField.getTranslatedDeclaration()).append("\n");
-        } catch (RuntimeException e) {
-          // Do nothing
-          // TODO: This ignores fields of types that we don't understand.
+        } catch (UnsupportedTypeException e) {
+          // We ignore the static field's whose types we don't support
         }
       }
 

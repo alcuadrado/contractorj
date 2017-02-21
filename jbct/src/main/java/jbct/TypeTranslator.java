@@ -9,6 +9,8 @@ import soot.RefType;
 import soot.ShortType;
 import soot.Type;
 
+import jbct.exceptions.UnsupportedTypeException;
+
 public class TypeTranslator {
 
   public static String translate(Type type) {
@@ -32,6 +34,6 @@ public class TypeTranslator {
       return "Ref";
     }
 
-    throw new UnsupportedOperationException("Unsupported type: " + type.toString());
+    throw new UnsupportedTypeException(type);
   }
 }

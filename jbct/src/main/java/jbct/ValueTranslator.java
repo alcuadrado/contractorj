@@ -1,4 +1,4 @@
-package j2bpl;
+package jbct;
 
 import com.google.common.base.Joiner;
 import java.util.ArrayList;
@@ -345,7 +345,7 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
     }
 
     final SootMethod sootMethod = invokeExpr.getMethod();
-    final Method calledMethod = J2BplTransformer.getInstance().getMethod(sootMethod);
+    final Method calledMethod = JbctTransformer.getInstance().getMethod(sootMethod);
 
     stringBuilder
         .append(calledMethod.getTranslatedName())

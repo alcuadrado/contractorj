@@ -1,8 +1,8 @@
 package contractorj.construction;
 
 import contractorj.model.Action;
-import j2bpl.Class;
-import j2bpl.Method;
+import jbct.Class;
+import jbct.Method;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;

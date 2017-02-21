@@ -3,7 +3,7 @@ package contractorj.construction.queries.transition;
 import contractorj.construction.queries.Query;
 import contractorj.model.Action;
 import contractorj.model.State;
-import j2bpl.Method;
+import jbct.Method;
 
 public class ThrowingTransitionQuery extends TransitionQuery {
 

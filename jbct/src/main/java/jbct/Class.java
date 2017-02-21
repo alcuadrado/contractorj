@@ -1,4 +1,4 @@
-package j2bpl;
+package jbct;
 
 import java.util.Collection;
 import java.util.HashMap;

@@ -6,7 +6,7 @@ import contractorj.construction.queries.Query;
 import contractorj.model.Action;
 import contractorj.model.State;
 import contractorj.model.Transition;
-import j2bpl.Method;
+import jbct.Method;
 import java.util.Optional;
 
 public abstract class InvariantQuery extends Query {

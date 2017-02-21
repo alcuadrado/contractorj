@@ -1,4 +1,4 @@
-package j2bpl;
+package jbct;
 
 import com.google.common.collect.Lists;
 import com.google.common.io.Resources;
@@ -24,16 +24,16 @@ import soot.jimple.InvokeExpr;
 import soot.jimple.JimpleBody;
 import soot.jimple.Stmt;
 
-public class J2BplTransformer extends BodyTransformer {
+public class JbctTransformer extends BodyTransformer {
 
-  private static J2BplTransformer instance = new J2BplTransformer();
+  private static JbctTransformer instance = new JbctTransformer();
 
-  public static J2BplTransformer getInstance() {
+  public static JbctTransformer getInstance() {
 
     return instance;
   }
 
-  private J2BplTransformer() {}
+  private JbctTransformer() {}
 
   private final Set<Class> classes = new HashSet<>();
 

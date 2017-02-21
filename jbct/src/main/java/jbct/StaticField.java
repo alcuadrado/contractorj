@@ -1,21 +1,21 @@
-package j2bpl;
+package jbct;
 
 import soot.SootField;
 
-public class InstanceField {
+public class StaticField {
 
   private final SootField sootField;
 
   private final Class theClass;
 
-  public InstanceField(Class theClass, SootField sootField) {
+  public StaticField(Class theClass, SootField sootField) {
 
-    assert !sootField.isStatic();
+    assert sootField.isStatic();
     this.sootField = sootField;
     this.theClass = theClass;
   }
 
-  public InstanceField(SootField sootField) {
+  public StaticField(SootField sootField) {
 
     this(Class.create(sootField.getDeclaringClass()), sootField);
   }
@@ -23,12 +23,16 @@ public class InstanceField {
   public String getTranslatedName() {
 
     return theClass.getTranslatedName()
-        + "#"
+        + "."
         + StringUtils.scapeIllegalIdentifierCharacters(sootField.getName());
   }
 
   public String getTranslatedDeclaration() {
 
-    return "const unique " + getTranslatedName() + " : Field;";
+    return "var "
+        + getTranslatedName()
+        + " : "
+        + TypeTranslator.translate(sootField.getType())
+        + ";";
   }
 }

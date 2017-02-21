@@ -1,4 +1,4 @@
-package j2bpl;
+package jbct;
 
 import com.google.common.collect.Lists;
 import java.io.ByteArrayOutputStream;
@@ -24,7 +24,7 @@ public class Translator {
 
     if (classPath.contains(":") || classPath.contains(".jar")) {
       throw new UnsupportedOperationException(
-          "J2Bpl only supports a single directory as classpath.");
+          "JBCT only supports a single directory as classpath.");
     }
 
     final PrintStream originalOut = System.out;
@@ -40,7 +40,7 @@ public class Translator {
 
       Pack pack = PackManager.v().getPack("jtp");
 
-      pack.add(new Transform("jtp.bpl", J2BplTransformer.getInstance()));
+      pack.add(new Transform("jtp.bpl", JbctTransformer.getInstance()));
 
       final String completeClassPath = pathToRrJar.getAbsolutePath() + ":" + classPath;
 
@@ -78,11 +78,11 @@ public class Translator {
 
   public Optional<Class> getTranslatedClass(String className) {
 
-    return J2BplTransformer.getInstance().getClass(className);
+    return JbctTransformer.getInstance().getClass(className);
   }
 
   public String getTranslation() {
 
-    return J2BplTransformer.getInstance().getTranslation();
+    return JbctTransformer.getInstance().getTranslation();
   }
 }

@@ -6,7 +6,7 @@ public class StatePrecondition extends Invariant {
 
   private final String methodName;
 
-  StatePrecondition(final List<String> conditions, final String methodName) {
+  public StatePrecondition(final List<String> conditions, final String methodName) {
 
     super(conditions);
     this.methodName = methodName;

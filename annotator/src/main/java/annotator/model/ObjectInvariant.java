@@ -4,7 +4,7 @@ import java.util.List;
 
 public class ObjectInvariant extends Invariant {
 
-  ObjectInvariant(final List<String> conditions) {
+  public ObjectInvariant(final List<String> conditions) {
 
     super(conditions);
   }

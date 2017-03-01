@@ -6,7 +6,7 @@ public class ParamsPrecondition extends Invariant {
 
   private final Method method;
 
-  ParamsPrecondition(final List<String> conditions, final Method method) {
+  public ParamsPrecondition(final List<String> conditions, final Method method) {
 
     super(conditions);
     this.method = method;

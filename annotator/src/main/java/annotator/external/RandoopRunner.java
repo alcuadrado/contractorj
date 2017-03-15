@@ -35,7 +35,7 @@ public class RandoopRunner {
         + " gentests"
         + " --testclass="
         + qualifiedClassName
-        + " --timelimit=180"
+        + " --timelimit=300"
         + " --junit-reflection-allowed=false";
   }
 

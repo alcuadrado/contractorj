@@ -129,18 +129,10 @@ public class InvariantsExtractor {
 
         if (onlyAccessInternalState(condition)) {
           statePreconditions.add(condition);
-          continue;
-        }
-
-        if (paramsPreconditions != null && onlyAccessParameters(condition)) {
+        } else if (paramsPreconditions != null) {
           paramsPreconditions.add(condition);
-          continue;
         }
 
-        System.out.println(
-            "Condition "
-                + condition
-                + " ignored because it access both parameters and internal state");
       }
     }
   }

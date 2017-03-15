@@ -1,8 +1,8 @@
 package examples.unannotated;
 
-public class FiniteStack {
+public class FiniteStack<T> {
 
-  private final int[] data;
+  private final Object[] data;
   private int size = 0;
 
   public FiniteStack() {
@@ -13,14 +13,14 @@ public class FiniteStack {
     if (capacity <= 0) {
       throw new IllegalArgumentException();
     }
-    data = new int[capacity];
+    data = new Object[capacity];
   }
 
-  public void Push(int item) {
+  public void Push(T item) {
     data[size++] = item;
   }
 
-  public int Pop() {
-    return data[--size];
+  public T Pop() {
+    return (T) data[--size];
   }
 }

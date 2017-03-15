@@ -44,42 +44,37 @@ public class ListIterator {
     if (arrayList.modCount != expectedModCount) throw new ConcurrentModificationException();
   }
 
-  public ListIterator(int index, int elements, int dummy) {
-    this(index, 4);
+  public ListIterator(int index, int i, int i0) {
+    this(index, 0);
   }
 
-  public ListIterator(int index, int elements, int dummy, int dummy2) {
+  public ListIterator(int index, int i, int i0, int i1) {
+    this(index, 1);
+  }
+
+  public ListIterator(int index, int i, int i0, int i1, int i3) {
     this(index, 3);
   }
 
-  public ListIterator(int index, int elements, int dummy, int dummy2, int dummy3) {
-    this(index, 6);
+  public ListIterator(int index, int i, int i0, int i1, int i3, int i8) {
+    this(index, 8);
   }
 
-  public ListIterator(int index, int elements, int dummy, int dummy2, int dummy3, int i4) {
-    this(index, 9);
+  public ListIterator(int index, int count) {
+    this(new ArrayList(), index);
+    fillList(count);
   }
 
-  public ListIterator(int index, int elements, int dummy, int dummy2, int dummy3, int i4, int i5) {
-    this(index, 13);
-  }
-
-  public ListIterator(int index, int elements) {
-    ArrayList arrayList = new ArrayList();
-
-    for (int i = 0; i < Math.max(elements, 0); i++) {
+  private void fillList(int count) {
+    if (count > 0) {
       arrayList.add(0, null);
+      fillList(--count);
     }
+  }
 
+  public ListIterator(ArrayList arrayList, int index) {
     this.arrayList = arrayList;
     cursor = index;
-    expectedModCount = this.arrayList.modCount;
-  }
-
-  public ListIterator(ArrayList arrayList) {
-    super();
-    this.arrayList = arrayList;
-    cursor = 0;
     expectedModCount = arrayList.modCount;
   }
 

@@ -1,10 +1,12 @@
 package annotator.external;
 
 import com.google.common.io.Files;
-import contractorj.util.CommandsRunner;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+
+import contractorj.util.CommandsRunner;
 
 public class DaikonRunner {
 
@@ -51,6 +53,8 @@ public class DaikonRunner {
             + daikonJar.getAbsolutePath()
             + "'"
             + " -ea daikon.Daikon"
+            + " '--var-omit-pattern=.*RegressionTest.*'"
+            + " '--ppt-omit-pattern=.*RegressionTest.*'"
             + " ./RegressionTestDriver.dtrace.gz";
 
     CommandsRunner.runtAndReturnOutput(firstCommand);

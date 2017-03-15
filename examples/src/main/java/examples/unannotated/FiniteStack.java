@@ -5,6 +5,10 @@ public class FiniteStack<T> {
   private final Object[] data;
   private int size = 0;
 
+  public FiniteStack() {
+    this(5);
+  }
+
   public FiniteStack(final int capacity) {
     if (capacity <= 0) {
       throw new IllegalArgumentException();

@@ -35,7 +35,7 @@ public class CorralRunner {
         + mainMethod
         + "' /recursionBound:"
         + recursionBound
-        + " /trackAllVars '"
+        + " /trackAllVars '" // This is not really necessary, but makes it a little faster
         + pathToBoogieSourcecode
         + "'";
   }

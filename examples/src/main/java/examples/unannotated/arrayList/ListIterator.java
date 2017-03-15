@@ -78,6 +78,10 @@ public class ListIterator {
     expectedModCount = arrayList.modCount;
   }
 
+  public ListIterator(ArrayList arrayList) {
+    this(arrayList, 0);
+  }
+
   public boolean hasPrevious() {
     return cursor != 0;
   }

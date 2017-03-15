@@ -44,23 +44,23 @@ public class ListIterator {
     if (arrayList.modCount != expectedModCount) throw new ConcurrentModificationException();
   }
 
-  public ListIterator(int index, int i, int i0) {
-    this(index, 0);
+  public ListIterator(int index, int j, int i, int i0) {
+    this(index, 0, 1);
   }
 
-  public ListIterator(int index, int i, int i0, int i1) {
-    this(index, 1);
+  public ListIterator(int index, int j, int i, int i0, int i1) {
+    this(index, 1, 1);
   }
 
-  public ListIterator(int index, int i, int i0, int i1, int i3) {
-    this(index, 3);
+  public ListIterator(int index, int j, int i, int i0, int i1, int i3) {
+    this(index, 3, 1);
   }
 
-  public ListIterator(int index, int i, int i0, int i1, int i3, int i8) {
-    this(index, 8);
+  public ListIterator(int index, int j, int i, int i0, int i1, int i3, int i8) {
+    this(index, 8, 1);
   }
 
-  public ListIterator(int index, int count) {
+  public ListIterator(int index, int count, int i) {
     this(new ArrayList(), index);
     fillList(count);
   }

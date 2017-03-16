@@ -17,9 +17,9 @@ public class ListIterator {
 
   @SuppressWarnings("unchecked")
   public Object next() {
-    if (!hasNext()) {
-      throw new RuntimeException();
-    }
+//    if (!hasNext()) {
+//      throw new RuntimeException();
+//    }
 
     checkForComodification();
     int i = cursor;
@@ -31,9 +31,9 @@ public class ListIterator {
   }
 
   public void remove() {
-    if (!(lastRet >= 0 && lastRet < arrayList.size)) {
-      throw new RuntimeException();
-    }
+//    if (!(lastRet >= 0 && lastRet < arrayList.size)) {
+//      throw new RuntimeException();
+//    }
 
     if (lastRet < 0) throw new IllegalStateException();
     checkForComodification();
@@ -113,9 +113,9 @@ public class ListIterator {
 
   @SuppressWarnings("unchecked")
   public Object previous() {
-    if (!hasPrevious()) {
-      throw new RuntimeException();
-    }
+//    if (!hasPrevious()) {
+//      throw new RuntimeException();
+//    }
 
     checkForComodification();
     int i = cursor - 1;
@@ -127,9 +127,9 @@ public class ListIterator {
   }
 
   public void set(Object e) {
-    if (!(lastRet >= 0 && lastRet < arrayList.size)) {
-      throw new RuntimeException();
-    }
+//    if (!(lastRet >= 0 && lastRet < arrayList.size)) {
+//      throw new RuntimeException();
+//    }
 
     if (lastRet < 0) throw new IllegalStateException();
     checkForComodification();

@@ -9,7 +9,7 @@ public class ListIterator {
   public ArrayList arrayList;
   public int cursor; // index of next element to return
   public int lastRet = -1; // index of last element returned; -1 if no such
-  public int expectedModCount;
+//  public int expectedModCount;
 
   public boolean hasNext() {
     return cursor != arrayList.size;
@@ -21,7 +21,7 @@ public class ListIterator {
 //      throw new RuntimeException();
 //    }
 
-    checkForComodification();
+//    checkForComodification();
     int i = cursor;
     if (i >= arrayList.size) throw new NoSuchElementException();
     Object[] elementData = arrayList.elementData;
@@ -36,21 +36,21 @@ public class ListIterator {
 //    }
 
     if (lastRet < 0) throw new IllegalStateException();
-    checkForComodification();
+//    checkForComodification();
 
     try {
       arrayList.remove(lastRet);
       cursor = lastRet;
       lastRet = -1;
-      expectedModCount = arrayList.modCount;
+//      expectedModCount = arrayList.modCount;
     } catch (IndexOutOfBoundsException ex) {
       throw new ConcurrentModificationException();
     }
   }
 
-  final void checkForComodification() {
-    if (arrayList.modCount != expectedModCount) throw new ConcurrentModificationException();
-  }
+//  final void checkForComodification() {
+//    if (arrayList.modCount != expectedModCount) throw new ConcurrentModificationException();
+//  }
 
   public ListIterator(int index, int j, int i, int i0) {
     this(index, 0, 1);
@@ -92,7 +92,7 @@ public class ListIterator {
 
     this.arrayList = arrayList;
     cursor = index;
-    expectedModCount = arrayList.modCount;
+//    expectedModCount = arrayList.modCount;
   }
 
   public ListIterator(ArrayList arrayList) {
@@ -117,7 +117,7 @@ public class ListIterator {
 //      throw new RuntimeException();
 //    }
 
-    checkForComodification();
+//    checkForComodification();
     int i = cursor - 1;
     if (i < 0) throw new NoSuchElementException();
     Object[] elementData = arrayList.elementData;
@@ -132,7 +132,7 @@ public class ListIterator {
 //    }
 
     if (lastRet < 0) throw new IllegalStateException();
-    checkForComodification();
+//    checkForComodification();
 
     try {
       arrayList.set(lastRet, e);
@@ -142,14 +142,14 @@ public class ListIterator {
   }
 
   public void add(Object e) {
-    checkForComodification();
+//    checkForComodification();
 
     try {
       int i = cursor;
       arrayList.add(i, e);
       cursor = i + 1;
       lastRet = -1;
-      expectedModCount = arrayList.modCount;
+//      expectedModCount = arrayList.modCount;
     } catch (IndexOutOfBoundsException ex) {
       throw new ConcurrentModificationException();
     }

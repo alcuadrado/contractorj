@@ -17,6 +17,10 @@ public class ListIterator {
 
   @SuppressWarnings("unchecked")
   public Object next() {
+    if (!hasNext()) {
+      throw new RuntimeException();
+    }
+
     checkForComodification();
     int i = cursor;
     if (i >= arrayList.size) throw new NoSuchElementException();
@@ -27,6 +31,10 @@ public class ListIterator {
   }
 
   public void remove() {
+    if (!(lastRet >= 0 && lastRet < arrayList.size)) {
+      throw new RuntimeException();
+    }
+
     if (lastRet < 0) throw new IllegalStateException();
     checkForComodification();
 
@@ -73,6 +81,15 @@ public class ListIterator {
   }
 
   public ListIterator(ArrayList arrayList, int index) {
+
+    if (arrayList == null) {
+      throw new NullPointerException();
+    }
+
+    if (index > arrayList.size || index < 0) {
+      throw new IllegalArgumentException("Invalid index");
+    }
+
     this.arrayList = arrayList;
     cursor = index;
     expectedModCount = arrayList.modCount;
@@ -96,6 +113,10 @@ public class ListIterator {
 
   @SuppressWarnings("unchecked")
   public Object previous() {
+    if (!hasPrevious()) {
+      throw new RuntimeException();
+    }
+
     checkForComodification();
     int i = cursor - 1;
     if (i < 0) throw new NoSuchElementException();
@@ -106,6 +127,10 @@ public class ListIterator {
   }
 
   public void set(Object e) {
+    if (!(lastRet >= 0 && lastRet < arrayList.size)) {
+      throw new RuntimeException();
+    }
+
     if (lastRet < 0) throw new IllegalStateException();
     checkForComodification();
 

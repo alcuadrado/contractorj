@@ -72,32 +72,6 @@ public class CorralRunner {
         queryQueryResult, Duration.between(start, end), processOutput, consoleCommandToRun);
   }
 
-  private String runtAndReturnOutput(final String lineToRun) {
-
-    final CommandLine commandLine = CommandLine.parse(lineToRun);
-
-    final DefaultExecutor executor = new DefaultExecutor();
-
-    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-    PumpStreamHandler streamHandler = new PumpStreamHandler(outputStream);
-
-    executor.setStreamHandler(streamHandler);
-
-    try {
-      final int exitValue = executor.execute(commandLine);
-
-      if (exitValue != 0) {
-        throw new RuntimeException(
-            "Error executing " + lineToRun + "\n " + outputStream.toString());
-      }
-
-    } catch (IOException e) {
-      throw new RuntimeException("Error executing " + lineToRun + "\n " + outputStream.toString());
-    }
-
-    return outputStream.toString();
-  }
-
   private boolean isWindows() {
 
     return System.getProperty("os.name").toLowerCase().contains("win");

@@ -57,8 +57,8 @@ public class DaikonRunner {
             + " '--ppt-omit-pattern=.*RegressionTest.*'"
             + " ./RegressionTestDriver.dtrace.gz";
 
-    CommandsRunner.runtAndReturnOutput(firstCommand);
-    CommandsRunner.runtAndReturnOutput(secondCommand);
+    CommandsRunner.runtAndReturnOutput(firstCommand, false);
+    CommandsRunner.runtAndReturnOutput(secondCommand, false);
 
     try {
       Files.write(classSourceFile.getAbsolutePath(), DAIKON_LAST_RUN, StandardCharsets.UTF_8);
@@ -82,7 +82,7 @@ public class DaikonRunner {
               "java -cp '"
                   + daikonJar.getAbsolutePath()
                   + "' daikon.PrintInvariants --format java "
-                  + DAIKON_RESULTS_FILE);
+                  + DAIKON_RESULTS_FILE, false);
 
       Files.write(results, CACHED_RESULTS_FILE, StandardCharsets.UTF_8);
 

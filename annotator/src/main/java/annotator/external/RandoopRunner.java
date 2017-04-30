@@ -19,7 +19,7 @@ public class RandoopRunner {
   public void run(final File classesDir, final String qualifiedClassName) {
 
     final String command = getCommand(classesDir, qualifiedClassName);
-    CommandsRunner.runtAndReturnOutput(command);
+    CommandsRunner.runtAndReturnOutput(command, false);
   }
 
   private String getCommand(final File classesDir, final String qualifiedClassName) {

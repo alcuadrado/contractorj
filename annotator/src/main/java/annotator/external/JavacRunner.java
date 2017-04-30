@@ -38,7 +38,7 @@ public class JavacRunner {
         files.stream().map(File::getAbsolutePath).reduce((s, s2) -> s + " " + s2).get();
 
     final String command = "javac -source 1.7 -target 1.7 -g -cp '" + classPath + "' " + filesList;
-    CommandsRunner.runtAndReturnOutput(command);
+    CommandsRunner.runtAndReturnOutput(command, false);
 
     files.forEach(this::moveClassFile);
   }

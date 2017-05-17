@@ -40,6 +40,7 @@ public class GenericStack<T> {
 
   @SuppressWarnings("unchecked")
   public T Pop() {
+
     return (T) data[--size];
   }
 

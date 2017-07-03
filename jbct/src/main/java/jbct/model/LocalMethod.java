@@ -39,6 +39,9 @@ public class LocalMethod extends Method {
     generateNamesForReturnVariables();
   }
 
+  // This method is called at the instance's constructor
+  // it parses and finds every function call
+  // for every function call a ret variable is created in boogie
   private void generateNamesForReturnVariables() {
 
     for (Unit unit : body.getUnits()) {
@@ -56,6 +59,8 @@ public class LocalMethod extends Method {
     }
   }
 
+  // for every parameter in the method a local boogie variable is created
+  // mapping between local boggie variable and argument is stored
   private List<String> getTranslatedParametersList() {
 
     final LinkedList<String> parameters = new LinkedList<>();
@@ -65,6 +70,16 @@ public class LocalMethod extends Method {
     }
 
     int i = 0;
+
+    // debemos recorrer todas las asignaciones de parametros a variables locales del body en jimple
+    // por ejemplo: r1 =  @parameter0 : java.util.List
+    // asumimos que hay 1 asignacion por parametro del método
+    // en i contamos la aparición de cada asignación
+    // Al encontrar la i-esima aparición de una asignación al parametro relacionado se lo llama param0i o parami
+    // y se guarda en la lista de retorno la aridad como string parameterName : translatedType
+    // siendo translatedType el tipo traducido
+    // Se aprovecha esta pasada de las asignaciones para vincular en un hash
+    // parameterName -> local
 
     for (final IdentityStmt identityStmt : getIdentityStatements()) {
 
@@ -92,51 +107,61 @@ public class LocalMethod extends Method {
     return parameters;
   }
 
+  // returns a list of statements that are assignments
+  // if i am not wrong that's an identitystatement
   private List<IdentityStmt> getIdentityStatements() {
 
     return body.getUnits()
-        .stream()
-        .filter(unit -> unit instanceof IdentityStmt)
-        .map(unit -> (IdentityStmt) unit)
-        .collect(Collectors.toList());
+            .stream()
+            .filter(unit -> unit instanceof IdentityStmt)
+            .map(unit -> (IdentityStmt) unit)
+            .collect(Collectors.toList());
   }
 
   @Override
+  // returns the boogie code of the procedure
+  // 1) procedure's parameters are calculated and used in the procedure declaration
+  // 2) local variables are written
+  // 3) local variables for procedure invocations
+  // 4) write assignments of parameters to local variables
+  // 5) translate each instruction from the jimple body
   public String getTranslatedProcedure() {
 
     final List<String> translatedParametersList = getTranslatedParametersList();
 
     final StringBuilder stringBuilder =
-        new StringBuilder()
-            .append("procedure ")
-            .append(getTranslatedName())
-            .append("(")
-            .append(Joiner.on(", ").join(translatedParametersList))
-            .append(")");
+            new StringBuilder()
+                    .append("procedure ")
+                    .append(getTranslatedName())
+                    .append("(")
+                    .append(Joiner.on(", ").join(translatedParametersList))
+                    .append(")");
 
     if (sootMethod.getReturnType() != VoidType.v()) {
       stringBuilder
-          .append(" returns (r : ")
-          .append(TypeTranslator.translate(sootMethod.getReturnType()))
-          .append(")");
+              .append(" returns (r : ")
+              .append(TypeTranslator.translate(sootMethod.getReturnType()))
+              .append(")");
     }
 
     stringBuilder
-        .append("\n")
-        .append("{\n")
-        .append(StringUtils.indentList(getTranslatedLocalDeclarationsList()))
-        .append("\n")
-        .append(StringUtils.indentList(getGeneratedLocalDeclarationsList()))
-        .append("\n\n")
-        .append(StringUtils.indentList(translateParametersAssignments()))
-        .append("\n\n")
-        .append(StringUtils.indentList(getTranslatedInstructions()))
-        .append("\n")
-        .append("}");
+            .append("\n")
+            .append("{\n")
+            // las declaraciones de las variables locales con las traducciones de sus tipos
+            .append(StringUtils.indentList(getTranslatedLocalDeclarationsList()))
+            .append("\n")
+            .append(StringUtils.indentList(getGeneratedLocalDeclarationsList()))
+            .append("\n\n")
+            .append(StringUtils.indentList(translateParametersAssignments()))
+            .append("\n\n")
+            .append(StringUtils.indentList(getTranslatedInstructions()))
+            .append("\n")
+            .append("}");
 
     return stringBuilder.toString();
   }
 
+  // assigns parameters to local variables
   private List<String> translateParametersAssignments() {
 
     final ArrayList<String> assignments = new ArrayList<>();
@@ -173,9 +198,9 @@ public class LocalMethod extends Method {
   private List<String> getTranslatedLocalDeclarationsList() {
 
     return body.getLocals()
-        .stream()
-        .map(this::translateLocalDeclaration)
-        .collect(Collectors.toList());
+            .stream()
+            .map(this::translateLocalDeclaration)
+            .collect(Collectors.toList());
   }
 
   private String translateLocalDeclaration(Local local) {
@@ -188,6 +213,7 @@ public class LocalMethod extends Method {
     return Optional.ofNullable(generatedReturnVariableNames.get(invokeStmt));
   }
 
+  // creates a local variable for the result of each call
   private List<String> getGeneratedLocalDeclarationsList() {
 
     final LinkedList<String> declarations = new LinkedList<>();
@@ -200,11 +226,11 @@ public class LocalMethod extends Method {
       final Method invokedMethod = Method.create(invokedClass, invokedSootMethod);
 
       declarations.add(
-          "var "
-              + generatedReturnVariableNames.get(invokeStmt)
-              + " : "
-              + invokedMethod.getTranslatedReturnType()
-              + ";");
+              "var "
+                      + generatedReturnVariableNames.get(invokeStmt)
+                      + " : "
+                      + invokedMethod.getTranslatedReturnType()
+                      + ";");
     }
 
     return declarations;

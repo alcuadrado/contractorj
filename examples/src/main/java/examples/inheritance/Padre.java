@@ -6,6 +6,15 @@ public class Padre {
     public void metodoA(){
         j = 10;
     }
+    public int k;
+
+    public void unMetodoSoloPadre(){
+        k = 1000;
+    }
+
+    public void otroMetodoPadre(){
+        k = 1000;
+    }
 
     public void invocacion(Padre padre){
         padre.metodoA();

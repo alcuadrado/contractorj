@@ -14,4 +14,8 @@ public class Mamifero {
 
     // En realidad esto deberia ser abstracto
     public void comer() {}
+
+    static public void plancharIfParaComer(Mamifero m){
+        m.comer();
+    }
 }

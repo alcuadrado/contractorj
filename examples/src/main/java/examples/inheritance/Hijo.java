@@ -14,6 +14,7 @@ public class Hijo extends Padre {
         Padre p = new Hijo();
         p.metodoA();
     }
+
     // no invoca correctamente.
     /*procedure examples.inheritance.Hijo#newTipado($this : Ref)
     {

@@ -1,6 +1,8 @@
 package examples.inheritance;
 
 public class Herbivoro extends Mamifero {
+
+    @Override
     public void comer(){
         comida++;
     }
@@ -50,6 +52,16 @@ public class Herbivoro extends Mamifero {
         m.comer();
     }
 
+    static public void unHerbivoroComiendo(){
+        Herbivoro herb = new Herbivoro();
+
+        Mamifero.plancharIfParaComer(herb);
+
+        if (herb.comida == 2){
+            int i = 0;
+            i = 8; // esto lo voy a reemplazar por un assert
+        }
+    }
     // para testear como se traducen estas funciones de la clase Object
     public void testObjectClass(){
         this.notifyAll();

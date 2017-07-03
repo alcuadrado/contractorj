@@ -1,4 +1,4 @@
-package examples.inheritance;
+package examples.inheritance_1;
 
 public class Program {
     public static void Increment(A a){

@@ -1,4 +1,4 @@
-package examples.inheritance;
+package examples.inheritance_1;
 
 public abstract class A {
     public int f;

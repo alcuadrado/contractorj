@@ -1,5 +1,6 @@
-package examples.inheritance_1;
-
+package examples.translation.bct_paper;
+/*
+Abstract classes make JBCT throw exception.
 public class Program {
     public static void Increment(A a){
         a.Increment();
@@ -12,3 +13,4 @@ public class Program {
         Increment(c);
     }
 }
+*/

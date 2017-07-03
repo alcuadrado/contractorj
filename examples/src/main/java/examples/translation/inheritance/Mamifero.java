@@ -1,4 +1,4 @@
-package examples.inheritance;
+package examples.translation.inheritance;
 
 public class Mamifero {
     public int oxigeno;

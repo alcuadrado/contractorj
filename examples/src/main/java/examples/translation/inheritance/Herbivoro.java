@@ -1,4 +1,4 @@
-package examples.inheritance;
+package examples.translation.inheritance;
 
 public class Herbivoro extends Mamifero {
 
@@ -13,18 +13,18 @@ public class Herbivoro extends Mamifero {
     }
     
     /* JIMPLE
-    public void testInvocacionesVirtuales(examples.inheritance.Herbivoro)
+    public void testInvocacionesVirtuales(examples.translation.inheritance.Herbivoro)
     {
-        examples.inheritance.Herbivoro r0, r1;
+        examples.translation.inheritance.Herbivoro r0, r1;
 
-        r0 := @this: examples.inheritance.Herbivoro;
-        r1 := @parameter0: examples.inheritance.Herbivoro;
-        virtualinvoke r1.<examples.inheritance.Herbivoro: void comer()>();
-        virtualinvoke r1.<examples.inheritance.Herbivoro: void respirar()>();
+        r0 := @this: examples.translation.inheritance.Herbivoro;
+        r1 := @parameter0: examples.translation.inheritance.Herbivoro;
+        virtualinvoke r1.<examples.translation.inheritance.Herbivoro: void comer()>();
+        virtualinvoke r1.<examples.translation.inheritance.Herbivoro: void respirar()>();
         return;
     }*/
     /* BOOGIE
-        procedure examples.inheritance.Herbivoro#testInvocacionesVirtuales$examples.inheritance.Herbivoro($this : Ref, param00 : Ref)
+        procedure examples.translation.inheritance.Herbivoro#testInvocacionesVirtuales$examples.translation.inheritance.Herbivoro($this : Ref, param00 : Ref)
         {
             var r0 : Ref;
             var r1 : Ref;
@@ -32,14 +32,14 @@ public class Herbivoro extends Mamifero {
 
             r1 := param00;
 
-            examples.inheritance.Herbivoro#testInvocacionesVirtuales$examples.inheritance.Herbivoro_0:
+            examples.translation.inheritance.Herbivoro#testInvocacionesVirtuales$examples.translation.inheritance.Herbivoro_0:
                 r0 := $this;
 
-                call examples.inheritance.Herbivoro#comer(r1);
+                call examples.translation.inheritance.Herbivoro#comer(r1);
                 if ($Exception != null) {
                     return;
                 }
-                call examples.inheritance.Mamifero#respirar(r1);
+                call examples.translation.inheritance.Mamifero#respirar(r1);
                 if ($Exception != null) {
                     return;
                 }

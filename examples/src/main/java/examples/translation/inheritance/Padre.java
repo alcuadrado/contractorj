@@ -1,4 +1,4 @@
-package examples.inheritance;
+package examples.translation.inheritance;
 
 public class Padre {
     public int j;
@@ -21,7 +21,7 @@ public class Padre {
 
         // ERROR: en este caso metodoA podrìa llegar a ser el de Hijo
         /*
-        procedure examples.inheritance.Padre#invocacion$examples.inheritance.Padre($this : Ref, param00 : Ref)
+        procedure examples.translation.inheritance.Padre#invocacion$examples.translation.inheritance.Padre($this : Ref, param00 : Ref)
         {
             var r0 : Ref;
             var r1 : Ref;
@@ -29,10 +29,10 @@ public class Padre {
 
             r1 := param00;
 
-            examples.inheritance.Padre#invocacion$examples.inheritance.Padre_0:
+            examples.translation.inheritance.Padre#invocacion$examples.translation.inheritance.Padre_0:
                 r0 := $this;
 
-                call examples.inheritance.Padre#metodoA(r1);
+                call examples.translation.inheritance.Padre#metodoA(r1);
                 if ($Exception != null) {
                     return;
                 }

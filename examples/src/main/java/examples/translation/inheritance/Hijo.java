@@ -1,6 +1,4 @@
-package examples.inheritance;
-
-import java.util.LinkedList;
+package examples.translation.inheritance;
 
 public class Hijo extends Padre {
 
@@ -16,7 +14,7 @@ public class Hijo extends Padre {
     }
 
     // no invoca correctamente.
-    /*procedure examples.inheritance.Hijo#newTipado($this : Ref)
+    /*procedure examples.translation.inheritance.Hijo#newTipado($this : Ref)
     {
         var r0 : Ref;
         var $r1 : Ref;
@@ -25,15 +23,15 @@ public class Hijo extends Padre {
 
 
 
-        examples.inheritance.Hijo#newTipado_0:
+        examples.translation.inheritance.Hijo#newTipado_0:
     r0 := $this;
         call $r1 := Alloc();
-        call examples.inheritance.Hijo#?init?($r1);
+        call examples.translation.inheritance.Hijo#?init?($r1);
         if ($Exception != null) {
             return;
         }
         r2 := $r1;
-        call examples.inheritance.Padre#metodoA(r2);
+        call examples.translation.inheritance.Padre#metodoA(r2);
         if ($Exception != null) {
             return;
         }
@@ -51,7 +49,7 @@ public class Hijo extends Padre {
         }
     }
     // Program has potential bug: True bug
-    /*procedure examples.inheritance.Hijo#aliasComparacionValores($this : Ref)
+    /*procedure examples.translation.inheritance.Hijo#aliasComparacionValores($this : Ref)
     {
         var r0 : Ref;
         var $r1 : Ref;
@@ -65,26 +63,26 @@ public class Hijo extends Padre {
 
 
 
-        examples.inheritance.Hijo#aliasComparacionValores_0:
+        examples.translation.inheritance.Hijo#aliasComparacionValores_0:
     r0 := $this;
         call $r1 := Alloc();
-        call examples.inheritance.Hijo#?init?($r1);
+        call examples.translation.inheritance.Hijo#?init?($r1);
         if ($Exception != null) {
             return;
         }
         r2 := $r1;
         r3 := r2;
         z0 := false;
-        $i0 := Union2Int(Read($Heap, r3, examples.inheritance.Padre#j));
-        $i1 := Union2Int(Read($Heap, r2, examples.inheritance.Padre#j));
+        $i0 := Union2Int(Read($Heap, r3, examples.translation.inheritance.Padre#j));
+        $i1 := Union2Int(Read($Heap, r2, examples.translation.inheritance.Padre#j));
         if ($i0 != $i1) {
-            goto examples.inheritance.Hijo#aliasComparacionValores_2;
+            goto examples.translation.inheritance.Hijo#aliasComparacionValores_2;
         }
 
-        examples.inheritance.Hijo#aliasComparacionValores_1:
+        examples.translation.inheritance.Hijo#aliasComparacionValores_1:
     assert false;
 
-        examples.inheritance.Hijo#aliasComparacionValores_2:
+        examples.translation.inheritance.Hijo#aliasComparacionValores_2:
     return;
 
     }*/
@@ -101,7 +99,7 @@ public class Hijo extends Padre {
         }
     }
     // Program has potential bug: True bug
-    /*procedure examples.inheritance.Hijo#aliasComparacionValores2($this : Ref)
+    /*procedure examples.translation.inheritance.Hijo#aliasComparacionValores2($this : Ref)
     {
         var r0 : Ref;
         var $r1 : Ref;
@@ -119,39 +117,39 @@ public class Hijo extends Padre {
 
 
 
-        examples.inheritance.Hijo#aliasComparacionValores2_0:
+        examples.translation.inheritance.Hijo#aliasComparacionValores2_0:
     r0 := $this;
         call $r1 := Alloc();
-        call examples.inheritance.Hijo#?init?($r1);
+        call examples.translation.inheritance.Hijo#?init?($r1);
         if ($Exception != null) {
             return;
         }
         r2 := $r1;
         r3 := r2;
-        $i0 := Union2Int(Read($Heap, r2, examples.inheritance.Padre#j));
+        $i0 := Union2Int(Read($Heap, r2, examples.translation.inheritance.Padre#j));
         $i1 := $i0 + 1;
         assume Union2Int(Int2Union($i1)) == $i1;
-        $Heap := Write($Heap, r2, examples.inheritance.Padre#j, Int2Union($i1));
-        $i2 := Union2Int(Read($Heap, r3, examples.inheritance.Padre#j));
+        $Heap := Write($Heap, r2, examples.translation.inheritance.Padre#j, Int2Union($i1));
+        $i2 := Union2Int(Read($Heap, r3, examples.translation.inheritance.Padre#j));
         $i3 := $i2 + 1;
         assume Union2Int(Int2Union($i3)) == $i3;
-        $Heap := Write($Heap, r3, examples.inheritance.Padre#j, Int2Union($i3));
+        $Heap := Write($Heap, r3, examples.translation.inheritance.Padre#j, Int2Union($i3));
         z0 := false;
-        $i4 := Union2Int(Read($Heap, r3, examples.inheritance.Padre#j));
+        $i4 := Union2Int(Read($Heap, r3, examples.translation.inheritance.Padre#j));
         if ($i4 != 2) {
-            goto examples.inheritance.Hijo#aliasComparacionValores2_3;
+            goto examples.translation.inheritance.Hijo#aliasComparacionValores2_3;
         }
 
-        examples.inheritance.Hijo#aliasComparacionValores2_1:
-    $i5 := Union2Int(Read($Heap, r2, examples.inheritance.Padre#j));
+        examples.translation.inheritance.Hijo#aliasComparacionValores2_1:
+    $i5 := Union2Int(Read($Heap, r2, examples.translation.inheritance.Padre#j));
         if ($i5 != 2) {
-            goto examples.inheritance.Hijo#aliasComparacionValores2_3;
+            goto examples.translation.inheritance.Hijo#aliasComparacionValores2_3;
         }
 
-        examples.inheritance.Hijo#aliasComparacionValores2_2:
+        examples.translation.inheritance.Hijo#aliasComparacionValores2_2:
     assert false;
 
-        examples.inheritance.Hijo#aliasComparacionValores2_3:
+        examples.translation.inheritance.Hijo#aliasComparacionValores2_3:
     return;
 
     }*/
@@ -169,7 +167,7 @@ public class Hijo extends Padre {
     }
 
     // traducción - Program has no bugs.
-    /*procedure examples.inheritance.Hijo#aliasComparacionValores3($this : Ref)
+    /*procedure examples.translation.inheritance.Hijo#aliasComparacionValores3($this : Ref)
     {
         var r0 : Ref;
         var $r1 : Ref;
@@ -184,39 +182,39 @@ public class Hijo extends Padre {
         var $i5 : int;
         var b6 : int;
 
-        examples.inheritance.Hijo#aliasComparacionValores3_0:
+        examples.translation.inheritance.Hijo#aliasComparacionValores3_0:
     r0 := $this;
         call $r1 := Alloc();
-        call examples.inheritance.Hijo#?init?($r1);
+        call examples.translation.inheritance.Hijo#?init?($r1);
         if ($Exception != null) {
             return;
         }
         r2 := $r1;
         r3 := r2;
-        $i0 := Union2Int(Read($Heap, r2, examples.inheritance.Padre#j));
+        $i0 := Union2Int(Read($Heap, r2, examples.translation.inheritance.Padre#j));
         $i1 := $i0 + 1;
         assume Union2Int(Int2Union($i1)) == $i1;
-        $Heap := Write($Heap, r2, examples.inheritance.Padre#j, Int2Union($i1));
-        $i2 := Union2Int(Read($Heap, r3, examples.inheritance.Padre#j));
+        $Heap := Write($Heap, r2, examples.translation.inheritance.Padre#j, Int2Union($i1));
+        $i2 := Union2Int(Read($Heap, r3, examples.translation.inheritance.Padre#j));
         $i3 := $i2 + 1;
         assume Union2Int(Int2Union($i3)) == $i3;
-        $Heap := Write($Heap, r3, examples.inheritance.Padre#j, Int2Union($i3));
+        $Heap := Write($Heap, r3, examples.translation.inheritance.Padre#j, Int2Union($i3));
         z0 := false;
-        $i4 := Union2Int(Read($Heap, r3, examples.inheritance.Padre#j));
+        $i4 := Union2Int(Read($Heap, r3, examples.translation.inheritance.Padre#j));
         if ($i4 != 1) {
-            goto examples.inheritance.Hijo#aliasComparacionValores3_3;
+            goto examples.translation.inheritance.Hijo#aliasComparacionValores3_3;
         }
 
-        examples.inheritance.Hijo#aliasComparacionValores3_1:
-    $i5 := Union2Int(Read($Heap, r2, examples.inheritance.Padre#j));
+        examples.translation.inheritance.Hijo#aliasComparacionValores3_1:
+    $i5 := Union2Int(Read($Heap, r2, examples.translation.inheritance.Padre#j));
         if ($i5 != 2) {
-            goto examples.inheritance.Hijo#aliasComparacionValores3_3;
+            goto examples.translation.inheritance.Hijo#aliasComparacionValores3_3;
         }
 
-        examples.inheritance.Hijo#aliasComparacionValores3_2:
+        examples.translation.inheritance.Hijo#aliasComparacionValores3_2:
     assert false;
 
-        examples.inheritance.Hijo#aliasComparacionValores3_3:
+        examples.translation.inheritance.Hijo#aliasComparacionValores3_3:
     return;
 
     }*/
@@ -231,7 +229,7 @@ public class Hijo extends Padre {
         }
     }
     //  Program has potential bug: True bug
-    /*procedure examples.inheritance.Hijo#aliasComparacionRef($this : Ref)
+    /*procedure examples.translation.inheritance.Hijo#aliasComparacionRef($this : Ref)
     {
         var r0 : Ref;
         var $r1 : Ref;
@@ -241,10 +239,10 @@ public class Hijo extends Padre {
         var b0 : int;
 
 
-        examples.inheritance.Hijo#aliasComparacionRef_0:
+        examples.translation.inheritance.Hijo#aliasComparacionRef_0:
     r0 := $this;
         call $r1 := Alloc();
-        call examples.inheritance.Hijo#?init?($r1);
+        call examples.translation.inheritance.Hijo#?init?($r1);
         if ($Exception != null) {
             return;
         }
@@ -252,13 +250,13 @@ public class Hijo extends Padre {
         r3 := r2;
         z0 := false;
         if (r3 != r2) {
-            goto examples.inheritance.Hijo#aliasComparacionRef_2;
+            goto examples.translation.inheritance.Hijo#aliasComparacionRef_2;
         }
 
-        examples.inheritance.Hijo#aliasComparacionRef_1:
+        examples.translation.inheritance.Hijo#aliasComparacionRef_1:
     assert false;
 
-        examples.inheritance.Hijo#aliasComparacionRef_2:
+        examples.translation.inheritance.Hijo#aliasComparacionRef_2:
     return;
 
     }*/
@@ -273,7 +271,7 @@ public class Hijo extends Padre {
     }
 
     //Program has potential bug: True bug
-    /*procedure examples.inheritance.Hijo#aliasParametro$examples.inheritance.Hijo($this : Ref, param00 : Ref)
+    /*procedure examples.translation.inheritance.Hijo#aliasParametro$examples.translation.inheritance.Hijo($this : Ref, param00 : Ref)
     {
         var r0 : Ref;
         var r1 : Ref;
@@ -285,24 +283,24 @@ public class Hijo extends Padre {
 
         r1 := param00;
 
-        examples.inheritance.Hijo#aliasParametro$examples.inheritance.Hijo_0:
+        examples.translation.inheritance.Hijo#aliasParametro$examples.translation.inheritance.Hijo_0:
         r0 := $this;
 
         call $r2 := Alloc();
-        call examples.inheritance.Hijo#?init?($r2);
+        call examples.translation.inheritance.Hijo#?init?($r2);
         if ($Exception != null) {
             return;
         }
         r3 := $r2;
         z0 := false;
         if (r1 != r3) {
-            goto examples.inheritance.Hijo#aliasParametro$examples.inheritance.Hijo_2;
+            goto examples.translation.inheritance.Hijo#aliasParametro$examples.translation.inheritance.Hijo_2;
         }
 
-        examples.inheritance.Hijo#aliasParametro$examples.inheritance.Hijo_1:
+        examples.translation.inheritance.Hijo#aliasParametro$examples.translation.inheritance.Hijo_1:
         assert false;
 
-        examples.inheritance.Hijo#aliasParametro$examples.inheritance.Hijo_2:
+        examples.translation.inheritance.Hijo#aliasParametro$examples.translation.inheritance.Hijo_2:
         return;
 
     }*/
@@ -318,7 +316,7 @@ public class Hijo extends Padre {
 
     /*
      //Program has potential bug: True bug
-    procedure examples.inheritance.Hijo#aliasParametro2$examples.inheritance.Padre($this : Ref, param00 : Ref)
+    procedure examples.translation.inheritance.Hijo#aliasParametro2$examples.translation.inheritance.Padre($this : Ref, param00 : Ref)
 {
     var r0 : Ref;
     var r1 : Ref;
@@ -330,24 +328,24 @@ public class Hijo extends Padre {
 
     r1 := param00;
 
-    examples.inheritance.Hijo#aliasParametro2$examples.inheritance.Padre_0:
+    examples.translation.inheritance.Hijo#aliasParametro2$examples.translation.inheritance.Padre_0:
         r0 := $this;
 
         call $r2 := Alloc();
-        call examples.inheritance.Hijo#?init?($r2);
+        call examples.translation.inheritance.Hijo#?init?($r2);
         if ($Exception != null) {
             return;
         }
         r3 := $r2;
         z0 := false;
         if (r1 != r3) {
-            goto examples.inheritance.Hijo#aliasParametro2$examples.inheritance.Padre_2;
+            goto examples.translation.inheritance.Hijo#aliasParametro2$examples.translation.inheritance.Padre_2;
         }
 
-    examples.inheritance.Hijo#aliasParametro2$examples.inheritance.Padre_1:
+    examples.translation.inheritance.Hijo#aliasParametro2$examples.translation.inheritance.Padre_1:
         assert false;
 
-    examples.inheritance.Hijo#aliasParametro2$examples.inheritance.Padre_2:
+    examples.translation.inheritance.Hijo#aliasParametro2$examples.translation.inheritance.Padre_2:
         return;
 
 }

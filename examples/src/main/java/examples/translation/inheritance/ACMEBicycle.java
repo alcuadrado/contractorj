@@ -1,4 +1,4 @@
-package examples.inheritance;
+package examples.translation.inheritance;
 
 // parece andar bien
 class ACMEBicycle implements Bicycle {

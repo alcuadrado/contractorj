@@ -1,4 +1,4 @@
-package examples.inheritance;
+package examples.translation.inheritance;
 
 public class Nieto extends Hijo {
 
@@ -6,16 +6,16 @@ public class Nieto extends Hijo {
         nieto.unMetodoSoloPadre();
     }
 
-    /*procedure examples.inheritance.Nieto.testeandoUnMetodoSoloPadre$examples.inheritance.Nieto(param00 : Ref)
+    /*procedure examples.translation.inheritance.Nieto.testeandoUnMetodoSoloPadre$examples.translation.inheritance.Nieto(param00 : Ref)
     {
         var r0 : Ref;
 
 
         r0 := param00;
 
-        examples.inheritance.Nieto.testeandoUnMetodoSoloPadre$examples.inheritance.Nieto_0:
+        examples.translation.inheritance.Nieto.testeandoUnMetodoSoloPadre$examples.translation.inheritance.Nieto_0:
 
-        call examples.inheritance.Padre#unMetodoSoloPadre(r0);
+        call examples.translation.inheritance.Padre#unMetodoSoloPadre(r0);
         if ($Exception != null) {
             return;
         }

@@ -1,4 +1,4 @@
-package examples;
+package examples.translation;
 
 // el assert se traduce como si fuese un objeto
 public class Assert {

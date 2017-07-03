@@ -1,4 +1,4 @@
-package examples;
+package examples.translation;
 
 public enum Enum {
     SUNDAY, MONDAY, TUESDAY, WEDNESDAY,

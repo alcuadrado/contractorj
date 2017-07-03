@@ -1,4 +1,4 @@
-package examples;
+package examples.translation;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -13,7 +13,7 @@ public class Cast {
 
         // java.lang.Integer.valueOf$int(..) esta modelada como extern
         /*
-        procedure examples.Cast#casteo_uno($this : Ref)
+        procedure examples.translation.Cast#casteo_uno($this : Ref)
         {
             var r0 : Ref;
             var r1 : Ref;
@@ -25,7 +25,7 @@ public class Cast {
 
 
 
-            examples.Cast#casteo_uno_0:
+            examples.translation.Cast#casteo_uno_0:
                 r0 := $this;
                 call r1 := java.lang.Integer.valueOf$int(3);
                 if ($Exception != null) {
@@ -63,7 +63,7 @@ public class Cast {
         ((Stack<HashSet>)ob).push(new HashSet());
 
         /*
-            procedure examples.Cast#casteo_tres$java.lang.Object($this : Ref, param00 : Ref)
+            procedure examples.translation.Cast#casteo_tres$java.lang.Object($this : Ref, param00 : Ref)
             {
                 var r0 : Ref;
                 var r1 : Ref;
@@ -76,7 +76,7 @@ public class Cast {
 
                 r1 := param00;
 
-                examples.Cast#casteo_tres$java.lang.Object_0:
+                examples.translation.Cast#casteo_tres$java.lang.Object_0:
                     r0 := $this;
 
                     $r2 := r1;

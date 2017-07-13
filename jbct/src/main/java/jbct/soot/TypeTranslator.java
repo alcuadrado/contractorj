@@ -1,14 +1,7 @@
 package jbct.soot;
 
 import jbct.exceptions.UnsupportedTypeException;
-import soot.ArrayType;
-import soot.BooleanType;
-import soot.ByteType;
-import soot.IntType;
-import soot.LongType;
-import soot.RefType;
-import soot.ShortType;
-import soot.Type;
+import soot.*;
 
 public class TypeTranslator {
 
@@ -17,12 +10,18 @@ public class TypeTranslator {
     if (type == IntType.v()
         || type == ShortType.v()
         || type == ByteType.v()
-        || type == LongType.v()) {
+        || type == LongType.v()
+        || type == CharType.v()) {
       return "int";
     }
 
     if (type == BooleanType.v()) {
       return "bool";
+    }
+
+    if (type ==  DoubleType.v()
+        || type == FloatType.v()){
+      return "Real";
     }
 
     if (type instanceof RefType) {

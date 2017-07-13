@@ -160,6 +160,12 @@ public class UnitTranslator extends AbstractStmtSwitch {
       return;
     }
 
+    if (translateType.equals("Real")){
+      translation.add(
+              "assume Union2Real(Real2Union(" + translatedValue + ")) == " + translatedValue + ";");
+      return;
+    }
+
     if (translateType.equals("Ref")) {
       //Do nothing
       return;
@@ -189,6 +195,10 @@ public class UnitTranslator extends AbstractStmtSwitch {
 
     if (translateType.equals("Ref")) {
       return translatedValue;
+    }
+
+    if (translateType.equals("Real")){
+      return "Real2Union(" + translatedValue + ")";
     }
 
     throw new UnsupportedOperationException("Can't transform type " + type + " to Union");

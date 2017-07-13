@@ -6,6 +6,8 @@ type Union = Ref;
 
 const unique null: Ref;
 
+type Real;
+
 var $Alloc: [Ref]bool;
 
 procedure {:inline 1} Alloc() returns (x: Ref);
@@ -43,6 +45,35 @@ procedure division(a : int, b : int) returns (r : int) {
     r := a div b;
 }
 
+function RealPlus(Real, Real) : Real;
+
+function RealMinus(Real, Real) : Real;
+
+function RealTimes(Real, Real) : Real;
+
+function RealDivide(Real, Real) : Real;
+
+function RealModulus(Real, Real) : Real;
+
+function RealLessThan(Real, Real) : bool;
+
+function RealLessThanOrEqual(Real, Real) : bool;
+
+function RealGreaterThan(Real, Real) : bool;
+
+function RealGreaterThanOrEqual(Real, Real) : bool;
+
+// this should work like the cmpl cmpg
+// the is used as if it was the result of r1-r2
+// the function is just used to be compared against 0
+// we need to axiom in some way that RealCompare(r1,r2) > 0 when r1 > r2 , etc.
+function RealCompare(r1: Real, r2: Real) : int;
+
+/*axiom (forall r1: Real, r2 :Real :: RealGreaterThan(r1, r2) ==>  RealCompare(r1,r2) > 0 );
+axiom (forall r1: Real, r2 :Real :: RealGreaterThanOrEqual(r1, r2) ==>  RealCompare(r1,r2) >= 0 );
+axiom (forall r1: Real, r2 :Real :: RealLessThan(r1, r2) ==>  RealCompare(r1,r2) < 0 );
+axiom (forall r1: Real, r2 :Real :: RealLessThanOrEqual(r1,r2) ==>  RealCompare(r1,r2) >= 0 );*/
+
 var $ArrayContents: [Ref][int]Union;
 
 function $ArrayLength(Ref) : int;
@@ -51,9 +82,17 @@ function Union2Bool(u: Union) : bool;
 
 function Union2Int(u: Union) : int;
 
+function Union2Real(u: Union) : Real;
+
 function Bool2Union(boolValue: bool) : Union;
 
 function Int2Union(intValue: int) : Union;
+
+function Real2Union(realValue: Real) : Union;
+
+function Int2Real(int) : Real;
+
+function Real2Int(Real) : int;
 
 // Array hardcoded methods
 

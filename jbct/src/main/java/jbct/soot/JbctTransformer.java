@@ -5,31 +5,14 @@ import com.google.common.io.Resources;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import jbct.exceptions.UnsupportedTypeException;
+import jbct.model.*;
 import jbct.model.Class;
-import jbct.model.InstanceField;
-import jbct.model.LocalMethod;
-import jbct.model.Method;
-import jbct.model.StaticField;
 import jbct.utils.StringUtils;
-import soot.Body;
-import soot.BodyTransformer;
-import soot.SootClass;
-import soot.SootMethod;
-import soot.Unit;
-import soot.jimple.InvokeExpr;
-import soot.jimple.JimpleBody;
-import soot.jimple.Stmt;
+import soot.*;
+import soot.jimple.*;
 
 public class JbctTransformer extends BodyTransformer {
 
@@ -48,7 +31,6 @@ public class JbctTransformer extends BodyTransformer {
 
   @Override
   protected void internalTransform(Body abstractBody, String phaseName, Map options) {
-
     final SootMethod sootMethod = abstractBody.getMethod();
     final SootClass sootClass = sootMethod.getDeclaringClass();
 
@@ -59,6 +41,7 @@ public class JbctTransformer extends BodyTransformer {
     methodsMap.put(sootMethod, method);
 
     findCalledMethods(((JimpleBody) abstractBody));
+    RealConstants.getInstance().findRealConstantsInMethods((JimpleBody) abstractBody);
   }
 
   private void findCalledMethods(JimpleBody jimpleBody) {
@@ -112,7 +95,7 @@ public class JbctTransformer extends BodyTransformer {
     final StringBuilder stringBuilder = new StringBuilder();
 
     stringBuilder.append(getPrelude());
-
+    stringBuilder.append(RealConstants.getInstance().realConstantDefinitions());
     final ArrayList<Class> classes = Lists.newArrayList(this.classes);
 
     classes.sort(Comparator.comparing(Class::getTranslatedName));

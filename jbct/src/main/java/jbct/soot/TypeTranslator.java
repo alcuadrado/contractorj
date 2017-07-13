@@ -19,6 +19,11 @@ public class TypeTranslator {
       return "bool";
     }
 
+    if (type ==  DoubleType.v()
+        || type == FloatType.v()){
+      return "Real";
+    }
+
     if (type instanceof RefType) {
       return "Ref";
     }

@@ -1,52 +1,17 @@
 package jbct.soot;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import java.util.ArrayList;
 import java.util.List;
+
+import jbct.model.*;
 import jbct.model.Class;
-import jbct.model.ExternalMethod;
-import jbct.model.InstanceField;
-import jbct.model.Method;
-import jbct.model.StaticField;
 import jbct.utils.StringUtils;
-import soot.BooleanType;
-import soot.Local;
-import soot.SootField;
-import soot.SootMethod;
-import soot.Value;
-import soot.jimple.AbstractJimpleValueSwitch;
-import soot.jimple.AddExpr;
-import soot.jimple.ArrayRef;
-import soot.jimple.BinopExpr;
-import soot.jimple.CastExpr;
-import soot.jimple.ClassConstant;
-import soot.jimple.CmpExpr;
-import soot.jimple.CmpgExpr;
-import soot.jimple.CmplExpr;
-import soot.jimple.DivExpr;
-import soot.jimple.DynamicInvokeExpr;
-import soot.jimple.EqExpr;
-import soot.jimple.GeExpr;
-import soot.jimple.GtExpr;
-import soot.jimple.InstanceFieldRef;
-import soot.jimple.InstanceInvokeExpr;
-import soot.jimple.IntConstant;
-import soot.jimple.InterfaceInvokeExpr;
-import soot.jimple.InvokeExpr;
-import soot.jimple.LeExpr;
-import soot.jimple.LengthExpr;
-import soot.jimple.LongConstant;
-import soot.jimple.LtExpr;
-import soot.jimple.MulExpr;
-import soot.jimple.NeExpr;
-import soot.jimple.NewExpr;
-import soot.jimple.NullConstant;
-import soot.jimple.SpecialInvokeExpr;
-import soot.jimple.StaticFieldRef;
-import soot.jimple.StaticInvokeExpr;
-import soot.jimple.StringConstant;
-import soot.jimple.SubExpr;
-import soot.jimple.VirtualInvokeExpr;
+import soot.*;
+import soot.jimple.*;
+import soot.jimple.internal.*;
+import soot.jimple.toolkits.infoflow.FakeJimpleLocal;
 
 public class ValueTranslator extends AbstractJimpleValueSwitch {
 
@@ -65,15 +30,50 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
   }
 
   @Override
+  public void caseDoubleConstant(DoubleConstant v) {
+    stringBuilder.append(RealConstants.getInstance().getRealConstantName(v));
+  }
+
+  @Override
   public void caseAddExpr(AddExpr v) {
 
-    v.getOp1().apply(this);
+    Value op1 = v.getOp1();
+    Value op2 = v.getOp2();
+
+    // int = double you're forced to cast the double to int
+    // double = int the cast is done at compile time.
+    if (TypeTranslator.translate(op1.getType()) == "Real" &&
+        TypeTranslator.translate(op1.getType()) == "Real" ){
+        stringBuilder.append("RealPlus(");
+        op1.apply(this);
+        stringBuilder.append(",");
+        op2.apply(this);
+        stringBuilder.append(")");
+        return;
+    }
+
+    op1.apply(this);
     stringBuilder.append(" + ");
-    v.getOp2().apply(this);
+    op2.apply(this);
   }
 
   @Override
   public void caseSubExpr(SubExpr v) {
+
+    Value op1 = v.getOp1();
+    Value op2 = v.getOp2();
+
+    // int = double you're forced to cast the double to int
+    // double = int the cast is done at compile time.
+    if (TypeTranslator.translate(op1.getType()) == "Real" &&
+            TypeTranslator.translate(op1.getType()) == "Real" ){
+      stringBuilder.append("RealMinus(");
+      op1.apply(this);
+      stringBuilder.append(",");
+      op2.apply(this);
+      stringBuilder.append(")");
+      return;
+    }
 
     v.getOp1().apply(this);
     stringBuilder.append(" - ");
@@ -83,6 +83,21 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
   @Override
   public void caseMulExpr(MulExpr v) {
 
+    Value op1 = v.getOp1();
+    Value op2 = v.getOp2();
+
+    // int = double you're forced to cast the double to int
+    // double = int the cast is done at compile time.
+    if (TypeTranslator.translate(op1.getType()) == "Real" &&
+            TypeTranslator.translate(op1.getType()) == "Real" ){
+      stringBuilder.append("RealTimes(");
+      op1.apply(this);
+      stringBuilder.append(",");
+      op2.apply(this);
+      stringBuilder.append(")");
+      return;
+    }
+
     v.getOp1().apply(this);
     stringBuilder.append(" * ");
     v.getOp2().apply(this);
@@ -90,6 +105,21 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
 
   @Override
   public void caseDivExpr(DivExpr v) {
+
+    Value op1 = v.getOp1();
+    Value op2 = v.getOp2();
+
+    // int = double you're forced to cast the double to int
+    // double = int the cast is done at compile time.
+    if (TypeTranslator.translate(op1.getType()) == "Real" &&
+            TypeTranslator.translate(op1.getType()) == "Real" ){
+      stringBuilder.append("RealDivide(");
+      op1.apply(this);
+      stringBuilder.append(",");
+      op2.apply(this);
+      stringBuilder.append(")");
+      return;
+    }
 
     stringBuilder.append("division(");
     v.getOp1().apply(this);
@@ -230,6 +260,12 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
       return;
     }
 
+    if (translatedType.equals("Real")) {
+      stringBuilder.append("Union2Real(").append(arrayContent).append(")");
+
+      return;
+    }
+
     if (translatedType.equals("Ref")) {
       stringBuilder.append(arrayContent);
       return;
@@ -270,6 +306,16 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
       return;
     }
 
+    if (translatedType.equals("Real")){
+      stringBuilder
+              .append("Union2Real(Read($Heap, ")
+              .append(refTranslation)
+              .append(", ")
+              .append(instanceField.getTranslatedName())
+              .append("))");
+      return;
+    }
+
     if (translatedType.equals("Ref")) {
 
       stringBuilder
@@ -296,6 +342,23 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
   @Override
   public void caseCastExpr(CastExpr v) {
 
+    String castType = TypeTranslator.translate(v.getCastType());
+    String opType = TypeTranslator.translate(v.getOp().getType());
+
+    if (castType == "Real" && opType == "int"){
+      stringBuilder.append("Int2Real(");
+      v.getOp().apply(this);
+      stringBuilder.append(")");
+      return;
+    }
+
+    if (castType == "int" && opType == "Real"){
+      stringBuilder.append("Real2Int(");
+      v.getOp().apply(this);
+      stringBuilder.append(")");
+      return;
+    }
+
     v.getOp().apply(this);
   }
 
@@ -303,6 +366,26 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
   public void defaultCase(Object v) {
 
     throw new UnsupportedOperationException("Unsupported value type " + v.getClass().getName());
+  }
+
+  @Override
+  public void caseRemExpr(RemExpr v) {
+    Value op1 = v.getOp1();
+    Value op2 = v.getOp2();
+
+    if (TypeTranslator.translate(op1.getType()) == "Real" || TypeTranslator.translate(op2.getType()) == "Real"){
+
+      stringBuilder.append("RealModulus(");
+      op1.apply(this);
+      stringBuilder.append(",");
+      op2.apply(this);
+      stringBuilder.append(")");
+
+    } else {
+      op1.apply(this);
+      stringBuilder.append(" mod ");
+      op2.apply(this);
+    }
   }
 
   @Override
@@ -377,14 +460,28 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
 
   @Override
   public void caseCmplExpr(CmplExpr v) {
-    translateValue(v);
+    translateCompare(v);
   }
 
   private void translateCompare(BinopExpr v) {
     final String op1 = translateValue(v.getOp1());
     final String op2 = translateValue(v.getOp2());
 
+    // this could be a double subtraction
+    if (TypeTranslator.translate(v.getOp1().getType()) == "Real"){
+
+      stringBuilder.append("RealCompare(");
+      stringBuilder.append(op1);
+      stringBuilder.append(",");
+      stringBuilder.append(op2);
+      stringBuilder.append(")");
+
+      return;
+    }
+
     stringBuilder.append("(").append(op1).append(" - ").append(op2).append(")");
+
+
   }
 
   public String getTranslation() {

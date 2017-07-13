@@ -1,4 +1,4 @@
-package examples;
+package examples.translation;
 
 public class BitTest {
     public void negationBit(int x){

@@ -74,6 +74,18 @@ axiom (forall r1: Real, r2 :Real :: RealGreaterThanOrEqual(r1, r2) ==>  RealComp
 axiom (forall r1: Real, r2 :Real :: RealLessThan(r1, r2) ==>  RealCompare(r1,r2) < 0 );
 axiom (forall r1: Real, r2 :Real :: RealLessThanOrEqual(r1,r2) ==>  RealCompare(r1,r2) >= 0 );*/
 
+function BitwiseAnd(int, int) : int;
+
+function BitwiseOr(int, int) : int;
+
+function BitwiseExclusiveOr(int, int) : int;
+
+//function BitwiseNegation(int) : int; this is handled by XOR op.
+
+function RightShift(int, int) : int;
+
+function LeftShift(int, int) : int;
+
 var $ArrayContents: [Ref][int]Union;
 
 function $ArrayLength(Ref) : int;

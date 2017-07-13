@@ -34,6 +34,78 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
     stringBuilder.append(RealConstants.getInstance().getRealConstantName(v));
   }
 
+  //function BitwiseAnd(int, int) : int; - listo
+  public void caseAndExpr(AndExpr v) {
+    Value op1 = v.getOp1();
+    Value op2 = v.getOp2();
+
+    stringBuilder.append("BitwiseAnd(");
+    op1.apply(this);
+    stringBuilder.append(",");
+    op2.apply(this);
+    stringBuilder.append(")");
+  }
+
+  //function BitwiseOr(int, int) : int; - listo
+  public void caseOrExpr(OrExpr v) {
+    Value op1 = v.getOp1();
+    Value op2 = v.getOp2();
+
+    stringBuilder.append("BitwiseOr(");
+    op1.apply(this);
+    stringBuilder.append(",");
+    op2.apply(this);
+    stringBuilder.append(")");
+  }
+
+  //function LeftShift(int, int) : int; listo
+  public void caseShlExpr(ShlExpr v) {
+    Value op1 = v.getOp1();
+    Value op2 = v.getOp2();
+
+    stringBuilder.append("RightShift(");
+    op1.apply(this);
+    stringBuilder.append(",");
+    op2.apply(this);
+    stringBuilder.append(")");
+  }
+
+  //function RightShift(int, int) : int; - listo
+  public void caseShrExpr(ShrExpr v) {
+    Value op1 = v.getOp1();
+    Value op2 = v.getOp2();
+
+    stringBuilder.append("RightShift(");
+    op1.apply(this);
+    stringBuilder.append(",");
+    op2.apply(this);
+    stringBuilder.append(")");
+  }
+
+  //function LeftShift(int, int) : int; listo
+  public void caseUshrExpr(UshrExpr v) {
+    Value op1 = v.getOp1();
+    Value op2 = v.getOp2();
+
+    stringBuilder.append("RightShift(");
+    op1.apply(this);
+    stringBuilder.append(",");
+    op2.apply(this);
+    stringBuilder.append(")");
+  }
+
+  //function BitwiseExclusiveOr(int, int) : int; - listo
+  public void caseXorExpr(XorExpr v) {
+    Value op1 = v.getOp1();
+    Value op2 = v.getOp2();
+
+    stringBuilder.append("BitwiseExclusiveOr(");
+    op1.apply(this);
+    stringBuilder.append(",");
+    op2.apply(this);
+    stringBuilder.append(")");
+  }
+
   @Override
   public void caseAddExpr(AddExpr v) {
 

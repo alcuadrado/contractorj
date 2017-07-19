@@ -31,7 +31,7 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
 
   @Override
   public void caseDoubleConstant(DoubleConstant v) {
-    stringBuilder.append(RealConstants.getInstance().getRealConstantName(v));
+    stringBuilder.append(RealConstants.getInstance().getRealConstantName(v.value));
   }
 
   //function BitwiseAnd(int, int) : int; - listo
@@ -434,6 +434,11 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
     v.getOp().apply(this);
   }
 
+  public void caseInstanceOfExpr(InstanceOfExpr v) {
+    stringBuilder.append("InstanceOfTemp()");
+  }
+
+
   @Override
   public void defaultCase(Object v) {
 
@@ -518,6 +523,12 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
   @Override
   public void caseLongConstant(LongConstant v) {
     stringBuilder.append(v.value);
+  }
+
+  @Override
+  public void caseFloatConstant(FloatConstant v) {
+    Double d = new Double(v.value);
+    stringBuilder.append(RealConstants.getInstance().getRealConstantName(d));
   }
 
   @Override

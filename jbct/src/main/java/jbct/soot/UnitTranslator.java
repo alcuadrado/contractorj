@@ -11,25 +11,7 @@ import soot.BooleanType;
 import soot.SootField;
 import soot.Type;
 import soot.Value;
-import soot.jimple.AbstractStmtSwitch;
-import soot.jimple.ArrayRef;
-import soot.jimple.AssignStmt;
-import soot.jimple.CaughtExceptionRef;
-import soot.jimple.DivExpr;
-import soot.jimple.GotoStmt;
-import soot.jimple.IdentityStmt;
-import soot.jimple.IfStmt;
-import soot.jimple.InstanceFieldRef;
-import soot.jimple.IntConstant;
-import soot.jimple.InvokeExpr;
-import soot.jimple.InvokeStmt;
-import soot.jimple.NewArrayExpr;
-import soot.jimple.NewExpr;
-import soot.jimple.ParameterRef;
-import soot.jimple.ReturnStmt;
-import soot.jimple.ReturnVoidStmt;
-import soot.jimple.ThisRef;
-import soot.jimple.ThrowStmt;
+import soot.jimple.*;
 
 public class UnitTranslator extends AbstractStmtSwitch {
 
@@ -69,8 +51,7 @@ public class UnitTranslator extends AbstractStmtSwitch {
     }
 
     final StringBuilder stringBuilder = new StringBuilder();
-
-    if (rightOp instanceof NewExpr || rightOp instanceof InvokeExpr || rightOp instanceof DivExpr) {
+    if (rightOp instanceof NewExpr || rightOp instanceof InvokeExpr || rightOp instanceof DivExpr || rightOp instanceof InstanceOfExpr) {
       stringBuilder.append("call ");
     }
 

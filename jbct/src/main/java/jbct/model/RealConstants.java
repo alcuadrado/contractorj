@@ -13,21 +13,30 @@ public class RealConstants {
         return ourInstance;
     }
 
-    private HashSet<RealConstant> realConstants;
+    private HashSet<Double> realConstants;
 
     private RealConstants() {
-       realConstants = new HashSet<RealConstant>();
+       realConstants = new HashSet<Double>();
     }
 
     private void addRealConstant(RealConstant c){
-        realConstants.add(c);
+
+        double value;
+        if (c instanceof FloatConstant)
+            value =  ((FloatConstant)c).value;
+        else if (c instanceof DoubleConstant)
+            value = ((DoubleConstant) c).value;
+        else
+            throw new RuntimeException("Not expected type");
+
+        realConstants.add(value);
     }
 
     // returns a string that has a declaration for each Real constant found in Java.
     public String realConstantDefinitions(){
         StringBuilder sb = new StringBuilder();
 
-        for (RealConstant rc : realConstants){
+        for (Double rc : realConstants){
             sb.append("const unique ");
             sb.append(getRealConstantName(rc));
             sb.append(" : Real;");
@@ -39,7 +48,7 @@ public class RealConstants {
 
     // this could be cached.
     // returns the name in boogie of a constant found in java
-    public String getRealConstantName(RealConstant c){
+    public String getRealConstantName(Double c){
 
         if (!realConstants.contains(c)){
             throw new RuntimeException("Asked for not found constant.");
@@ -49,15 +58,7 @@ public class RealConstants {
 
         sb.append("$real_literal_");
 
-        double value;
-        if (c instanceof DoubleConstant)
-            value = ((DoubleConstant) c).value;
-        else if (c instanceof FloatConstant)
-            value =  ((FloatConstant)c).value;
-        else
-            throw new RuntimeException("Not expected type");
-
-        String sValue = String.valueOf(value);
+        String sValue = String.valueOf(c);
 
         if (sValue.endsWith(".0"))
             sValue = sValue.replace(".0", "");

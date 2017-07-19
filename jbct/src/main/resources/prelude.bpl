@@ -106,6 +106,9 @@ function Int2Real(int) : Real;
 
 function Real2Int(Real) : int;
 
+// this is temporary until types are implemented
+procedure InstanceOfTemp() returns ($result: bool);
+
 // Array hardcoded methods
 
 procedure java.util.Arrays.copyOf$Ref$int(param00 : Ref, param01 : int) returns (r : Ref) {

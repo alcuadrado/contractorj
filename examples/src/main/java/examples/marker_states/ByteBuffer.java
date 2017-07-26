@@ -280,9 +280,6 @@ public abstract class ByteBuffer
     ByteBuffer(int mark, int pos, int lim, int cap) { // package-private
         this(mark, pos, lim, cap, null, 0);
     }
-
-
-
     /**
      * Allocates a new direct byte buffer.
      *
@@ -449,7 +446,11 @@ public abstract class ByteBuffer
 
 
 
+    public boolean inv() {
 
+        return ( markValue() == -1 && position() >= 0 && position() <= limit()  && limit() <= capacity()) ||
+                (0 <= markValue() && markValue() <= position() && position() <= limit() && limit() <= capacity());
+    }
 
 
 
@@ -661,6 +662,27 @@ public abstract class ByteBuffer
      *          If the preconditions on the <tt>offset</tt> and <tt>length</tt>
      *          parameters do not hold
      */
+
+    public boolean get_pre(){
+        // return remaining() >= 0; checked by inv()
+        return true;
+    }
+
+    public boolean get_pre(byte[] dst, int offset, int length){
+        return offset >= 0 && length >= 0 && (dst.length - (offset+length) >= 0);
+    }
+
+    /*static void checkBounds(int off, int len, int size) { // package-private
+        //if ((off | len | (off + len) | (size - (off + len))) < 0)
+        //    throw new IndexOutOfBoundsException();
+
+        if (off < 0 || len < 0 || (off+len) < 0 || (size - (off + len) < 0)){
+            throw new IndexOutOfBoundsException();
+        }
+    }*/
+
+
+
     public ByteBuffer get(byte[] dst, int offset, int length) {
         checkBounds(offset, length, dst.length);
         if (length > remaining())
@@ -687,6 +709,10 @@ public abstract class ByteBuffer
      *          If there are fewer than <tt>length</tt> bytes
      *          remaining in this buffer
      */
+    public boolean get_pre(byte[] dst){
+        return dst.length > 0;
+    }
+
     public ByteBuffer get(byte[] dst) {
         return get(dst, 0, dst.length);
     }
@@ -735,6 +761,13 @@ public abstract class ByteBuffer
      * @throws  ReadOnlyBufferException
      *          If this buffer is read-only
      */
+
+    public boolean put_pre(ByteBuffer src){
+        return src != this && src.remaining() >= 0;
+    }
+
+    // el PRE del state estaria cubierto por el invariante.
+
     public ByteBuffer put(ByteBuffer src) {
         if (src == this)
             throw new IllegalArgumentException();
@@ -796,6 +829,14 @@ public abstract class ByteBuffer
      * @throws  ReadOnlyBufferException
      *          If this buffer is read-only
      */
+
+    public boolean put_pre(byte[] src, int offset, int length) {
+        return offset >= 0 &&
+                length >= 0 &&
+                offset+ length >= 0 &&
+                (src.length - (offset + length)) >= 0;
+    }
+
     public ByteBuffer put(byte[] src, int offset, int length) {
         checkBounds(offset, length, src.length);
         if (length > remaining())
@@ -825,6 +866,12 @@ public abstract class ByteBuffer
      * @throws  ReadOnlyBufferException
      *          If this buffer is read-only
      */
+
+
+    public boolean put_pre(byte[] src) {
+        return src.length >= 0;
+    }
+
     public final ByteBuffer put(byte[] src) {
         return put(src, 0, src.length);
     }
@@ -951,6 +998,11 @@ public abstract class ByteBuffer
      * @throws  UnsupportedOperationException
      *          If this buffer is not backed by an accessible array
      */
+
+    public boolean array_pre(){
+        return hasArray();
+    }
+
     public final byte[] array() {
         if (hb == null)
             throw new UnsupportedOperationException();
@@ -979,6 +1031,11 @@ public abstract class ByteBuffer
      * @throws  UnsupportedOperationException
      *          If this buffer is not backed by an accessible array
      */
+
+    public boolean arrayOffset_pre(){
+        return hasArray();
+    }
+
     public final int arrayOffset() {
         if (hb == null)
             throw new UnsupportedOperationException();
@@ -2032,4 +2089,54 @@ public abstract class ByteBuffer
      */
     public abstract DoubleBuffer asDoubleBuffer();
 
+
+    // wrapers para métodos heredados
+
+    public int padre_capacity(){
+        return capacity();
+    }
+
+    public Buffer padre_clear(){
+        return clear();
+    }
+
+    public Buffer padre_flip(){
+        return flip();
+    }
+
+    public boolean padre_hasRemaining(){
+        return hasRemaining();
+    }
+
+    public int padre_limit(){
+        return limit();
+    }
+
+    public boolean padre_limit_pre(int newLimit){
+        return newLimit >= 0;
+    }
+
+    public Buffer padre_limit(int newLimit){
+        return limit(newLimit);
+    }
+
+    public Buffer padre_position(int newPosition){
+        return position(newPosition);
+    }
+
+    public int padre_remaining(){
+        return remaining();
+    }
+
+    public boolean padre_reset_pre(){
+        return markValue() >= 0;
+    }
+
+    public Buffer padre_reset(){
+        return reset();
+    }
+
+    public Buffer padre_rewind(){
+        return rewind();
+    }
 }

@@ -74,6 +74,9 @@ public class DebugLog {
 
       out.println("State: " + state.toString());
 
+      if (!stateMainActionMap.containsKey(state))
+        continue;
+
       for (Action action : stateMainActionMap.get(state).keySet()) {
 
         out.println();

@@ -308,6 +308,19 @@ public class UnitTranslator extends AbstractStmtSwitch {
     translation.add("}");
   }
 
+    @Override
+  public void caseEnterMonitorStmt(EnterMonitorStmt stmt){
+      Value v = stmt.getOp();
+      translateValue(v);
+
+  }
+
+    @Override
+    public void caseExitMonitorStmt(ExitMonitorStmt stmt){
+        Value v = stmt.getOp();
+        translateValue(v);
+    }
+
   @Override
   public void defaultCase(Object obj) {
 

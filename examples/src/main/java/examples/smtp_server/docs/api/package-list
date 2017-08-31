@@ -1,0 +1,7 @@
+com.ericdaugherty.mail.server
+com.ericdaugherty.mail.server.configuration
+com.ericdaugherty.mail.server.errors
+com.ericdaugherty.mail.server.info
+com.ericdaugherty.mail.server.services.general
+com.ericdaugherty.mail.server.services.pop3
+com.ericdaugherty.mail.server.services.smtp

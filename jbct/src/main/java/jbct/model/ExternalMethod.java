@@ -27,6 +27,11 @@ public class ExternalMethod extends Method {
           "java.util.ArrayList#clear",
           "java.util.Arrays.copyOf$Ref$int");
 
+  private Set<String> methodsWithHardcodedIntReturnType =
+          Sets.newHashSet(
+                  //"java.util.Map#size"
+          );
+
   private Set<String> methodsWithHardcodedBooleanReturnType =
       Sets.newHashSet(
           "java.util.Collection#remove$int",
@@ -41,6 +46,13 @@ public class ExternalMethod extends Method {
           "java.util.ArrayList#remove$int",
           "java.util.ArrayList#add$java.lang.Object",
           "java.util.ArrayList#remove$java.lang.Object");
+          //"java.util.Enumeration#hasMoreElements"*/);
+
+  private Set<String> methodsWithHardcodedRefReturnType =
+          Sets.newHashSet(//"java.util.Map#get$java.lang.Object",
+                 // "java.util.Enumeration#nextElement",
+                 // "java.util.Map#put$java.lang.Object$java.lang.Object"
+          );
 
   public ExternalMethod(Class theClass, SootMethod sootMethod) {
 
@@ -50,7 +62,9 @@ public class ExternalMethod extends Method {
   public boolean isHardCoded() {
     final String translatedName = getTranslatedName();
     return hardCodedMethodsTranslatedNames.contains(translatedName)
-        || methodsWithHardcodedBooleanReturnType.contains(translatedName);
+        || methodsWithHardcodedBooleanReturnType.contains(translatedName)
+        || methodsWithHardcodedRefReturnType.contains(translatedName)
+        || methodsWithHardcodedIntReturnType.contains(translatedName);
   }
 
   @Override

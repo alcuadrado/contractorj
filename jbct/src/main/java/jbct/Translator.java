@@ -49,6 +49,7 @@ public class Translator {
       final List<String> args =
           Lists.newArrayList(
               "-keep-line-number",
+                  "-allow-phantom-refs",
               "-cp",
               completeClassPath,
               "-f",

@@ -32,6 +32,10 @@ public class TypeTranslator {
       return "Ref";
     }
 
+    if (type instanceof NullType){
+      return "Ref";
+    }
+
     throw new UnsupportedTypeException(type);
   }
 }

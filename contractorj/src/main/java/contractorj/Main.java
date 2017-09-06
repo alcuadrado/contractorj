@@ -43,6 +43,8 @@ public class Main {
 
   private static int numberOfThreads = Runtime.getRuntime().availableProcessors();
 
+  public static boolean globalNecessaryQueriesEnable = false;
+
   public static void main(String[] args) throws IOException {
 
     parseArguments(args);
@@ -139,6 +141,11 @@ public class Main {
         new Option("m", "methods", true, "Comma separated names of the methods to analyze");
     options.addOption(methodsOption);
 
+    final Option globalQueries =
+            new Option("g", "globalNecessaryQueries", false, "Enable global necessary queries");
+    options.addOption(globalQueries);
+
+
     final CommandLineParser parser = new DefaultParser();
     final HelpFormatter formatter = new HelpFormatter();
 
@@ -160,6 +167,7 @@ public class Main {
     dotOutputFile = new File(cmd.getOptionValue("d"));
     xmlOutputFile = new File(cmd.getOptionValue("x"));
     logFile = new File(cmd.getOptionValue("l", "log"));
+    globalNecessaryQueriesEnable = cmd.hasOption("g");
 
     if (cmd.hasOption('t')) {
       numberOfThreads = Integer.valueOf(cmd.getOptionValue('t'));

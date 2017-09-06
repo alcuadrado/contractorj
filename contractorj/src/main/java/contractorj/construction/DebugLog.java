@@ -5,6 +5,8 @@ import contractorj.construction.queries.Answer;
 import contractorj.construction.queries.Query;
 import contractorj.construction.queries.invariant.ExceptionBreaksInvariantQuery;
 import contractorj.construction.queries.invariant.InvariantQuery;
+import contractorj.construction.queries.necessary_actions.GlobalNecessarilyDisabledActionQuery;
+import contractorj.construction.queries.necessary_actions.GlobalNecessarilyEnabledActionQuery;
 import contractorj.construction.queries.necessary_actions.NecessarilyEnabledActionQuery;
 import contractorj.construction.queries.necessary_actions.NecessaryActionQuery;
 import contractorj.construction.queries.transition.ThrowingTransitionQuery;
@@ -12,6 +14,8 @@ import contractorj.construction.queries.transition.TransitionQuery;
 import contractorj.model.Action;
 import contractorj.model.State;
 import contractorj.model.Transition;
+import jdk.nashorn.internal.objects.Global;
+
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,11 +30,19 @@ public class DebugLog {
 
   private final Map<State, HashMap<Action, StateActionInfo>> stateMainActionMap = new HashMap<>();
 
+  private final Map<State, HashMap<Action, StateActionInfo>> globalStatesMainActionMap = new HashMap<>();
+
   public void addInitialState(State state) {
     statesInOrder.add(state);
   }
 
   public synchronized void logQuery(Query query, RunnerResult runnerResult) {
+
+    if (query instanceof GlobalNecessarilyDisabledActionQuery ||
+            query instanceof GlobalNecessarilyEnabledActionQuery){
+        logGlobalNecessaryActionQuery((NecessaryActionQuery) query, runnerResult);
+        return;
+    }
 
     if (query instanceof NecessaryActionQuery) {
       logNecessaryActionQuery((NecessaryActionQuery) query, runnerResult);
@@ -65,6 +77,46 @@ public class DebugLog {
       throw new RuntimeException("Info logged for source state that wasn't enqueued");
     }
 
+    out.println("Global necessarily enabled/disabled queries: ");
+
+    out.println();
+    out.println();
+
+    // print global queries for optimization
+    globalStatesMainActionMap.forEach( (state, actionStateActionInfoMap)-> {
+      final Action mainAction = state.getEnabledActions().iterator().next(); // the only action that the state has
+      final StateActionInfo stateActionInfo = actionStateActionInfoMap.get(mainAction);
+
+      out.println("\tMain Action: " + mainAction.toString());
+
+      for (final Action testedAction : stateActionInfo.necessaryEnabledActions.keySet()) {
+
+        out.println("\t\tTested action: " + testedAction);
+
+        final QueryInfo enabledInfo = stateActionInfo.necessaryEnabledActions.get(testedAction);
+        final QueryInfo disabledInfo = stateActionInfo.necessaryDisabledActions.get(testedAction);
+
+        if (areInconsistent(enabledInfo, disabledInfo)) {
+          out.println("\t\t\tInconsistent");
+        }
+
+        out.println("\t\t\tEnabled:");
+
+        printQueryInfo("\t\t\t\t", out, enabledInfo);
+
+        out.println("\t\t\tDisabled:");
+
+        printQueryInfo("\t\t\t\t", out, disabledInfo);
+
+        out.println();
+      }
+
+    } );
+
+    out.println();
+    out.println();
+
+    out.println("Normal queries: ");
     for (final State state : statesInOrder) {
 
       out.println();
@@ -217,6 +269,27 @@ public class DebugLog {
 
     final QueryInfo queryInfo = getQueryInfo(query, runnerResult);
     final StateActionInfo stateActionInfo = getStateActionInfo(source, mainAction);
+
+    if (query instanceof NecessarilyEnabledActionQuery) {
+      stateActionInfo.necessaryEnabledActions.put(testedAction, queryInfo);
+    } else {
+      stateActionInfo.necessaryDisabledActions.put(testedAction, queryInfo);
+    }
+  }
+
+  private void  logGlobalNecessaryActionQuery(NecessaryActionQuery query, RunnerResult runnerResult) {
+
+    final State source = query.getSource();
+    final Action mainAction = query.getMainAction();
+    final Action testedAction = query.getTestedAction();
+
+    final QueryInfo queryInfo = getQueryInfo(query, runnerResult);
+
+    final HashMap<Action, StateActionInfo> actionToStateActionInfo = globalStatesMainActionMap.getOrDefault(source, new HashMap<Action, StateActionInfo>());
+    globalStatesMainActionMap.putIfAbsent(source, actionToStateActionInfo);
+
+    final StateActionInfo stateActionInfo = actionToStateActionInfo.getOrDefault(mainAction, new StateActionInfo());
+    actionToStateActionInfo.putIfAbsent(mainAction, stateActionInfo);
 
     if (query instanceof NecessarilyEnabledActionQuery) {
       stateActionInfo.necessaryEnabledActions.put(testedAction, queryInfo);

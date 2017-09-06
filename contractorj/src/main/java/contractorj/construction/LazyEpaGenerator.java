@@ -1,6 +1,7 @@
 package contractorj.construction;
 
 import com.google.common.collect.Sets;
+import contractorj.Main;
 import contractorj.construction.corral.CorralRunner;
 import contractorj.construction.corral.QueryResult;
 import contractorj.construction.corral.RunnerResult;
@@ -8,6 +9,8 @@ import contractorj.construction.queries.Answer;
 import contractorj.construction.queries.Query;
 import contractorj.construction.queries.invariant.ExceptionBreaksInvariantQuery;
 import contractorj.construction.queries.invariant.TransitionBreaksInvariantQuery;
+import contractorj.construction.queries.necessary_actions.GlobalNecessarilyDisabledActionQuery;
+import contractorj.construction.queries.necessary_actions.GlobalNecessarilyEnabledActionQuery;
 import contractorj.construction.queries.necessary_actions.NecessarilyDisabledActionQuery;
 import contractorj.construction.queries.necessary_actions.NecessarilyEnabledActionQuery;
 import contractorj.construction.queries.transition.NotThrowingTransitionQuery;
@@ -20,8 +23,7 @@ import contractorj.util.CombinationsGenerator;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -58,7 +60,11 @@ public class LazyEpaGenerator extends EpaGenerator {
     this.logFile = logFile;
   }
 
-   /*
+  Map<String, List<String>> dependencies_active = new Hashtable<String, List<String>>();
+  Map<String, List<String>> dependencies_disable = new Hashtable<String, List<String>>();
+
+
+  /*
    * Start the generation of a PEPA. The initial state has all constructors enabled.
    */
   @Override
@@ -80,6 +86,8 @@ public class LazyEpaGenerator extends EpaGenerator {
 
       epa = new Epa(theClass.getQualifiedJavaName(), initialState);
 
+      globalNecessaryQueries();
+
       debugLog.addInitialState(initialState);
       enqueueStateIfNecessary(initialState);
 
@@ -97,6 +105,76 @@ public class LazyEpaGenerator extends EpaGenerator {
     } finally {
       printLog();
     }
+  }
+
+  private void globalNecessaryQuery(Action mainAction, Action testedAction){
+      Set enabledActions = new HashSet();
+      enabledActions.add(mainAction);
+      Set disabledActions = new HashSet();
+
+      State state = new State(enabledActions, disabledActions);
+
+      GlobalNecessarilyEnabledActionQuery necessarilyEnabledActionQuery = new GlobalNecessarilyEnabledActionQuery(state, mainAction, testedAction, invariant);
+      GlobalNecessarilyDisabledActionQuery necessarilyDisabledActionQuery = new GlobalNecessarilyDisabledActionQuery(state, mainAction, testedAction, invariant);
+
+      Answer enabledAnswer = getAnswer(necessarilyEnabledActionQuery);
+      Answer disabledAnswer = getAnswer(necessarilyDisabledActionQuery);
+
+      if (enabledAnswer.equals(Answer.YES) && disabledAnswer.equals(Answer.YES)) {
+          System.err.println(
+                  "Inconsistent necessity of action "
+                          + testedAction
+                          + " in state "
+                          + state
+                          + " after "
+                          + mainAction);
+          System.exit(1);
+      }
+
+      if (enabledAnswer.equals(Answer.YES)){
+          List<String> enabledActionsList =  dependencies_active.get(mainAction.toString());
+          enabledActionsList.add(testedAction.toString());
+      }
+
+      if (disabledAnswer.equals(Answer.YES)){
+          List<String> disabledActionsList =  dependencies_disable.get(mainAction.toString());
+          disabledActionsList.add(testedAction.toString());
+
+      }
+  }
+  private void globalNecessaryQueries(){
+
+
+    for (Action a : actions){
+      List l1 = Collections.synchronizedList(new LinkedList());
+      List l2 = Collections.synchronizedList(new LinkedList());
+
+      dependencies_disable.put(a.toString(), l1);
+      dependencies_active.put(a.toString(),l2);
+    }
+     ExecutorService executor = Executors.newCachedThreadPool();
+
+    actions
+            .stream()
+            .forEach(
+                    mainAction ->
+                    {
+                            actions.stream().forEach(
+                                    testedAction -> {
+                                        executor.submit(() -> {globalNecessaryQuery(mainAction, testedAction);});
+                                    }
+                            );
+                    });
+
+      executor.shutdown();
+
+      try {
+
+          executor.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+      } catch (InterruptedException e) {
+          e.printStackTrace();
+      }
+
   }
 
   private void printLog() {
@@ -206,7 +284,7 @@ public class LazyEpaGenerator extends EpaGenerator {
                     epa.addTransition(transition);
 
                     if (enqueued) {
-                      debugLog.logEnqueuedTransition(transition);
+                       debugLog.logEnqueuedTransition(transition);
                     }
                   }
                 }));
@@ -339,35 +417,54 @@ public class LazyEpaGenerator extends EpaGenerator {
       final State state, final Action mainAction) {
 
     return actions
-        .parallelStream()
-        .map(
-            testedAction -> {
-              if (!testedAction.getStatePrecondition().isPresent()) {
-                return new NecessaryActionResult(testedAction, Answer.YES, Answer.NO);
-              }
+            .parallelStream()
+            .map(
+                    testedAction -> {
+                      if (!testedAction.getStatePrecondition().isPresent()) {
+                        return new NecessaryActionResult(testedAction, Answer.YES, Answer.NO);
+                      }
 
-              final NecessarilyEnabledActionQuery necessarilyEnabledActionQuery =
-                  new NecessarilyEnabledActionQuery(state, mainAction, testedAction, invariant);
-              final NecessarilyDisabledActionQuery necessarilyDisabledActionQuery =
-                  new NecessarilyDisabledActionQuery(state, mainAction, testedAction, invariant);
+                      NecessarilyEnabledActionQuery necessarilyEnabledActionQuery;
+                      NecessarilyDisabledActionQuery necessarilyDisabledActionQuery;
 
-              final Answer enabledAnswer = getAnswer(necessarilyEnabledActionQuery);
-              final Answer disabledAnswer = getAnswer(necessarilyDisabledActionQuery);
+                      Answer enabledAnswer = Answer.YES;
+                      Answer disabledAnswer = Answer.YES;
 
-              if (enabledAnswer.equals(Answer.YES) && disabledAnswer.equals(Answer.YES)) {
-                System.err.println(
-                    "Inconsistent necessity of action "
-                        + testedAction
-                        + " in state "
-                        + state
-                        + " after "
-                        + mainAction);
-                System.exit(1);
-              }
+                      if (Main.globalNecessaryQueriesEnable){
+                          if (dependencies_active.getOrDefault(mainAction.toString(), new LinkedList()).contains(testedAction.toString())){
+                              enabledAnswer = Answer.YES;
+                              disabledAnswer = Answer.NO;
+                          } else if (dependencies_disable.getOrDefault(mainAction.toString(), new LinkedList()).contains(testedAction.toString())){
+                              disabledAnswer = Answer.YES;
+                              enabledAnswer = Answer.NO;
+                          } else { // default case
+                              necessarilyEnabledActionQuery = new NecessarilyEnabledActionQuery(state, mainAction, testedAction, invariant);
+                              enabledAnswer = getAnswer(necessarilyEnabledActionQuery);
+                              necessarilyDisabledActionQuery = new NecessarilyDisabledActionQuery(state, mainAction, testedAction, invariant);
+                              disabledAnswer = getAnswer(necessarilyDisabledActionQuery);
+                          }
+                      } else { // defualt case
+                          necessarilyEnabledActionQuery = new NecessarilyEnabledActionQuery(state, mainAction, testedAction, invariant);
+                          enabledAnswer = getAnswer(necessarilyEnabledActionQuery);
+                          necessarilyDisabledActionQuery = new NecessarilyDisabledActionQuery(state, mainAction, testedAction, invariant);
+                          disabledAnswer = getAnswer(necessarilyDisabledActionQuery);
+                      }
 
-              return new NecessaryActionResult(testedAction, enabledAnswer, disabledAnswer);
-            })
-        .collect(Collectors.toSet());
+
+                      if (enabledAnswer.equals(Answer.YES) && disabledAnswer.equals(Answer.YES)) {
+                        System.err.println(
+                                "Inconsistent necessity of action "
+                                        + testedAction
+                                        + " in state "
+                                        + state
+                                        + " after "
+                                        + mainAction);
+                        System.exit(1);
+                      }
+
+                      return new NecessaryActionResult(testedAction, enabledAnswer, disabledAnswer);
+                    })
+            .collect(Collectors.toSet());
   }
 
   /**

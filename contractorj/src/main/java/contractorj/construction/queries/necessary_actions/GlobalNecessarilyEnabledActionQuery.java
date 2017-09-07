@@ -13,4 +13,9 @@ public class GlobalNecessarilyEnabledActionQuery extends NecessarilyEnabledActio
     public GlobalNecessarilyEnabledActionQuery(State source, Action mainAction, Action testedAction, Method invariant) {
         super(source, mainAction, testedAction, invariant);
     }
+
+    @Override
+    public String getName() {
+        return "global_" + super.getName();
+    }
 }

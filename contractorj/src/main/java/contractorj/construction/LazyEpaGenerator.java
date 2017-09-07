@@ -86,7 +86,8 @@ public class LazyEpaGenerator extends EpaGenerator {
 
       epa = new Epa(theClass.getQualifiedJavaName(), initialState);
 
-      globalNecessaryQueries();
+      if (Main.globalNecessaryQueriesEnable)
+        globalNecessaryQueries();
 
       debugLog.addInitialState(initialState);
       enqueueStateIfNecessary(initialState);

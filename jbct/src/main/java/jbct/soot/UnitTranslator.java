@@ -1,5 +1,6 @@
 package jbct.soot;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -12,6 +13,9 @@ import soot.SootField;
 import soot.Type;
 import soot.Value;
 import soot.jimple.*;
+import soot.jimple.internal.JEqExpr;
+import soot.jimple.internal.JGotoStmt;
+import soot.jimple.internal.JIfStmt;
 
 public class UnitTranslator extends AbstractStmtSwitch {
 
@@ -319,6 +323,27 @@ public class UnitTranslator extends AbstractStmtSwitch {
     public void caseExitMonitorStmt(ExitMonitorStmt stmt){
         Value v = stmt.getOp();
         translateValue(v);
+    }
+
+    @Override
+    public void caseLookupSwitchStmt(LookupSwitchStmt switchStmt){
+
+      Iterator lookupValuesIt = switchStmt.getLookupValues().iterator();
+      int i = 0;
+
+      while(lookupValuesIt.hasNext()){
+        Value lookupValue = (Value)lookupValuesIt.next();
+
+        JEqExpr equal = new JEqExpr(switchStmt.getKey(), lookupValue);
+        IfStmt ifStmt = new JIfStmt(equal, switchStmt.getTargetBox(i));
+
+        ifStmt.apply(this);
+
+        i++;
+      }
+
+      GotoStmt goStmt = new JGotoStmt(switchStmt.getDefaultTarget());
+      goStmt.apply(this);
     }
 
   @Override

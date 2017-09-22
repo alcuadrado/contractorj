@@ -132,7 +132,7 @@ public class JbctTransformer extends BodyTransformer {
     }
 
     for (String var : getStringConstantVars()) {
-      stringBuilder.append("\n").append("var ").append(var).append(" : Ref;").append("\n");
+      stringBuilder.append("\n").append("const unique ").append(var).append(" : Ref;").append("\n");
     }
 
     stringBuilder.append("\n").append(getGlobalInitializationProcedure()).append("\n");
@@ -153,13 +153,6 @@ public class JbctTransformer extends BodyTransformer {
         .append(StringUtils.indent("$Exception := null;"))
         .append("\n");
 
-    for (Class aClass : classes) {
-      stringBuilder
-          .append(StringUtils.indent("call "))
-          .append(aClass.getTranslatedName())
-          .append(" := Alloc();\n");
-    }
-
     for (Method method : getMethodsInOrder()) {
 
       if (method.isClassInitializer()) {
@@ -171,14 +164,6 @@ public class JbctTransformer extends BodyTransformer {
             .append(StringUtils.indent("assert $Exception == null;"))
             .append("\n");
       }
-    }
-
-    for (String var : getStringConstantVars()) {
-      stringBuilder
-          .append(StringUtils.indent("call "))
-          .append(var)
-          .append(" := Alloc();")
-          .append("\n");
     }
 
     stringBuilder.append("}");

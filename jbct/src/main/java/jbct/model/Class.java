@@ -113,6 +113,6 @@ public class Class {
 
   public String getTranslation() {
 
-    return "var " + getTranslatedName() + " : Ref;";
+    return "const unique " + getTranslatedName() + " : Ref;";
   }
 }

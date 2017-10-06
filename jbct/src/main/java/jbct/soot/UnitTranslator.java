@@ -8,10 +8,7 @@ import jbct.model.BasicBlock;
 import jbct.model.InstanceField;
 import jbct.model.LocalMethod;
 import jbct.utils.StringUtils;
-import soot.BooleanType;
-import soot.SootField;
-import soot.Type;
-import soot.Value;
+import soot.*;
 import soot.jimple.*;
 import soot.jimple.internal.JEqExpr;
 import soot.jimple.internal.JGotoStmt;
@@ -325,6 +322,7 @@ public class UnitTranslator extends AbstractStmtSwitch {
         translateValue(v);
     }
 
+
     @Override
     public void caseLookupSwitchStmt(LookupSwitchStmt switchStmt){
 
@@ -345,6 +343,20 @@ public class UnitTranslator extends AbstractStmtSwitch {
       GotoStmt goStmt = new JGotoStmt(switchStmt.getDefaultTarget());
       goStmt.apply(this);
     }
+
+    @Override
+    public void caseTableSwitchStmt(TableSwitchStmt table){
+
+      for (int i = 0; i < table.getTargets().size(); i++){
+        JEqExpr equal = new JEqExpr(table.getKey(), IntConstant.v(i));
+        IfStmt ifStmt = new JIfStmt(equal, table.getTargetBox(i));
+        ifStmt.apply(this);
+      }
+
+      GotoStmt goStmt = new JGotoStmt(table.getDefaultTarget());
+      goStmt.apply(this);
+    }
+
 
   @Override
   public void defaultCase(Object obj) {

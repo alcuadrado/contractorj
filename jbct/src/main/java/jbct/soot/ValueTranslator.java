@@ -1,6 +1,5 @@
 package jbct.soot;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,8 +9,6 @@ import jbct.model.Class;
 import jbct.utils.StringUtils;
 import soot.*;
 import soot.jimple.*;
-import soot.jimple.internal.*;
-import soot.jimple.toolkits.infoflow.FakeJimpleLocal;
 
 public class ValueTranslator extends AbstractJimpleValueSwitch {
 
@@ -483,10 +480,21 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
     final Method theMethod = Method.create(methodClass, v.getMethod());
 
     if (theMethod instanceof ExternalMethod) {
-      if (((ExternalMethod) theMethod).isHardCoded()) {
-        translateInvokeExpr(v);
+      ExternalMethod externalMethod = (ExternalMethod) theMethod;
+      if (externalMethod.isHardCoded()) {
+        translateInvokeExpr(v); // make boogie call
+        return;
+      } else{
+        ExternalMethod.addExternalMethodForDeclaration(externalMethod); // this method will be declared as non deterministic.
+        translateInvokeExpr(v); // make boogie call
         return;
       }
+    }
+
+    if (theMethod instanceof AbstractMethod){
+      // this code is a workaround for dynamic dispatch.
+      translateInvokeExpr(v);
+      return;
     }
 
     super.caseInterfaceInvokeExpr(v);
@@ -506,11 +514,28 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
       translatedArgumentsList.add(translateValue(instance));
     }
 
+    final SootMethod sootMethod = invokeExpr.getMethod();
+
+    // workaround: 1 or 0 if argument type is boolean must be translated to true or false.
+    int paramIdx = 0;
     for (final Value argument : invokeExpr.getArgs()) {
-      translatedArgumentsList.add(translateValue(argument));
+
+      String valueTranslated = translateValue(argument);
+
+      if (sootMethod.getParameterCount() > 0 &&
+          sootMethod.getParameterType(paramIdx).toString().contentEquals("boolean") &&
+          argument.getType().toString().contentEquals("int")){
+
+          if (valueTranslated.contentEquals("1"))
+            translatedArgumentsList.add("true");
+          else if (valueTranslated.contentEquals("0"))
+            translatedArgumentsList.add("false");
+      } else
+          translatedArgumentsList.add(valueTranslated);
+
+      paramIdx++;
     }
 
-    final SootMethod sootMethod = invokeExpr.getMethod();
     final Method calledMethod = JbctTransformer.getInstance().getMethod(sootMethod);
 
     stringBuilder

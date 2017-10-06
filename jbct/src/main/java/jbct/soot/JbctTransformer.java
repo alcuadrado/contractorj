@@ -30,7 +30,14 @@ public class JbctTransformer extends BodyTransformer {
   private final Map<SootMethod, Method> methodsMap = new HashMap<>();
 
   private boolean skippedMethods(SootMethod sootMethod){
-    if (sootMethod.getDeclaration().contentEquals("public volatile java.lang.Object array()") )
+
+    // workaround for socket example
+    if (sootMethod.getDeclaration().contentEquals("public volatile java.lang.Object run() throws java.lang.Exception") &&
+            sootMethod.getDeclaringClass().getName().contentEquals("java.net.InetAddress$2")  )
+      return true;
+
+    // workaround: there are methods translated by soot with volatile keyword. AFAIK that's wrong syntax.
+    if (sootMethod.getDeclaration().contains("volatile"))
       return true;
 
     return false;
@@ -44,7 +51,6 @@ public class JbctTransformer extends BodyTransformer {
       return;
 
     final SootClass sootClass = sootMethod.getDeclaringClass();
-
     final Class theClass = Class.create(sootClass);
     final Method method = Method.create(theClass, sootMethod);
 
@@ -110,6 +116,8 @@ public class JbctTransformer extends BodyTransformer {
     final StringBuilder stringBuilder = new StringBuilder();
 
     stringBuilder.append(getPrelude());
+
+    ExternalMethod.writeExternalMethodDeclarations(stringBuilder);
     stringBuilder.append(RealConstants.getInstance().realConstantDefinitions());
     final ArrayList<Class> classes = Lists.newArrayList(this.classes);
 
@@ -132,7 +140,7 @@ public class JbctTransformer extends BodyTransformer {
     }
 
     for (String var : getStringConstantVars()) {
-      stringBuilder.append("\n").append("var ").append(var).append(" : Ref;").append("\n");
+      stringBuilder.append("\n").append("const unique ").append(var).append(" : Ref;").append("\n");
     }
 
     stringBuilder.append("\n").append(getGlobalInitializationProcedure()).append("\n");
@@ -153,13 +161,6 @@ public class JbctTransformer extends BodyTransformer {
         .append(StringUtils.indent("$Exception := null;"))
         .append("\n");
 
-    for (Class aClass : classes) {
-      stringBuilder
-          .append(StringUtils.indent("call "))
-          .append(aClass.getTranslatedName())
-          .append(" := Alloc();\n");
-    }
-
     for (Method method : getMethodsInOrder()) {
 
       if (method.isClassInitializer()) {
@@ -171,14 +172,6 @@ public class JbctTransformer extends BodyTransformer {
             .append(StringUtils.indent("assert $Exception == null;"))
             .append("\n");
       }
-    }
-
-    for (String var : getStringConstantVars()) {
-      stringBuilder
-          .append(StringUtils.indent("call "))
-          .append(var)
-          .append(" := Alloc();")
-          .append("\n");
     }
 
     stringBuilder.append("}");

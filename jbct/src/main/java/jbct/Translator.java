@@ -1,9 +1,8 @@
 package jbct;
 
 import com.google.common.collect.Lists;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.PrintStream;
+
+import java.io.*;
 import java.util.List;
 import java.util.Optional;
 import jbct.model.Class;
@@ -49,6 +48,8 @@ public class Translator {
       final List<String> args =
           Lists.newArrayList(
               "-keep-line-number",
+                  "-i", // added for socket
+                  "java.net", // added for socket
                   "-allow-phantom-refs",
               "-cp",
               completeClassPath,

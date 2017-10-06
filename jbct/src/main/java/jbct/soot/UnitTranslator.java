@@ -357,20 +357,6 @@ public class UnitTranslator extends AbstractStmtSwitch {
       goStmt.apply(this);
     }
 
-    @Override
-    public void caseTableSwitchStmt(TableSwitchStmt table){
-
-      for (int i = 0; i < table.getTargets().size(); i++){
-        JEqExpr equal = new JEqExpr(table.getKey(), IntConstant.v(i));
-        IfStmt ifStmt = new JIfStmt(equal, table.getTargetBox(i));
-        ifStmt.apply(this);
-      }
-
-      GotoStmt goStmt = new JGotoStmt(table.getDefaultTarget());
-      goStmt.apply(this);
-    }
-
-
   @Override
   public void defaultCase(Object obj) {
 

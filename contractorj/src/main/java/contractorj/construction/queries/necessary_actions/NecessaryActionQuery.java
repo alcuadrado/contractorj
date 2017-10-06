@@ -66,7 +66,7 @@ public abstract class NecessaryActionQuery extends Query {
 
     return getStatePreconditionCall(testedAction).map(s -> s + "\n" + "\n" + "\n").orElse("")
         + "query_assertion_1:\n"
-        + getInvariantAssertion()
+        + getInvariantAssumption() // if we assert we can potentially have smaller A+ and A- sets. The transition query asserts that inv() holds true after all
         + "\n"
         + "\n"
         + "\n"

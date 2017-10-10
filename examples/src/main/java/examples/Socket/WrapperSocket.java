@@ -35,6 +35,42 @@ import java.security.PrivilegedExceptionAction;
 // As far as I know the Socket class contains code for different java versions
 // using this invariant I can force the use of the latest version.
 
+// WORKAROUND: the following constant were added to the boogie prelude due to jbct limitations.
+// Those are static variables from classes that are not parsed. If they are not parsed by jbct, they are not declared.
+
+/*
+// Socket example - these variables are used in java.net package
+const unique sun.security.util.SecurityConstants.GET_PROXYSELECTOR_PERMISSION : Ref;
+const unique sun.security.util.SecurityConstants.SET_PROXYSELECTOR_PERMISSION : Ref;
+const unique java.nio.charset.CodingErrorAction.REPLACE : Ref;
+const unique java.text.Normalizer$Form.NFC : Ref;
+const unique sun.security.util.SecurityConstants.SPECIFY_HANDLER_PERMISSION : Ref;
+const unique sun.security.util.SecurityConstants.ALL_PERMISSION : Ref;
+*/
+
+// WORKAROUND:
+// class initialization of Inet6Address (not instance constructor) is not called due to limitations in jbct and was not needed for this epa.
+// isClassInitializer() from LocalMethod was modified.
+
+
+// External method not harcoded (considered no deterministic)
+/*
+    ExternalMethod<java.util.Enumeration#hasMoreElements>
+    ExternalMethod<java.util.Enumeration#nextElement>
+    ExternalMethod<java.util.Iterator#hasNext>
+    ExternalMethod<java.util.Iterator#next>
+    ExternalMethod<sun.net.spi.nameservice.NameServiceDescriptor#getType>
+    ExternalMethod<sun.net.spi.nameservice.NameServiceDescriptor#getProviderName>
+    ExternalMethod<sun.net.spi.nameservice.NameServiceDescriptor#createNameService>
+    ExternalMethod<java.util.Set#iterator>
+    ExternalMethod<java.util.List#iterator>
+    ExternalMethod<sun.net.spi.nameservice.NameService#lookupAllHostAddr$java.lang.String>
+    ExternalMethod<sun.net.spi.nameservice.NameService#getHostByAddr$Ref>
+    ExternalMethod<java.util.List#add$int$java.lang.Object>
+    ExternalMethod<java.util.List#get$int>
+    ExternalMethod<java.util.List#addAll$java.util.Collection>
+ */
+
 public class WrapperSocket extends Socket {
 
     // ****************** CONSTRUCTORES ************************

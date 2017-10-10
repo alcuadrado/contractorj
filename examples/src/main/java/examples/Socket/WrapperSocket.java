@@ -8,10 +8,32 @@ import java.security.AccessController;
 import java.security.PrivilegedExceptionAction;
 
 // README!!
+
 // socket_lib contains files which must be found before the files in the default JDK
-// File -> Project Structure -> examples_main -> Dependencies
+// File -> Project Structure -> examples_main -> Dependencies (IntelliJ)
 // move priority of socket lib over jdk
-// AFAIK I can't do this in gradle.
+// AFAIK cannot be done in gradle.
+
+// for soot we added the following parameters:
+//                  "-i","java.net" (Translator.java jbct)
+
+//  the set of application classes includes the referenced Java runtime classes in packages whose names start with java.net
+
+// Using soot all access level of several classes (including its members and functions) were changed to public. The classes are the ones in socket_lib folder.
+// In this way we made easier to build the epa for socket using inheritance.
+// for shutdownInput/getInputStream (similar to output) we take advantage of the modified access levels in order to make explicit a virutal call.
+
+// There are many commented procedures that were not considered in previous epa of this class
+// However they can be uncommented and be used to make a full epa of this class.
+
+// note about the invariant:
+//        if (impl == null)
+//            return false;
+//        if (oldImpl == true)
+//           return false;
+
+// As far as I know the Socket class contains code for different java versions
+// using this invariant I can force the use of the latest version.
 
 public class WrapperSocket extends Socket {
 

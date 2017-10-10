@@ -4,13 +4,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.*;
-import java.nio.channels.SocketChannel;
 import java.security.AccessController;
 import java.security.PrivilegedExceptionAction;
 
-/**
- * Created by Usuario on 14/09/2017.
- */
+// README!!
+// socket_lib contains files which must be found before the files in the default JDK
+// File -> Project Structure -> examples_main -> Dependencies
+// move priority of socket lib over jdk
+// AFAIK I can't do this in gradle.
+
 public class WrapperSocket extends Socket {
 
     // ****************** CONSTRUCTORES ************************

@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-public class State {
+public class State implements Comparable<State> {
 
   private final Set<Action> enabledActions;
 
@@ -86,6 +86,21 @@ public class State {
         + ", disabledActions="
         + Joiner.on(", ").join(getDisabledActions())
         + '}';
+  }
+
+  public String getStateName() {
+
+    State state = this;
+      if (state.equals(State.ERROR)) {
+        return "ERROR";
+      }
+
+      return state
+              .getEnabledActions()
+              .stream()
+              .map(action -> action.getMethod().getJavaNameWithArgumentTypes()).sorted()
+              .reduce((s1, s2) -> s1 + "$" + s2)
+              .orElse("");
   }
 
   public Set<Action> getEnabledActions() {

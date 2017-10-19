@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-public class State implements Comparable<State> {
+public class State {
 
   private final Set<Action> enabledActions;
 

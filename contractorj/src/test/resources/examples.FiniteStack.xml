@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<abstraction initial_state="FiniteStack()$FiniteStack(int)" input_format="code-with-pre-methods" name="examples.FiniteStack">
+    <label name="FiniteStack()"/>
+    <label name="FiniteStack(int)"/>
+    <label name="Pop()"/>
+    <label name="Push()"/>
+    <state name="Push()">
+        <enabled_label name="Push()"/>
+        <transition destination="Pop()$Push()" exitCode="Ok" label="Push()" uncertain="false" violates_invariant="false"/>
+    </state>
+    <state name="Pop()$Push()">
+        <enabled_label name="Pop()"/>
+        <enabled_label name="Push()"/>
+        <transition destination="Pop()$Push()" exitCode="Ok" label="Push()" uncertain="false" violates_invariant="false"/>
+        <transition destination="Pop()" exitCode="Ok" label="Push()" uncertain="false" violates_invariant="false"/>
+        <transition destination="Push()" exitCode="Ok" label="Pop()" uncertain="false" violates_invariant="false"/>
+        <transition destination="Pop()$Push()" exitCode="Ok" label="Pop()" uncertain="false" violates_invariant="false"/>
+    </state>
+    <state name="Pop()">
+        <enabled_label name="Pop()"/>
+        <transition destination="Pop()$Push()" exitCode="Ok" label="Pop()" uncertain="false" violates_invariant="false"/>
+    </state>
+    <state name="FiniteStack()$FiniteStack(int)">
+        <enabled_label name="FiniteStack()"/>
+        <enabled_label name="FiniteStack(int)"/>
+        <transition destination="Push()" exitCode="Ok" label="FiniteStack(int)" uncertain="false" violates_invariant="false"/>
+        <transition destination="Push()" exitCode="Ok" label="FiniteStack()" uncertain="false" violates_invariant="false"/>
+    </state>
+</abstraction>

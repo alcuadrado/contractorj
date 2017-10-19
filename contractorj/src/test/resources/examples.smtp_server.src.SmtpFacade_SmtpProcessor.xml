@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<abstraction initial_state="SmtpFacade_SmtpProcessor()" input_format="code-with-pre-methods" name="examples.smtp_server.src.SmtpFacade_SmtpProcessor">
+    <label name="DATA(java.lang.String)"/>
+    <label name="HELO(java.lang.String)"/>
+    <label name="MAIL_FROM(java.lang.String)"/>
+    <label name="NOOP(java.lang.String)"/>
+    <label name="QUIT(java.lang.String)"/>
+    <label name="RCPT_TO(java.lang.String)"/>
+    <label name="RSET(java.lang.String)"/>
+    <label name="SmtpFacade_SmtpProcessor()"/>
+    <state name="SmtpFacade_SmtpProcessor()">
+        <enabled_label name="SmtpFacade_SmtpProcessor()"/>
+        <transition destination="HELO(java.lang.String)$MAIL_FROM(java.lang.String)$NOOP(java.lang.String)$QUIT(java.lang.String)$RSET(java.lang.String)" exitCode="Ok" label="SmtpFacade_SmtpProcessor()" uncertain="false" violates_invariant="false"/>
+    </state>
+    <state name="HELO(java.lang.String)$NOOP(java.lang.String)$QUIT(java.lang.String)$RCPT_TO(java.lang.String)$RSET(java.lang.String)">
+        <enabled_label name="HELO(java.lang.String)"/>
+        <enabled_label name="NOOP(java.lang.String)"/>
+        <enabled_label name="QUIT(java.lang.String)"/>
+        <enabled_label name="RCPT_TO(java.lang.String)"/>
+        <enabled_label name="RSET(java.lang.String)"/>
+        <transition destination="HELO(java.lang.String)$MAIL_FROM(java.lang.String)$NOOP(java.lang.String)$QUIT(java.lang.String)$RSET(java.lang.String)" exitCode="Ok" label="RSET(java.lang.String)" uncertain="false" violates_invariant="false"/>
+        <transition destination="HELO(java.lang.String)$NOOP(java.lang.String)$QUIT(java.lang.String)$RCPT_TO(java.lang.String)$RSET(java.lang.String)" exitCode="Ok" label="RCPT_TO(java.lang.String)" uncertain="false" violates_invariant="false"/>
+        <transition destination="DATA(java.lang.String)$HELO(java.lang.String)$NOOP(java.lang.String)$QUIT(java.lang.String)$RCPT_TO(java.lang.String)$RSET(java.lang.String)" exitCode="Ok" label="RCPT_TO(java.lang.String)" uncertain="false" violates_invariant="false"/>
+        <transition destination="" exitCode="Exception" label="QUIT(java.lang.String)" uncertain="false" violates_invariant="false"/>
+        <transition destination="HELO(java.lang.String)$NOOP(java.lang.String)$QUIT(java.lang.String)$RCPT_TO(java.lang.String)$RSET(java.lang.String)" exitCode="Ok" label="NOOP(java.lang.String)" uncertain="false" violates_invariant="false"/>
+        <transition destination="HELO(java.lang.String)$MAIL_FROM(java.lang.String)$NOOP(java.lang.String)$QUIT(java.lang.String)$RSET(java.lang.String)" exitCode="Ok" label="HELO(java.lang.String)" uncertain="false" violates_invariant="false"/>
+    </state>
+    <state name="HELO(java.lang.String)$MAIL_FROM(java.lang.String)$NOOP(java.lang.String)$QUIT(java.lang.String)$RSET(java.lang.String)">
+        <enabled_label name="HELO(java.lang.String)"/>
+        <enabled_label name="MAIL_FROM(java.lang.String)"/>
+        <enabled_label name="NOOP(java.lang.String)"/>
+        <enabled_label name="QUIT(java.lang.String)"/>
+        <enabled_label name="RSET(java.lang.String)"/>
+        <transition destination="HELO(java.lang.String)$MAIL_FROM(java.lang.String)$NOOP(java.lang.String)$QUIT(java.lang.String)$RSET(java.lang.String)" exitCode="Ok" label="RSET(java.lang.String)" uncertain="false" violates_invariant="false"/>
+        <transition destination="" exitCode="Exception" label="QUIT(java.lang.String)" uncertain="false" violates_invariant="false"/>
+        <transition destination="HELO(java.lang.String)$MAIL_FROM(java.lang.String)$NOOP(java.lang.String)$QUIT(java.lang.String)$RSET(java.lang.String)" exitCode="Ok" label="NOOP(java.lang.String)" uncertain="false" violates_invariant="false"/>
+        <transition destination="HELO(java.lang.String)$NOOP(java.lang.String)$QUIT(java.lang.String)$RCPT_TO(java.lang.String)$RSET(java.lang.String)" exitCode="Ok" label="MAIL_FROM(java.lang.String)" uncertain="false" violates_invariant="false"/>
+        <transition destination="HELO(java.lang.String)$MAIL_FROM(java.lang.String)$NOOP(java.lang.String)$QUIT(java.lang.String)$RSET(java.lang.String)" exitCode="Ok" label="MAIL_FROM(java.lang.String)" uncertain="false" violates_invariant="false"/>
+        <transition destination="HELO(java.lang.String)$MAIL_FROM(java.lang.String)$NOOP(java.lang.String)$QUIT(java.lang.String)$RSET(java.lang.String)" exitCode="Ok" label="HELO(java.lang.String)" uncertain="false" violates_invariant="false"/>
+    </state>
+    <state name="DATA(java.lang.String)$HELO(java.lang.String)$NOOP(java.lang.String)$QUIT(java.lang.String)$RCPT_TO(java.lang.String)$RSET(java.lang.String)">
+        <enabled_label name="DATA(java.lang.String)"/>
+        <enabled_label name="HELO(java.lang.String)"/>
+        <enabled_label name="NOOP(java.lang.String)"/>
+        <enabled_label name="QUIT(java.lang.String)"/>
+        <enabled_label name="RCPT_TO(java.lang.String)"/>
+        <enabled_label name="RSET(java.lang.String)"/>
+        <transition destination="HELO(java.lang.String)$MAIL_FROM(java.lang.String)$NOOP(java.lang.String)$QUIT(java.lang.String)$RSET(java.lang.String)" exitCode="Ok" label="RSET(java.lang.String)" uncertain="false" violates_invariant="false"/>
+        <transition destination="DATA(java.lang.String)$HELO(java.lang.String)$NOOP(java.lang.String)$QUIT(java.lang.String)$RCPT_TO(java.lang.String)$RSET(java.lang.String)" exitCode="Ok" label="RCPT_TO(java.lang.String)" uncertain="false" violates_invariant="false"/>
+        <transition destination="" exitCode="Exception" label="QUIT(java.lang.String)" uncertain="false" violates_invariant="false"/>
+        <transition destination="DATA(java.lang.String)$HELO(java.lang.String)$NOOP(java.lang.String)$QUIT(java.lang.String)$RCPT_TO(java.lang.String)$RSET(java.lang.String)" exitCode="Ok" label="NOOP(java.lang.String)" uncertain="false" violates_invariant="false"/>
+        <transition destination="HELO(java.lang.String)$MAIL_FROM(java.lang.String)$NOOP(java.lang.String)$QUIT(java.lang.String)$RSET(java.lang.String)" exitCode="Ok" label="HELO(java.lang.String)" uncertain="false" violates_invariant="false"/>
+        <transition destination="HELO(java.lang.String)$MAIL_FROM(java.lang.String)$NOOP(java.lang.String)$QUIT(java.lang.String)$RSET(java.lang.String)" exitCode="Ok" label="DATA(java.lang.String)" uncertain="false" violates_invariant="false"/>
+        <transition destination="DATA(java.lang.String)$HELO(java.lang.String)$NOOP(java.lang.String)$QUIT(java.lang.String)$RCPT_TO(java.lang.String)$RSET(java.lang.String)" exitCode="Ok" label="DATA(java.lang.String)" uncertain="false" violates_invariant="false"/>
+        <transition destination="DATA(java.lang.String)$HELO(java.lang.String)$NOOP(java.lang.String)$QUIT(java.lang.String)$RCPT_TO(java.lang.String)$RSET(java.lang.String)" exitCode="Exception" label="DATA(java.lang.String)" uncertain="false" violates_invariant="false"/>
+    </state>
+    <state name=""/>
+</abstraction>

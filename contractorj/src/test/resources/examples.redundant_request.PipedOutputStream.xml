@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<abstraction initial_state="PipedOutputStream()$PipedOutputStream(examples.redundant_request.PipedInputStream)" input_format="code-with-pre-methods" name="examples.redundant_request.PipedOutputStream">
+    <label name="PipedOutputStream()"/>
+    <label name="PipedOutputStream(examples.redundant_request.PipedInputStream)"/>
+    <label name="close()"/>
+    <label name="connect(examples.redundant_request.PipedInputStream)"/>
+    <label name="flush()"/>
+    <label name="write(byte[], int, int)"/>
+    <label name="write(int)"/>
+    <state name="close()$flush()$write(byte[], int, int)$write(int)">
+        <enabled_label name="close()"/>
+        <enabled_label name="flush()"/>
+        <enabled_label name="write(byte[], int, int)"/>
+        <enabled_label name="write(int)"/>
+        <transition destination="close()$flush()$write(byte[], int, int)$write(int)" exitCode="Ok" label="write(int)" uncertain="false" violates_invariant="false"/>
+        <transition destination="close()$flush()$write(byte[], int, int)$write(int)" exitCode="Ok" label="write(byte[], int, int)" uncertain="false" violates_invariant="false"/>
+        <transition destination="close()$flush()$write(byte[], int, int)$write(int)" exitCode="Ok" label="flush()" uncertain="false" violates_invariant="false"/>
+        <transition destination="close()$flush()" exitCode="Ok" label="close()" uncertain="false" violates_invariant="false"/>
+    </state>
+    <state name="close()$flush()">
+        <enabled_label name="close()"/>
+        <enabled_label name="flush()"/>
+        <transition destination="close()$flush()" exitCode="Ok" label="flush()" uncertain="false" violates_invariant="false"/>
+        <transition destination="close()$flush()" exitCode="Ok" label="close()" uncertain="false" violates_invariant="false"/>
+    </state>
+    <state name="close()$connect(examples.redundant_request.PipedInputStream)$flush()">
+        <enabled_label name="close()"/>
+        <enabled_label name="connect(examples.redundant_request.PipedInputStream)"/>
+        <enabled_label name="flush()"/>
+        <transition destination="close()$connect(examples.redundant_request.PipedInputStream)$flush()" exitCode="Ok" label="flush()" uncertain="false" violates_invariant="false"/>
+        <transition destination="close()$flush()$write(byte[], int, int)$write(int)" exitCode="Ok" label="connect(examples.redundant_request.PipedInputStream)" uncertain="false" violates_invariant="false"/>
+        <transition destination="close()$flush()" exitCode="Ok" label="connect(examples.redundant_request.PipedInputStream)" uncertain="false" violates_invariant="false"/>
+        <transition destination="ERROR" exitCode="Ok" label="connect(examples.redundant_request.PipedInputStream)" uncertain="false" violates_invariant="true"/>
+        <transition destination="close()$connect(examples.redundant_request.PipedInputStream)$flush()" exitCode="Ok" label="close()" uncertain="false" violates_invariant="false"/>
+    </state>
+    <state name="PipedOutputStream()$PipedOutputStream(examples.redundant_request.PipedInputStream)">
+        <enabled_label name="PipedOutputStream()"/>
+        <enabled_label name="PipedOutputStream(examples.redundant_request.PipedInputStream)"/>
+        <transition destination="close()$flush()$write(byte[], int, int)$write(int)" exitCode="Ok" label="PipedOutputStream(examples.redundant_request.PipedInputStream)" uncertain="false" violates_invariant="false"/>
+        <transition destination="close()$flush()$write(byte[], int, int)$write(int)" exitCode="Exception" label="PipedOutputStream(examples.redundant_request.PipedInputStream)" uncertain="false" violates_invariant="false"/>
+        <transition destination="close()$flush()" exitCode="Ok" label="PipedOutputStream(examples.redundant_request.PipedInputStream)" uncertain="false" violates_invariant="false"/>
+        <transition destination="close()$flush()" exitCode="Exception" label="PipedOutputStream(examples.redundant_request.PipedInputStream)" uncertain="false" violates_invariant="false"/>
+        <transition destination="close()$connect(examples.redundant_request.PipedInputStream)$flush()" exitCode="Exception" label="PipedOutputStream(examples.redundant_request.PipedInputStream)" uncertain="false" violates_invariant="false"/>
+        <transition destination="ERROR" exitCode="Ok" label="PipedOutputStream(examples.redundant_request.PipedInputStream)" uncertain="false" violates_invariant="true"/>
+        <transition destination="ERROR" exitCode="Exception" label="PipedOutputStream(examples.redundant_request.PipedInputStream)" uncertain="false" violates_invariant="true"/>
+        <transition destination="close()$connect(examples.redundant_request.PipedInputStream)$flush()" exitCode="Ok" label="PipedOutputStream()" uncertain="false" violates_invariant="false"/>
+    </state>
+    <state name="ERROR"/>
+</abstraction>

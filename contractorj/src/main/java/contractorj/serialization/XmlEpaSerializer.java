@@ -1,9 +1,7 @@
 package contractorj.serialization;
 
-import contractorj.model.Action;
 import contractorj.model.Epa;
 import contractorj.model.State;
-import contractorj.model.Transition;
 import java.io.ByteArrayOutputStream;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -28,20 +26,18 @@ public class XmlEpaSerializer implements EpaSerializer {
 
     doc.appendChild(abstraction);
 
-    for (final Action action : epa.getActions()) {
-
+    epa.getActions().stream().sorted().forEach((action) -> {
       final Element label = doc.createElement("label");
       label.setAttribute("name", action.toString());
 
       abstraction.appendChild(label);
-    }
+    });
 
-    for (final State state : epa.getStates()) {
-
+    epa.getStates().stream().sorted().forEach((state) -> {
       final Element stateElement = getStateElement(epa, state, doc);
 
       abstraction.appendChild(stateElement);
-    }
+    });
 
     return documentToString(doc);
   }
@@ -90,18 +86,17 @@ public class XmlEpaSerializer implements EpaSerializer {
 
     final Element stateElement = doc.createElement("state");
 
-    stateElement.setAttribute("name", getStateName(state));
+    stateElement.setAttribute("name", state.getStateName());
 
-    for (final Action enabledAction : state.getEnabledActions()) {
+    state.getEnabledActions().stream().sorted().forEach((enabledAction) -> {
       final Element enabledLabel = doc.createElement("enabled_label");
       enabledLabel.setAttribute("name", enabledAction.toString());
 
       stateElement.appendChild(enabledLabel);
-    }
+    });
 
-    for (final Transition transition : epa.getTransitionsWithSource(state)) {
-
-      final String destinationName = getStateName(transition.getTarget());
+    epa.getTransitionsWithSource(state).stream().sorted().forEach((transition) -> {
+      final String destinationName = transition.getTarget().getStateName();
       final boolean isDestinationError = destinationName.equals("ERROR");
 
       final Element transitionElement = doc.createElement("transition");
@@ -112,8 +107,7 @@ public class XmlEpaSerializer implements EpaSerializer {
       transitionElement.setAttribute("violates_invariant", String.valueOf(isDestinationError));
 
       stateElement.appendChild(transitionElement);
-    }
-
+    });
     return stateElement;
   }
 
@@ -121,14 +115,14 @@ public class XmlEpaSerializer implements EpaSerializer {
 
     final Element abstraction = doc.createElement("abstraction");
 
-    abstraction.setAttribute("initial_state", getStateName(epa.getInitialState()));
+    abstraction.setAttribute("initial_state", epa.getInitialState().getStateName());
     abstraction.setAttribute("input_format", "code-with-pre-methods");
     abstraction.setAttribute("name", epa.getClassName());
 
     return abstraction;
   }
 
-  private String getStateName(State state) {
+  /*private String getStateName(State state) {
 
     if (state.equals(State.ERROR)) {
       return "ERROR";
@@ -137,8 +131,8 @@ public class XmlEpaSerializer implements EpaSerializer {
     return state
         .getEnabledActions()
         .stream()
-        .map(action -> action.getMethod().getJavaNameWithArgumentTypes())
+        .map(action -> action.getMethod().getJavaNameWithArgumentTypes()).sorted()
         .reduce((s1, s2) -> s1 + "$" + s2)
         .orElse("");
-  }
+  }*/
 }

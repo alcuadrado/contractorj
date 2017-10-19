@@ -15,3 +15,12 @@ allprojects {
         jcenter()
     }
 }
+
+googleJavaFormat {
+    // plugin says: Detected Java syntax errors in the following files (you can exclude them from this task...
+    exclude 'contractorj\\src\\test\\java\\contractorj\\epas\\PipedOutputStreamTest.java'
+    exclude 'examples\\src\\main\\java\\examples\\smtp_server\\src\\services\\smtp\\SMTPMessage.java'
+    exclude 'examples\\src\\main\\java\\examples\\smtp_server\\src\\services\\smtp\\SMTPProcessor.java'
+    exclude 'examples\\src\\main\\java\\examples\\smtp_server\\src\\services\\smtp\\SMTPRemoteSender.java'
+    exclude 'examples\\src\\main\\java\\examples\\smtp_server\\src\\services\\smtp\\SMTPSender.java'
+}

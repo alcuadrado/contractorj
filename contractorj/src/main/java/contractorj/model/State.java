@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-public class State {
+public class State implements Comparable<State> {
 
   private final Set<Action> enabledActions;
 
@@ -112,5 +112,10 @@ public class State {
   public Set<Action> getDisabledActions() {
 
     return disabledActions;
+  }
+
+  @Override
+  public int compareTo(State o) {
+    return o.getStateName().compareTo(getStateName());
   }
 }

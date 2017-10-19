@@ -5,7 +5,7 @@ import java.util.Optional;
 import jbct.model.Method;
 
 /** An actions models a method with its precondition. */
-public class Action {
+public class Action implements Comparable<Action> {
 
   private final Method statePrecondition;
 
@@ -64,5 +64,10 @@ public class Action {
   public Optional<Method> getParamsPrecondition() {
 
     return Optional.ofNullable(paramsPrecondition);
+  }
+
+  @Override
+  public int compareTo(Action a) {
+    return method.getJavaNameWithArgumentTypes().compareTo(a.method.getJavaNameWithArgumentTypes());
   }
 }

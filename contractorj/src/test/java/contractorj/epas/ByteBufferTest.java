@@ -4,11 +4,13 @@ import com.binarytweed.test.Quarantine;
 import com.binarytweed.test.QuarantiningRunner;
 import java.io.File;
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(QuarantiningRunner.class)
 @Quarantine({"soot.", "jbct.", "contractorj."})
+@Ignore // ignored because it is time expensive
 public class ByteBufferTest extends EpaTest {
 
   @Test

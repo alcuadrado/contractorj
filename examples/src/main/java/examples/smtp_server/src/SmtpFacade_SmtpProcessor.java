@@ -66,80 +66,99 @@ Si se llama directamente handleCommand como hago yo, habria cosas no inicializad
  */
 public class SmtpFacade_SmtpProcessor {
 
-    SMTPProcessor smtpProcessor;
+  SMTPProcessor smtpProcessor;
 
-    public SmtpFacade_SmtpProcessor(){
-        smtpProcessor =  new SMTPProcessor();
-    }
+  public SmtpFacade_SmtpProcessor() {
+    smtpProcessor = new SMTPProcessor();
+  }
 
-    // las igualades del estilo smptProcessor.QUIT == 2 y etc, estan porque las EPAs no tienen memoria.
-    // sus valores se setean en el constructor, no son constantes y entonces en los demas estados pueden cambiar sus valores (para las EPAS pero no en su ejecución real)
-    // el implementador decidió no hacerlas constantes aun cuando nunca sus valores cambian.
-    public boolean inv() {
-        return  smtpProcessor != null &&
-                smtpProcessor.lastCommand >= 0 && smtpProcessor.lastCommand <= 8 &&
-                smtpProcessor.NONE == 0 &&
-                smtpProcessor.HELO == 1 &&
-                smtpProcessor.QUIT == 2 &&
-                smtpProcessor.MAIL_FROM == 3 &&
-                smtpProcessor.RCPT_TO == 4 &&
-                smtpProcessor.DATA == 5 &&
-                smtpProcessor.DATA_FINISHED == 6 &&
-                smtpProcessor.RSET == 7 &&
-                smtpProcessor.EHLO == 8 &&
-                smtpProcessor.NOOP == 9 &&
-                ( (smtpProcessor.lastCommand != smtpProcessor.QUIT && !smtpProcessor.fin) ||  (smtpProcessor.lastCommand == smtpProcessor.QUIT && smtpProcessor.fin == true));
-    }
+  // las igualades del estilo smptProcessor.QUIT == 2 y etc, estan porque las EPAs no tienen memoria.
+  // sus valores se setean en el constructor, no son constantes y entonces en los demas estados pueden cambiar sus valores (para las EPAS pero no en su ejecución real)
+  // el implementador decidió no hacerlas constantes aun cuando nunca sus valores cambian.
+  public boolean inv() {
+    return smtpProcessor != null
+        && smtpProcessor.lastCommand >= 0
+        && smtpProcessor.lastCommand <= 8
+        && smtpProcessor.NONE == 0
+        && smtpProcessor.HELO == 1
+        && smtpProcessor.QUIT == 2
+        && smtpProcessor.MAIL_FROM == 3
+        && smtpProcessor.RCPT_TO == 4
+        && smtpProcessor.DATA == 5
+        && smtpProcessor.DATA_FINISHED == 6
+        && smtpProcessor.RSET == 7
+        && smtpProcessor.EHLO == 8
+        && smtpProcessor.NOOP == 9
+        && ((smtpProcessor.lastCommand != smtpProcessor.QUIT && !smtpProcessor.fin)
+            || (smtpProcessor.lastCommand == smtpProcessor.QUIT && smtpProcessor.fin == true));
+  }
 
+  public boolean HELO_pre(String argument) {
+    return argument != null;
+  }
 
-    public boolean HELO_pre(String argument) {
-        return argument != null ;
-    }
-    public boolean HELO_pre() {return !smtpProcessor.fin;}
-    public void HELO(String argument){
-        smtpProcessor.handleCommand(smtpProcessor.HELO, argument);
-    }
+  public boolean HELO_pre() {
+    return !smtpProcessor.fin;
+  }
 
-    public boolean NOOP_pre() {
-        return !smtpProcessor.fin;
-    }
-    public void NOOP(String argument){
-        smtpProcessor.handleCommand(smtpProcessor.NOOP, argument);
-    }
+  public void HELO(String argument) {
+    smtpProcessor.handleCommand(smtpProcessor.HELO, argument);
+  }
 
-    public boolean RSET_pre() {
-        return !smtpProcessor.fin;
-    }
-    public void RSET(String argument){
-        smtpProcessor.handleCommand(smtpProcessor.RSET, argument);
-    }
+  public boolean NOOP_pre() {
+    return !smtpProcessor.fin;
+  }
 
-    // pre: inputString.startsWith("MAIL FROM") &&  ( lastCommand == HELO || lastCommand == NONE || lastCommand == RSET || lastCommand == EHLO)
-    public boolean MAIL_FROM_pre() {
-        return ( smtpProcessor.lastCommand == smtpProcessor.HELO || smtpProcessor.lastCommand == smtpProcessor.NONE || smtpProcessor.lastCommand == smtpProcessor.RSET || smtpProcessor.lastCommand == smtpProcessor.EHLO) && !smtpProcessor.fin;
-    }
-    public void MAIL_FROM(String argument){
-        smtpProcessor.handleCommand(smtpProcessor.MAIL_FROM, argument);
-    }
+  public void NOOP(String argument) {
+    smtpProcessor.handleCommand(smtpProcessor.NOOP, argument);
+  }
 
-    // pre: inputString.toUpperCase().startsWith( "RCPT TO:" ) && ( lastCommand == MAIL_FROM || lastCommand == RCPT_TO )
-    public boolean RCPT_TO_pre() {
-        return ( smtpProcessor.lastCommand == smtpProcessor.MAIL_FROM || smtpProcessor.lastCommand == smtpProcessor.RCPT_TO ) && !smtpProcessor.fin;
-    }
-    public void RCPT_TO(String argument) {
-        smtpProcessor.handleCommand(smtpProcessor.RCPT_TO, argument);
-    }
+  public boolean RSET_pre() {
+    return !smtpProcessor.fin;
+  }
 
-    // pre: if( lastCommand == RCPT_TO && message.getToAddresses().size() > 0 )
-    public boolean DATA_pre(){
-        return smtpProcessor.lastCommand == smtpProcessor.RCPT_TO && !smtpProcessor.fin;
-    }
-    public void DATA(String argument){
-        smtpProcessor.handleCommand(smtpProcessor.DATA, argument);
-    }
+  public void RSET(String argument) {
+    smtpProcessor.handleCommand(smtpProcessor.RSET, argument);
+  }
 
-    public boolean QUIT_pre() { return !smtpProcessor.fin;}
-    public void QUIT(String argument){
-        smtpProcessor.handleCommand(smtpProcessor.QUIT, argument);
-    }
+  // pre: inputString.startsWith("MAIL FROM") &&  ( lastCommand == HELO || lastCommand == NONE || lastCommand == RSET || lastCommand == EHLO)
+  public boolean MAIL_FROM_pre() {
+    return (smtpProcessor.lastCommand == smtpProcessor.HELO
+            || smtpProcessor.lastCommand == smtpProcessor.NONE
+            || smtpProcessor.lastCommand == smtpProcessor.RSET
+            || smtpProcessor.lastCommand == smtpProcessor.EHLO)
+        && !smtpProcessor.fin;
+  }
+
+  public void MAIL_FROM(String argument) {
+    smtpProcessor.handleCommand(smtpProcessor.MAIL_FROM, argument);
+  }
+
+  // pre: inputString.toUpperCase().startsWith( "RCPT TO:" ) && ( lastCommand == MAIL_FROM || lastCommand == RCPT_TO )
+  public boolean RCPT_TO_pre() {
+    return (smtpProcessor.lastCommand == smtpProcessor.MAIL_FROM
+            || smtpProcessor.lastCommand == smtpProcessor.RCPT_TO)
+        && !smtpProcessor.fin;
+  }
+
+  public void RCPT_TO(String argument) {
+    smtpProcessor.handleCommand(smtpProcessor.RCPT_TO, argument);
+  }
+
+  // pre: if( lastCommand == RCPT_TO && message.getToAddresses().size() > 0 )
+  public boolean DATA_pre() {
+    return smtpProcessor.lastCommand == smtpProcessor.RCPT_TO && !smtpProcessor.fin;
+  }
+
+  public void DATA(String argument) {
+    smtpProcessor.handleCommand(smtpProcessor.DATA, argument);
+  }
+
+  public boolean QUIT_pre() {
+    return !smtpProcessor.fin;
+  }
+
+  public void QUIT(String argument) {
+    smtpProcessor.handleCommand(smtpProcessor.QUIT, argument);
+  }
 }

@@ -28,8 +28,8 @@ public class ExternalMethod extends Method {
           "java.util.Arrays.copyOf$Ref$int");
 
   private Set<String> methodsWithHardcodedIntReturnType =
-          Sets.newHashSet(
-                  //"java.util.Map#size"
+      Sets.newHashSet(
+          //"java.util.Map#size"
           );
 
   private Set<String> methodsWithHardcodedBooleanReturnType =
@@ -46,12 +46,12 @@ public class ExternalMethod extends Method {
           "java.util.ArrayList#remove$int",
           "java.util.ArrayList#add$java.lang.Object",
           "java.util.ArrayList#remove$java.lang.Object");
-          //"java.util.Enumeration#hasMoreElements"*/);
+  //"java.util.Enumeration#hasMoreElements"*/);
 
   private Set<String> methodsWithHardcodedRefReturnType =
-          Sets.newHashSet(//"java.util.Map#get$java.lang.Object",
-                 // "java.util.Enumeration#nextElement",
-                 // "java.util.Map#put$java.lang.Object$java.lang.Object"
+      Sets.newHashSet( //"java.util.Map#get$java.lang.Object",
+          // "java.util.Enumeration#nextElement",
+          // "java.util.Map#put$java.lang.Object$java.lang.Object"
           );
 
   public ExternalMethod(Class theClass, SootMethod sootMethod) {

@@ -87,70 +87,74 @@ Types of queries:
  */
 
 public class FiniteStackFernan {
-    private final int capacity = 5;
-    private int size;
-    private String[] data;
+  private final int capacity = 5;
+  private int size;
+  private String[] data;
 
-    public boolean inv(){
-        return size >= 0 && size <= capacity && data.length == capacity;
-    }
+  public boolean inv() {
+    return size >= 0 && size <= capacity && data.length == capacity;
+  }
 
-    public FiniteStackFernan(){
-        size = 0;
-        data = new String[capacity];
-    }
+  public FiniteStackFernan() {
+    size = 0;
+    data = new String[capacity];
+  }
 
-    public int Count(){
-        return size;
-    }
+  public int Count() {
+    return size;
+  }
 
-    public boolean Push_pre(){
-        return this.Count() < capacity;
-    }
-    public boolean Push_pre(String item){
-        return item != null;
-    }
-    public void Push(String item){
-        if (item == null)
-            throw new RuntimeException();
+  public boolean Push_pre() {
+    return this.Count() < capacity;
+  }
 
-        if (item == "") // ¿Por que no esta en el pre?
-            throw new RuntimeException();
+  public boolean Push_pre(String item) {
+    return item != null;
+  }
 
-        data[size++] = item;
-    }
+  public void Push(String item) {
+    if (item == null) throw new RuntimeException();
 
+    if (item == "") // ¿Por que no esta en el pre?
+    throw new RuntimeException();
 
-    public boolean Pop_pre(){
-        return this.Count() > 0;
-    }
-    public String Pop(){
-        --size;
-        return data[size];
-    }
+    data[size++] = item;
+  }
 
-    public boolean Contains_pre(){return true;}
-    public boolean Contains(String item)
-    {
-        boolean result = false;
-        for (int i = 0; !result && i<size ;i++ )
-        {
-            result = data[i] == item;
-        }
-        return result;
-    }
+  public boolean Pop_pre() {
+    return this.Count() > 0;
+  }
 
-    public boolean Clear_pre(){return true;}
-    public void Clear()
-    {
-        size=0;
-    }
+  public String Pop() {
+    --size;
+    return data[size];
+  }
 
-    public boolean Peek_pre(){
-        return this.Count() > 0;
+  public boolean Contains_pre() {
+    return true;
+  }
+
+  public boolean Contains(String item) {
+    boolean result = false;
+    for (int i = 0; !result && i < size; i++) {
+      result = data[i] == item;
     }
-    public String Peek()
-    {
-        return data[size-1];
-    }
+    return result;
+  }
+
+  public boolean Clear_pre() {
+    return true;
+  }
+
+  public void Clear() {
+    size = 0;
+  }
+
+  public boolean Peek_pre() {
+    return this.Count() > 0;
+  }
+
+  public String Peek() {
+    return data[size - 1];
+  }
 }

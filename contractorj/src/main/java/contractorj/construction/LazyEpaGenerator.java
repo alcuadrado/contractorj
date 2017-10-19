@@ -63,7 +63,6 @@ public class LazyEpaGenerator extends EpaGenerator {
   Map<String, List<String>> dependencies_active = new Hashtable<String, List<String>>();
   Map<String, List<String>> dependencies_disable = new Hashtable<String, List<String>>();
 
-
   /*
    * Start the generation of a PEPA. The initial state has all constructors enabled.
    */
@@ -86,8 +85,7 @@ public class LazyEpaGenerator extends EpaGenerator {
 
       epa = new Epa(theClass.getQualifiedJavaName(), initialState);
 
-      if (Main.globalNecessaryQueriesEnable)
-        globalNecessaryQueries();
+      if (Main.globalNecessaryQueriesEnable) globalNecessaryQueries();
 
       debugLog.addInitialState(initialState);
       enqueueStateIfNecessary(initialState);
@@ -108,74 +106,77 @@ public class LazyEpaGenerator extends EpaGenerator {
     }
   }
 
-  private void globalNecessaryQuery(Action mainAction, Action testedAction){
-      Set enabledActions = new HashSet();
-      enabledActions.add(mainAction);
-      Set disabledActions = new HashSet();
+  private void globalNecessaryQuery(Action mainAction, Action testedAction) {
+    Set enabledActions = new HashSet();
+    enabledActions.add(mainAction);
+    Set disabledActions = new HashSet();
 
-      State state = new State(enabledActions, disabledActions);
+    State state = new State(enabledActions, disabledActions);
 
-      GlobalNecessarilyEnabledActionQuery necessarilyEnabledActionQuery = new GlobalNecessarilyEnabledActionQuery(state, mainAction, testedAction, invariant);
-      GlobalNecessarilyDisabledActionQuery necessarilyDisabledActionQuery = new GlobalNecessarilyDisabledActionQuery(state, mainAction, testedAction, invariant);
+    GlobalNecessarilyEnabledActionQuery necessarilyEnabledActionQuery =
+        new GlobalNecessarilyEnabledActionQuery(state, mainAction, testedAction, invariant);
+    GlobalNecessarilyDisabledActionQuery necessarilyDisabledActionQuery =
+        new GlobalNecessarilyDisabledActionQuery(state, mainAction, testedAction, invariant);
 
-      Answer enabledAnswer = getAnswer(necessarilyEnabledActionQuery);
-      Answer disabledAnswer = getAnswer(necessarilyDisabledActionQuery);
+    Answer enabledAnswer = getAnswer(necessarilyEnabledActionQuery);
+    Answer disabledAnswer = getAnswer(necessarilyDisabledActionQuery);
 
-      if (enabledAnswer.equals(Answer.YES) && disabledAnswer.equals(Answer.YES)) {
-          System.err.println(
-                  "Inconsistent necessity of action "
-                          + testedAction
-                          + " in state "
-                          + state
-                          + " after "
-                          + mainAction);
-          System.exit(1);
-      }
+    if (enabledAnswer.equals(Answer.YES) && disabledAnswer.equals(Answer.YES)) {
+      System.err.println(
+          "Inconsistent necessity of action "
+              + testedAction
+              + " in state "
+              + state
+              + " after "
+              + mainAction);
+      System.exit(1);
+    }
 
-      if (enabledAnswer.equals(Answer.YES)){
-          List<String> enabledActionsList =  dependencies_active.get(mainAction.toString());
-          enabledActionsList.add(testedAction.toString());
-      }
+    if (enabledAnswer.equals(Answer.YES)) {
+      List<String> enabledActionsList = dependencies_active.get(mainAction.toString());
+      enabledActionsList.add(testedAction.toString());
+    }
 
-      if (disabledAnswer.equals(Answer.YES)){
-          List<String> disabledActionsList =  dependencies_disable.get(mainAction.toString());
-          disabledActionsList.add(testedAction.toString());
-
-      }
+    if (disabledAnswer.equals(Answer.YES)) {
+      List<String> disabledActionsList = dependencies_disable.get(mainAction.toString());
+      disabledActionsList.add(testedAction.toString());
+    }
   }
-  private void globalNecessaryQueries(){
 
+  private void globalNecessaryQueries() {
 
-    for (Action a : actions){
+    for (Action a : actions) {
       List l1 = Collections.synchronizedList(new LinkedList());
       List l2 = Collections.synchronizedList(new LinkedList());
 
       dependencies_disable.put(a.toString(), l1);
-      dependencies_active.put(a.toString(),l2);
+      dependencies_active.put(a.toString(), l2);
     }
-     ExecutorService executor = Executors.newCachedThreadPool();
+    ExecutorService executor = Executors.newCachedThreadPool();
 
     actions
-            .stream()
-            .forEach(
-                    mainAction ->
-                    {
-                            actions.stream().forEach(
-                                    testedAction -> {
-                                        executor.submit(() -> {globalNecessaryQuery(mainAction, testedAction);});
-                                    }
-                            );
-                    });
+        .stream()
+        .forEach(
+            mainAction -> {
+              actions
+                  .stream()
+                  .forEach(
+                      testedAction -> {
+                        executor.submit(
+                            () -> {
+                              globalNecessaryQuery(mainAction, testedAction);
+                            });
+                      });
+            });
 
-      executor.shutdown();
+    executor.shutdown();
 
-      try {
+    try {
 
-          executor.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
-      } catch (InterruptedException e) {
-          e.printStackTrace();
-      }
-
+      executor.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
   }
 
   private void printLog() {
@@ -187,11 +188,11 @@ public class LazyEpaGenerator extends EpaGenerator {
   }
 
   /*
-    * Parallelize the exploration task.
-    * The exploration task consists for a given state s and action act (enabled in the state)
-    * finding new reachable states from the s and act
-    * @param state
-  */
+   * Parallelize the exploration task.
+   * The exploration task consists for a given state s and action act (enabled in the state)
+   * finding new reachable states from the s and act
+   * @param state
+   */
   private void analiseState(final State state) {
 
     state
@@ -221,26 +222,26 @@ public class LazyEpaGenerator extends EpaGenerator {
   }
 
   /**
-      * All transitions from state (first argument) using mainAction (second argument) are calculated.
-      * Destinations from those transitions are enqueued to repeat the exploration process
-      * from the new states (target states).
-      *
-      * Steps:
-      * Actions always enabled after transition from state using mainAction are calculated as necessaryEnabledActions
-      * Actions always disabled after transition from state using mainAction are calculated as necessaryDisabledActions
-      * Queries that check whether if a transition from state using mainAction breaks the invariant are created (not performed)
-      * 	Note that the are two kinds of invariant violation. One is raising an exception and the other is with no exception raised.
-      * 	These queries could generate a transition to the error state.
-      * Queries that check valid transitions (invariant is preserved) from state using mainAction are created  (not performed)
-      * 	Note that in order to generate new possible transitions, actions not present in necessaryEnabledAction and necessaryDisabledActions
-      * 	must be considered. A new state represents a set of enabled and disabled actions.
-      * 	These queries could generate new states and transitions to the EPA.
-      * Finally all queries are performed. If a query answers yes or maybe then the transition is added to the EPA.
-      *
-      * @param state
-      * @param mainAction
-      */
-
+   * All transitions from state (first argument) using mainAction (second argument) are calculated.
+   * Destinations from those transitions are enqueued to repeat the exploration process from the new
+   * states (target states).
+   *
+   * <p>Steps: Actions always enabled after transition from state using mainAction are calculated as
+   * necessaryEnabledActions Actions always disabled after transition from state using mainAction
+   * are calculated as necessaryDisabledActions Queries that check whether if a transition from
+   * state using mainAction breaks the invariant are created (not performed) Note that the are two
+   * kinds of invariant violation. One is raising an exception and the other is with no exception
+   * raised. These queries could generate a transition to the error state. Queries that check valid
+   * transitions (invariant is preserved) from state using mainAction are created (not performed)
+   * Note that in order to generate new possible transitions, actions not present in
+   * necessaryEnabledAction and necessaryDisabledActions must be considered. A new state represents
+   * a set of enabled and disabled actions. These queries could generate new states and transitions
+   * to the EPA. Finally all queries are performed. If a query answers yes or maybe then the
+   * transition is added to the EPA.
+   *
+   * @param state
+   * @param mainAction
+   */
   private void analiseStateAndAction(final State state, final Action mainAction) {
 
     final Set<NecessaryActionResult> necessaryActionResults =
@@ -285,21 +286,21 @@ public class LazyEpaGenerator extends EpaGenerator {
                     epa.addTransition(transition);
 
                     if (enqueued) {
-                       debugLog.logEnqueuedTransition(transition);
+                      debugLog.logEnqueuedTransition(transition);
                     }
                   }
                 }));
   }
 
   /**
-      * A stream with two invariant queries is returned
-      * The first query verifies a transition breaking the invariant with no exception raised.
-      * The second query verifies a transition breaking the invariant with exception raised.
-      * @param state
-      * @param mainAction
-      * @return A stream with two invariant queries.
+   * A stream with two invariant queries is returned The first query verifies a transition breaking
+   * the invariant with no exception raised. The second query verifies a transition breaking the
+   * invariant with exception raised.
+   *
+   * @param state
+   * @param mainAction
+   * @return A stream with two invariant queries.
    */
-
   private Stream<Query> getInvariantTestQueries(final State state, final Action mainAction) {
 
     return Stream.of(
@@ -307,20 +308,20 @@ public class LazyEpaGenerator extends EpaGenerator {
         new ExceptionBreaksInvariantQuery(state, mainAction, invariant));
   }
 
-/**
+  /**
    * Queries that check transitions to other states are created.
    *
-   * Remember: A state in the EPA represents a set of enabled actions and a set of disabled actions.
-   * 		   Those sets are disjoint and the union is equal to the action set (input problem).
-   * Actions that are always enabled/disabled after transition from state (first argument)
-   * using mainAction (second argument) are known.
-   * From the uncertain actions set all possible subsets (combinations of elements) are calculated.
-   * 	uncertain actions are those that neither are in necessarilyEnabledActions nor necessarilyDisabledActions
-   * The combinations are whether they are disabled or enabled.
-   * Finally queries that verify if transition state -> mainAction -> targetState are created and returned.
-   * 	targetState is a state (possibly new) generated by the combinations of the uncertain actions.
-   * Note that necessarilyEnabledActions and necessarilyDisabledActions
-   * help in reducing the number of elements in uncertainActions. In this way fewer combinations are tested
+   * <p>Remember: A state in the EPA represents a set of enabled actions and a set of disabled
+   * actions. Those sets are disjoint and the union is equal to the action set (input problem).
+   * Actions that are always enabled/disabled after transition from state (first argument) using
+   * mainAction (second argument) are known. From the uncertain actions set all possible subsets
+   * (combinations of elements) are calculated. uncertain actions are those that neither are in
+   * necessarilyEnabledActions nor necessarilyDisabledActions The combinations are whether they are
+   * disabled or enabled. Finally queries that verify if transition state -> mainAction ->
+   * targetState are created and returned. targetState is a state (possibly new) generated by the
+   * combinations of the uncertain actions. Note that necessarilyEnabledActions and
+   * necessarilyDisabledActions help in reducing the number of elements in uncertainActions. In this
+   * way fewer combinations are tested
    *
    * @param state
    * @param mainAction
@@ -328,7 +329,6 @@ public class LazyEpaGenerator extends EpaGenerator {
    * @param necessarilyDisabledActions
    * @return queries verifiers of new transitions.
    */
-
   private Stream<Query> getTransitionQueries(
       final State state,
       final Action mainAction,
@@ -363,12 +363,12 @@ public class LazyEpaGenerator extends EpaGenerator {
             });
   }
 
-   /**
-      * Schedules exploration from a state.
-      *
-      * @param state
-      * @return true if the state has not been explored yet, otherwise false.
-      */
+  /**
+   * Schedules exploration from a state.
+   *
+   * @param state
+   * @return true if the state has not been explored yet, otherwise false.
+   */
   private synchronized boolean enqueueStateIfNecessary(State state) {
 
     if (statesAlreadyEnqueued.contains(state)) {
@@ -382,17 +382,16 @@ public class LazyEpaGenerator extends EpaGenerator {
     return true;
   }
 
-    /**
-      * maybeEnabledActions are uncertain answers.
-      * maybeEnabledAction are part of a combinatorial process.
-      * check when this method is used.
-      * @param necessarilyEnabledActions
-      * @param necessarilyDisabledActions
-      * @param uncertainActions
-      * @param maybeEnabledActions
-      * @return A new State based on the given parameters.
-      */
-
+  /**
+   * maybeEnabledActions are uncertain answers. maybeEnabledAction are part of a combinatorial
+   * process. check when this method is used.
+   *
+   * @param necessarilyEnabledActions
+   * @param necessarilyDisabledActions
+   * @param uncertainActions
+   * @param maybeEnabledActions
+   * @return A new State based on the given parameters.
+   */
   private State createTargetState(
       final Set<Action> necessarilyEnabledActions,
       final Set<Action> necessarilyDisabledActions,
@@ -408,70 +407,77 @@ public class LazyEpaGenerator extends EpaGenerator {
     return new State(enabledActions, disabledActions);
   }
 
-   /**
-      * @param state
-      * @param mainAction
-      * @return A set of NecessaryActionResult indicating if an action is always enabled/disabled
-      */
-
+  /**
+   * @param state
+   * @param mainAction
+   * @return A set of NecessaryActionResult indicating if an action is always enabled/disabled
+   */
   private Set<NecessaryActionResult> getNecessaryActionResults(
       final State state, final Action mainAction) {
 
     return actions
-            .parallelStream()
-            .map(
-                    testedAction -> {
-                      if (!testedAction.getStatePrecondition().isPresent()) {
-                        return new NecessaryActionResult(testedAction, Answer.YES, Answer.NO);
-                      }
+        .parallelStream()
+        .map(
+            testedAction -> {
+              if (!testedAction.getStatePrecondition().isPresent()) {
+                return new NecessaryActionResult(testedAction, Answer.YES, Answer.NO);
+              }
 
-                      NecessarilyEnabledActionQuery necessarilyEnabledActionQuery;
-                      NecessarilyDisabledActionQuery necessarilyDisabledActionQuery;
+              NecessarilyEnabledActionQuery necessarilyEnabledActionQuery;
+              NecessarilyDisabledActionQuery necessarilyDisabledActionQuery;
 
-                      Answer enabledAnswer = Answer.YES;
-                      Answer disabledAnswer = Answer.YES;
+              Answer enabledAnswer = Answer.YES;
+              Answer disabledAnswer = Answer.YES;
 
-                      if (Main.globalNecessaryQueriesEnable){
-                          if (dependencies_active.getOrDefault(mainAction.toString(), new LinkedList()).contains(testedAction.toString())){
-                              enabledAnswer = Answer.YES;
-                              disabledAnswer = Answer.NO;
-                          } else if (dependencies_disable.getOrDefault(mainAction.toString(), new LinkedList()).contains(testedAction.toString())){
-                              disabledAnswer = Answer.YES;
-                              enabledAnswer = Answer.NO;
-                          } else { // default case
-                              necessarilyEnabledActionQuery = new NecessarilyEnabledActionQuery(state, mainAction, testedAction, invariant);
-                              enabledAnswer = getAnswer(necessarilyEnabledActionQuery);
-                              necessarilyDisabledActionQuery = new NecessarilyDisabledActionQuery(state, mainAction, testedAction, invariant);
-                              disabledAnswer = getAnswer(necessarilyDisabledActionQuery);
-                          }
-                      } else { // defualt case
-                          necessarilyEnabledActionQuery = new NecessarilyEnabledActionQuery(state, mainAction, testedAction, invariant);
-                          enabledAnswer = getAnswer(necessarilyEnabledActionQuery);
-                          necessarilyDisabledActionQuery = new NecessarilyDisabledActionQuery(state, mainAction, testedAction, invariant);
-                          disabledAnswer = getAnswer(necessarilyDisabledActionQuery);
-                      }
+              if (Main.globalNecessaryQueriesEnable) {
+                if (dependencies_active
+                    .getOrDefault(mainAction.toString(), new LinkedList())
+                    .contains(testedAction.toString())) {
+                  enabledAnswer = Answer.YES;
+                  disabledAnswer = Answer.NO;
+                } else if (dependencies_disable
+                    .getOrDefault(mainAction.toString(), new LinkedList())
+                    .contains(testedAction.toString())) {
+                  disabledAnswer = Answer.YES;
+                  enabledAnswer = Answer.NO;
+                } else { // default case
+                  necessarilyEnabledActionQuery =
+                      new NecessarilyEnabledActionQuery(state, mainAction, testedAction, invariant);
+                  enabledAnswer = getAnswer(necessarilyEnabledActionQuery);
+                  necessarilyDisabledActionQuery =
+                      new NecessarilyDisabledActionQuery(
+                          state, mainAction, testedAction, invariant);
+                  disabledAnswer = getAnswer(necessarilyDisabledActionQuery);
+                }
+              } else { // defualt case
+                necessarilyEnabledActionQuery =
+                    new NecessarilyEnabledActionQuery(state, mainAction, testedAction, invariant);
+                enabledAnswer = getAnswer(necessarilyEnabledActionQuery);
+                necessarilyDisabledActionQuery =
+                    new NecessarilyDisabledActionQuery(state, mainAction, testedAction, invariant);
+                disabledAnswer = getAnswer(necessarilyDisabledActionQuery);
+              }
 
+              if (enabledAnswer.equals(Answer.YES) && disabledAnswer.equals(Answer.YES)) {
+                System.err.println(
+                    "Inconsistent necessity of action "
+                        + testedAction
+                        + " in state "
+                        + state
+                        + " after "
+                        + mainAction);
+                System.exit(1);
+              }
 
-                      if (enabledAnswer.equals(Answer.YES) && disabledAnswer.equals(Answer.YES)) {
-                        System.err.println(
-                                "Inconsistent necessity of action "
-                                        + testedAction
-                                        + " in state "
-                                        + state
-                                        + " after "
-                                        + mainAction);
-                        System.exit(1);
-                      }
-
-                      return new NecessaryActionResult(testedAction, enabledAnswer, disabledAnswer);
-                    })
-            .collect(Collectors.toSet());
+              return new NecessaryActionResult(testedAction, enabledAnswer, disabledAnswer);
+            })
+        .collect(Collectors.toSet());
   }
 
   /**
-      * @param query
-      * @return the answer of the performed query
-      */
+   * @param query
+   * @return the answer of the performed query
+   */
   private Answer getAnswer(final Query query) {
 
     try {
@@ -482,9 +488,9 @@ public class LazyEpaGenerator extends EpaGenerator {
   }
 
   /*
-      * @param query
-      * @return the promise of an answer
-  */
+   * @param query
+   * @return the promise of an answer
+   */
   private Future<Answer> submitQuery(final Query query) {
 
     phaser.register();

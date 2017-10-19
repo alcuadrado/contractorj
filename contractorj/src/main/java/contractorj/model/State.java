@@ -91,16 +91,17 @@ public class State {
   public String getStateName() {
 
     State state = this;
-      if (state.equals(State.ERROR)) {
-        return "ERROR";
-      }
+    if (state.equals(State.ERROR)) {
+      return "ERROR";
+    }
 
-      return state
-              .getEnabledActions()
-              .stream()
-              .map(action -> action.getMethod().getJavaNameWithArgumentTypes()).sorted()
-              .reduce((s1, s2) -> s1 + "$" + s2)
-              .orElse("");
+    return state
+        .getEnabledActions()
+        .stream()
+        .map(action -> action.getMethod().getJavaNameWithArgumentTypes())
+        .sorted()
+        .reduce((s1, s2) -> s1 + "$" + s2)
+        .orElse("");
   }
 
   public Set<Action> getEnabledActions() {

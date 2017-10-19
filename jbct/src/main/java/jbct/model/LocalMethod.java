@@ -1,7 +1,6 @@
 package jbct.model;
 
 import com.google.common.base.Joiner;
-
 import java.util.*;
 import java.util.stream.Collectors;
 import jbct.soot.TypeTranslator;
@@ -105,10 +104,10 @@ public class LocalMethod extends Method {
   private List<IdentityStmt> getIdentityStatements() {
 
     return body.getUnits()
-            .stream()
-            .filter(unit -> unit instanceof IdentityStmt)
-            .map(unit -> (IdentityStmt) unit)
-            .collect(Collectors.toList());
+        .stream()
+        .filter(unit -> unit instanceof IdentityStmt)
+        .map(unit -> (IdentityStmt) unit)
+        .collect(Collectors.toList());
   }
 
   @Override
@@ -123,33 +122,33 @@ public class LocalMethod extends Method {
     final List<String> translatedParametersList = getTranslatedParametersList();
 
     final StringBuilder stringBuilder =
-            new StringBuilder()
-                    .append("procedure ")
-                    .append(getTranslatedName())
-                    .append("(")
-                    .append(Joiner.on(", ").join(translatedParametersList))
-                    .append(")");
+        new StringBuilder()
+            .append("procedure ")
+            .append(getTranslatedName())
+            .append("(")
+            .append(Joiner.on(", ").join(translatedParametersList))
+            .append(")");
 
     if (sootMethod.getReturnType() != VoidType.v()) {
       stringBuilder
-              .append(" returns (r : ")
-              .append(TypeTranslator.translate(sootMethod.getReturnType()))
-              .append(")");
+          .append(" returns (r : ")
+          .append(TypeTranslator.translate(sootMethod.getReturnType()))
+          .append(")");
     }
 
     stringBuilder
-            .append("\n")
-            .append("{\n")
-            // las declaraciones de las variables locales con las traducciones de sus tipos
-            .append(StringUtils.indentList(getTranslatedLocalDeclarationsList()))
-            .append("\n")
-            .append(StringUtils.indentList(getGeneratedLocalDeclarationsList()))
-            .append("\n\n")
-            .append(StringUtils.indentList(translateParametersAssignments()))
-            .append("\n\n")
-            .append(StringUtils.indentList(getTranslatedInstructions()))
-            .append("\n")
-            .append("}");
+        .append("\n")
+        .append("{\n")
+        // las declaraciones de las variables locales con las traducciones de sus tipos
+        .append(StringUtils.indentList(getTranslatedLocalDeclarationsList()))
+        .append("\n")
+        .append(StringUtils.indentList(getGeneratedLocalDeclarationsList()))
+        .append("\n\n")
+        .append(StringUtils.indentList(translateParametersAssignments()))
+        .append("\n\n")
+        .append(StringUtils.indentList(getTranslatedInstructions()))
+        .append("\n")
+        .append("}");
 
     return stringBuilder.toString();
   }
@@ -191,9 +190,9 @@ public class LocalMethod extends Method {
   private List<String> getTranslatedLocalDeclarationsList() {
 
     return body.getLocals()
-            .stream()
-            .map(this::translateLocalDeclaration)
-            .collect(Collectors.toList());
+        .stream()
+        .map(this::translateLocalDeclaration)
+        .collect(Collectors.toList());
   }
 
   private String translateLocalDeclaration(Local local) {
@@ -219,11 +218,11 @@ public class LocalMethod extends Method {
       final Method invokedMethod = Method.create(invokedClass, invokedSootMethod);
 
       declarations.add(
-              "var "
-                      + generatedReturnVariableNames.get(invokeStmt)
-                      + " : "
-                      + invokedMethod.getTranslatedReturnType()
-                      + ";");
+          "var "
+              + generatedReturnVariableNames.get(invokeStmt)
+              + " : "
+              + invokedMethod.getTranslatedReturnType()
+              + ";");
     }
 
     return declarations;

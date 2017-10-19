@@ -1,21 +1,22 @@
 package examples.translation.inheritance;
 
 public class Mamifero {
-    public int oxigeno;
-    public int comida;
+  public int oxigeno;
+  public int comida;
 
-    public Mamifero(){
-        oxigeno = 1;
-        comida = 1;
-    }
-    public void respirar(){
-        oxigeno++;
-    }
+  public Mamifero() {
+    oxigeno = 1;
+    comida = 1;
+  }
 
-    // En realidad esto deberia ser abstracto
-    public void comer() {}
+  public void respirar() {
+    oxigeno++;
+  }
 
-    static public void plancharIfParaComer(Mamifero m){
-        m.comer();
-    }
+  // En realidad esto deberia ser abstracto
+  public void comer() {}
+
+  public static void plancharIfParaComer(Mamifero m) {
+    m.comer();
+  }
 }

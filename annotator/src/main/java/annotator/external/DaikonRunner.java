@@ -1,12 +1,10 @@
 package annotator.external;
 
 import com.google.common.io.Files;
-
+import contractorj.util.CommandsRunner;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-
-import contractorj.util.CommandsRunner;
 
 public class DaikonRunner {
 
@@ -82,7 +80,8 @@ public class DaikonRunner {
               "java -cp '"
                   + daikonJar.getAbsolutePath()
                   + "' daikon.PrintInvariants --format java "
-                  + DAIKON_RESULTS_FILE, false);
+                  + DAIKON_RESULTS_FILE,
+              false);
 
       Files.write(results, CACHED_RESULTS_FILE, StandardCharsets.UTF_8);
 

@@ -19,8 +19,7 @@ public class TypeTranslator {
       return "bool";
     }
 
-    if (type ==  DoubleType.v()
-        || type == FloatType.v()){
+    if (type == DoubleType.v() || type == FloatType.v()) {
       return "Real";
     }
 
@@ -32,7 +31,7 @@ public class TypeTranslator {
       return "Ref";
     }
 
-    if (type instanceof NullType){
+    if (type instanceof NullType) {
       return "Ref";
     }
 

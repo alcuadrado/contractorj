@@ -26,18 +26,26 @@ public class XmlEpaSerializer implements EpaSerializer {
 
     doc.appendChild(abstraction);
 
-    epa.getActions().stream().sorted().forEach((action) -> {
-      final Element label = doc.createElement("label");
-      label.setAttribute("name", action.toString());
+    epa.getActions()
+        .stream()
+        .sorted()
+        .forEach(
+            (action) -> {
+              final Element label = doc.createElement("label");
+              label.setAttribute("name", action.toString());
 
-      abstraction.appendChild(label);
-    });
+              abstraction.appendChild(label);
+            });
 
-    epa.getStates().stream().sorted().forEach((state) -> {
-      final Element stateElement = getStateElement(epa, state, doc);
+    epa.getStates()
+        .stream()
+        .sorted()
+        .forEach(
+            (state) -> {
+              final Element stateElement = getStateElement(epa, state, doc);
 
-      abstraction.appendChild(stateElement);
-    });
+              abstraction.appendChild(stateElement);
+            });
 
     return documentToString(doc);
   }
@@ -88,26 +96,37 @@ public class XmlEpaSerializer implements EpaSerializer {
 
     stateElement.setAttribute("name", state.getStateName());
 
-    state.getEnabledActions().stream().sorted().forEach((enabledAction) -> {
-      final Element enabledLabel = doc.createElement("enabled_label");
-      enabledLabel.setAttribute("name", enabledAction.toString());
+    state
+        .getEnabledActions()
+        .stream()
+        .sorted()
+        .forEach(
+            (enabledAction) -> {
+              final Element enabledLabel = doc.createElement("enabled_label");
+              enabledLabel.setAttribute("name", enabledAction.toString());
 
-      stateElement.appendChild(enabledLabel);
-    });
+              stateElement.appendChild(enabledLabel);
+            });
 
-    epa.getTransitionsWithSource(state).stream().sorted().forEach((transition) -> {
-      final String destinationName = transition.getTarget().getStateName();
-      final boolean isDestinationError = destinationName.equals("ERROR");
+    epa.getTransitionsWithSource(state)
+        .stream()
+        .sorted()
+        .forEach(
+            (transition) -> {
+              final String destinationName = transition.getTarget().getStateName();
+              final boolean isDestinationError = destinationName.equals("ERROR");
 
-      final Element transitionElement = doc.createElement("transition");
-      transitionElement.setAttribute("destination", destinationName);
-      transitionElement.setAttribute("label", transition.getAction().toString());
-      transitionElement.setAttribute("uncertain", String.valueOf(transition.isUncertain()));
-      transitionElement.setAttribute("exitCode", transition.isThrowing() ? "Exception" : "Ok");
-      transitionElement.setAttribute("violates_invariant", String.valueOf(isDestinationError));
+              final Element transitionElement = doc.createElement("transition");
+              transitionElement.setAttribute("destination", destinationName);
+              transitionElement.setAttribute("label", transition.getAction().toString());
+              transitionElement.setAttribute("uncertain", String.valueOf(transition.isUncertain()));
+              transitionElement.setAttribute(
+                  "exitCode", transition.isThrowing() ? "Exception" : "Ok");
+              transitionElement.setAttribute(
+                  "violates_invariant", String.valueOf(isDestinationError));
 
-      stateElement.appendChild(transitionElement);
-    });
+              stateElement.appendChild(transitionElement);
+            });
     return stateElement;
   }
 

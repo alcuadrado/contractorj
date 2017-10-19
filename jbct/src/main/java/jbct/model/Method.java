@@ -13,14 +13,14 @@ import soot.RefType;
 import soot.SootMethod;
 import soot.Type;
 import soot.VoidType;
-import soot.jimple.Jimple;
 import soot.jimple.JimpleBody;
 
 public abstract class Method {
 
   private static final HashMap<String, LocalMethod> localMethodsFactoryCache = new HashMap<>();
 
-  private static final HashMap<String, AbstractMethod> AbstractMethodsFactoryCache = new HashMap<>();
+  private static final HashMap<String, AbstractMethod> AbstractMethodsFactoryCache =
+      new HashMap<>();
 
   private Class theClass;
 
@@ -39,9 +39,9 @@ public abstract class Method {
 
     final String translatedMethodName = getTranslatedMethodName(theClass, sootMethod);
 
-    if (!sootMethod.isConcrete()){
+    if (!sootMethod.isConcrete()) {
 
-      if (!AbstractMethodsFactoryCache.containsKey(translatedMethodName)){
+      if (!AbstractMethodsFactoryCache.containsKey(translatedMethodName)) {
         final AbstractMethod abstractMethod = new AbstractMethod(theClass, sootMethod);
         theClass.addMethod(abstractMethod);
         AbstractMethodsFactoryCache.put(translatedMethodName, abstractMethod);
@@ -51,12 +51,12 @@ public abstract class Method {
     }
 
     if (!localMethodsFactoryCache.containsKey(translatedMethodName)) {
-        final JimpleBody jimpleBody = (JimpleBody) sootMethod.getActiveBody();
-        final LocalMethod localMethod = new LocalMethod(theClass, jimpleBody);
+      final JimpleBody jimpleBody = (JimpleBody) sootMethod.getActiveBody();
+      final LocalMethod localMethod = new LocalMethod(theClass, jimpleBody);
 
-        theClass.addMethod(localMethod);
+      theClass.addMethod(localMethod);
 
-        localMethodsFactoryCache.put(translatedMethodName, localMethod);
+      localMethodsFactoryCache.put(translatedMethodName, localMethod);
     }
 
     return localMethodsFactoryCache.get(translatedMethodName);

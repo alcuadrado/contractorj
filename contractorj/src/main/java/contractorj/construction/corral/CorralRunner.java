@@ -1,7 +1,6 @@
 package contractorj.construction.corral;
 
 import contractorj.util.CommandsRunner;
-
 import java.time.Duration;
 import java.time.LocalDateTime;
 
@@ -42,7 +41,8 @@ public class CorralRunner {
 
     final LocalDateTime start = LocalDateTime.now();
 
-    final String processOutput = CommandsRunner.runtAndReturnOutput(consoleCommandToRun, isWindows());
+    final String processOutput =
+        CommandsRunner.runtAndReturnOutput(consoleCommandToRun, isWindows());
 
     final LocalDateTime end = LocalDateTime.now();
 

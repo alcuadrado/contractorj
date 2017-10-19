@@ -29,8 +29,8 @@ public class JbctTransformer extends BodyTransformer {
 
   private final Map<SootMethod, Method> methodsMap = new HashMap<>();
 
-  private boolean skippedMethods(SootMethod sootMethod){
-    if (sootMethod.getDeclaration().contentEquals("public volatile java.lang.Object array()") )
+  private boolean skippedMethods(SootMethod sootMethod) {
+    if (sootMethod.getDeclaration().contentEquals("public volatile java.lang.Object array()"))
       return true;
 
     return false;
@@ -40,8 +40,7 @@ public class JbctTransformer extends BodyTransformer {
   protected void internalTransform(Body abstractBody, String phaseName, Map options) {
     final SootMethod sootMethod = abstractBody.getMethod();
 
-    if (skippedMethods(sootMethod))
-      return;
+    if (skippedMethods(sootMethod)) return;
 
     final SootClass sootClass = sootMethod.getDeclaringClass();
 
@@ -75,8 +74,7 @@ public class JbctTransformer extends BodyTransformer {
   private void addCalledMethod(InvokeExpr invokeExpr) {
     final SootMethod sootMethod = invokeExpr.getMethod();
 
-    if (skippedMethods(sootMethod))
-      return;
+    if (skippedMethods(sootMethod)) return;
 
     final SootClass sootClass = sootMethod.getDeclaringClass();
     final Class theClass = Class.create(sootClass);

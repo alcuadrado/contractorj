@@ -132,7 +132,6 @@ public class InvariantsExtractor {
         } else if (paramsPreconditions != null) {
           paramsPreconditions.add(condition);
         }
-
       }
     }
   }

@@ -62,7 +62,7 @@ public class ArrayList {
    * iterators) will throw bogus {@code ConcurrentModificationExceptions}. If an implementation does
    * not wish to provide fail-fast iterators, this field may be ignored.
    */
-//  public transient int modCount = 0;
+  //  public transient int modCount = 0;
 
   /**
    * Constructs an empty list with the specified initial capacity.
@@ -89,7 +89,7 @@ public class ArrayList {
    * @param minCapacity the desired minimum capacity
    */
   public void ensureCapacity(int minCapacity) {
-//    modCount++;
+    //    modCount++;
     int oldCapacity = elementData.length;
     if (minCapacity > oldCapacity) {
       Object oldData[] = elementData;
@@ -152,7 +152,7 @@ public class ArrayList {
   public Object remove(int index) {
     rangeCheck(index);
 
-//    modCount++;
+    //    modCount++;
     Object oldValue = elementData(index);
 
     int numMoved = size - index - 1;

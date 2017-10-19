@@ -10,12 +10,13 @@ import jbct.model.Method;
 // it uses a state that's not part of the EPA
 
 public class GlobalNecessarilyEnabledActionQuery extends NecessarilyEnabledActionQuery {
-    public GlobalNecessarilyEnabledActionQuery(State source, Action mainAction, Action testedAction, Method invariant) {
-        super(source, mainAction, testedAction, invariant);
-    }
+  public GlobalNecessarilyEnabledActionQuery(
+      State source, Action mainAction, Action testedAction, Method invariant) {
+    super(source, mainAction, testedAction, invariant);
+  }
 
-    @Override
-    public String getName() {
-        return "global_" + super.getName();
-    }
+  @Override
+  public String getName() {
+    return "global_" + super.getName();
+  }
 }

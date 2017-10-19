@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.PumpStreamHandler;
@@ -30,7 +29,7 @@ public class CommandsRunner {
     // ContractorJ doesn't need the file because it uses the outputStream
 
     Path dir = null;
-    if (newDirAsCWD){
+    if (newDirAsCWD) {
       try {
         dir = Files.createTempDirectory("cwd_");
         executor.setWorkingDirectory(dir.toFile());
@@ -51,10 +50,9 @@ public class CommandsRunner {
       throw new RuntimeException("Error executing " + lineToRun + "\n " + outputStream.toString());
     }
 
-    if (newDirAsCWD && dir != null){
-      for(File file: dir.toFile().listFiles()) {
-          if (!file.isDirectory())
-              file.delete();
+    if (newDirAsCWD && dir != null) {
+      for (File file : dir.toFile().listFiles()) {
+        if (!file.isDirectory()) file.delete();
       }
       dir.toFile().delete();
     }

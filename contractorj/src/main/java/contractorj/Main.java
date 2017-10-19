@@ -142,9 +142,8 @@ public class Main {
     options.addOption(methodsOption);
 
     final Option globalQueries =
-            new Option("g", "globalNecessaryQueries", false, "Enable global necessary queries");
+        new Option("g", "globalNecessaryQueries", false, "Enable global necessary queries");
     options.addOption(globalQueries);
-
 
     final CommandLineParser parser = new DefaultParser();
     final HelpFormatter formatter = new HelpFormatter();

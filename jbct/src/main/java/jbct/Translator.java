@@ -44,12 +44,13 @@ public class Translator {
 
       pack.add(new Transform("jtp.bpl", JbctTransformer.getInstance()));
 
-      final String completeClassPath = pathToRrJar.getAbsolutePath() + File.pathSeparator + classPath;
+      final String completeClassPath =
+          pathToRrJar.getAbsolutePath() + File.pathSeparator + classPath;
 
       final List<String> args =
           Lists.newArrayList(
               "-keep-line-number",
-                  "-allow-phantom-refs",
+              "-allow-phantom-refs",
               "-cp",
               completeClassPath,
               "-f",

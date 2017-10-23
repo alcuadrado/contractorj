@@ -48,20 +48,25 @@ public class CorralRunner {
 
     final QueryResult queryQueryResult;
 
-    if (processOutput.contains("Program has no bugs")) {
+    if (processOutput.contains("Program has no bugs") && !processOutput.contains("Reached recursion bound of")) {
 
       queryQueryResult = QueryResult.NO_BUG;
 
     } else if (processOutput.contains("True bug")) {
 
       if (!processOutput.contains("query_assertion")) {
+        // unhandled output found
         throw new RuntimeException("Unexpected bug running " + consoleCommandToRun);
       }
 
       queryQueryResult = QueryResult.TRUE_BUG;
 
     } else {
-      queryQueryResult = QueryResult.MAYBE_BUG;
+      if (processOutput.contains("Program has no bugs") && processOutput.contains("Reached recursion bound of"))
+        queryQueryResult = QueryResult.MAYBE_BUG;
+      else
+        // unhandled output found
+        throw new RuntimeException("Unexpected bug running " + consoleCommandToRun);
     }
 
     return new RunnerResult(

@@ -27,7 +27,6 @@ public class Epa {
 
     if (transition.getSource().isConstructorsState() && transition.isThrowing()){
       // if there is a throwing transition from the constructor, we return to the constructor.
-      //  State source, Action action, State target, boolean isUncertain, final boolean isThrowing) {
       transition = new Transition(transition.getSource(),transition.getAction(),transition.getSource(),transition.isUncertain(), transition.isThrowing());
     } else {
       states.add(transition.getSource());

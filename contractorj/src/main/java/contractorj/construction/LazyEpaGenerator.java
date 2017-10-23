@@ -226,10 +226,14 @@ public class LazyEpaGenerator extends EpaGenerator {
    * Destinations from those transitions are enqueued to repeat the exploration process from the new
    * states (target states).
    *
-   * <p>Steps: Actions always enabled after transition from state using mainAction are calculated as
-   * necessaryEnabledActions Actions always disabled after transition from state using mainAction
-   * are calculated as necessaryDisabledActions Queries that check whether if a transition from
-   * state using mainAction breaks the invariant are created (not performed) Note that the are two
+   * <p>Steps:
+   * Actions always enabled after transition from state using mainAction are calculated as
+   * necessaryEnabledActions .
+   * Actions always disabled after transition from state using mainAction
+   * are calculated as necessaryDisabledActions.
+   * Queries that check whether if a transition from
+   * state using mainAction breaks the invariant are created (not performed).
+   * Note that the are two
    * kinds of invariant violation. One is raising an exception and the other is with no exception
    * raised. These queries could generate a transition to the error state. Queries that check valid
    * transitions (invariant is preserved) from state using mainAction are created (not performed)

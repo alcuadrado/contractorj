@@ -11,6 +11,10 @@ public class CombinationsGenerator<E> {
 
   public Set<Set<E>> combinations(Set<E> elements) {
 
+    // google implementation asserts if size of elements is greater than 30
+    return com.google.common.collect.Sets.powerSet(elements);
+
+    /*
     final ImmutableList<E> asList = ImmutableList.copyOf(elements);
 
     final Set<Set<E>> combinations = new HashSet<>();
@@ -29,7 +33,7 @@ public class CombinationsGenerator<E> {
       }
     }
 
-    return combinations;
+    return combinations;*/
   }
 
   private List<E> listWithoutI(List<E> asList, int i) {

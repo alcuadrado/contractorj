@@ -8,10 +8,7 @@ import jbct.model.BasicBlock;
 import jbct.model.InstanceField;
 import jbct.model.LocalMethod;
 import jbct.utils.StringUtils;
-import soot.BooleanType;
-import soot.SootField;
-import soot.Type;
-import soot.Value;
+import soot.*;
 import soot.jimple.*;
 import soot.jimple.internal.JEqExpr;
 import soot.jimple.internal.JGotoStmt;
@@ -55,10 +52,7 @@ public class UnitTranslator extends AbstractStmtSwitch {
     }
 
     final StringBuilder stringBuilder = new StringBuilder();
-    if (rightOp instanceof NewExpr
-        || rightOp instanceof InvokeExpr
-        || rightOp instanceof DivExpr
-        || rightOp instanceof InstanceOfExpr) {
+    if (rightOp instanceof NewExpr || rightOp instanceof InvokeExpr || rightOp instanceof DivExpr || rightOp instanceof InstanceOfExpr) {
       stringBuilder.append("call ");
     }
 
@@ -148,9 +142,9 @@ public class UnitTranslator extends AbstractStmtSwitch {
       return;
     }
 
-    if (translateType.equals("Real")) {
+    if (translateType.equals("Real")){
       translation.add(
-          "assume Union2Real(Real2Union(" + translatedValue + ")) == " + translatedValue + ";");
+              "assume Union2Real(Real2Union(" + translatedValue + ")) == " + translatedValue + ";");
       return;
     }
 
@@ -185,7 +179,7 @@ public class UnitTranslator extends AbstractStmtSwitch {
       return translatedValue;
     }
 
-    if (translateType.equals("Real")) {
+    if (translateType.equals("Real")){
       return "Real2Union(" + translatedValue + ")";
     }
 
@@ -315,51 +309,53 @@ public class UnitTranslator extends AbstractStmtSwitch {
     translation.add("}");
   }
 
-  @Override
-  public void caseEnterMonitorStmt(EnterMonitorStmt stmt) {
-    Value v = stmt.getOp();
-    translateValue(v);
+    @Override
+  public void caseEnterMonitorStmt(EnterMonitorStmt stmt){
+      Value v = stmt.getOp();
+      translateValue(v);
+
   }
 
-  @Override
-  public void caseExitMonitorStmt(ExitMonitorStmt stmt) {
-    Value v = stmt.getOp();
-    translateValue(v);
-  }
-
-  @Override
-  public void caseTableSwitchStmt(TableSwitchStmt table) {
-
-    for (int i = 0; i < table.getTargets().size(); i++) {
-      JEqExpr equal = new JEqExpr(table.getKey(), IntConstant.v(i));
-      IfStmt ifStmt = new JIfStmt(equal, table.getTargetBox(i));
-      ifStmt.apply(this);
+    @Override
+    public void caseExitMonitorStmt(ExitMonitorStmt stmt){
+        Value v = stmt.getOp();
+        translateValue(v);
     }
 
-    GotoStmt goStmt = new JGotoStmt(table.getDefaultTarget());
-    goStmt.apply(this);
-  }
 
-  @Override
-  public void caseLookupSwitchStmt(LookupSwitchStmt switchStmt) {
+    @Override
+    public void caseTableSwitchStmt(TableSwitchStmt table){
 
-    Iterator lookupValuesIt = switchStmt.getLookupValues().iterator();
-    int i = 0;
+      for (int i = 0; i < table.getTargets().size(); i++){
+        JEqExpr equal = new JEqExpr(table.getKey(), IntConstant.v(i));
+        IfStmt ifStmt = new JIfStmt(equal, table.getTargetBox(i));
+        ifStmt.apply(this);
+      }
 
-    while (lookupValuesIt.hasNext()) {
-      Value lookupValue = (Value) lookupValuesIt.next();
-
-      JEqExpr equal = new JEqExpr(switchStmt.getKey(), lookupValue);
-      IfStmt ifStmt = new JIfStmt(equal, switchStmt.getTargetBox(i));
-
-      ifStmt.apply(this);
-
-      i++;
+      GotoStmt goStmt = new JGotoStmt(table.getDefaultTarget());
+      goStmt.apply(this);
     }
 
-    GotoStmt goStmt = new JGotoStmt(switchStmt.getDefaultTarget());
-    goStmt.apply(this);
-  }
+    @Override
+    public void caseLookupSwitchStmt(LookupSwitchStmt switchStmt){
+
+      Iterator lookupValuesIt = switchStmt.getLookupValues().iterator();
+      int i = 0;
+
+      while(lookupValuesIt.hasNext()){
+        Value lookupValue = (Value)lookupValuesIt.next();
+
+        JEqExpr equal = new JEqExpr(switchStmt.getKey(), lookupValue);
+        IfStmt ifStmt = new JIfStmt(equal, switchStmt.getTargetBox(i));
+
+        ifStmt.apply(this);
+
+        i++;
+      }
+
+      GotoStmt goStmt = new JGotoStmt(switchStmt.getDefaultTarget());
+      goStmt.apply(this);
+    }
 
   @Override
   public void defaultCase(Object obj) {

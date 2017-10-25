@@ -2,15 +2,31 @@ package jbct.model;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Sets;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+
+import java.util.*;
+
 import jbct.soot.TypeTranslator;
 import soot.SootMethod;
 import soot.Type;
 import soot.VoidType;
 
 public class ExternalMethod extends Method {
+
+  // holds external methods that will be translated as non deterministic (their return value - exception value is not modified)
+  private static final Set<ExternalMethod> nonHardcodedExternalMethods = new HashSet<ExternalMethod>();
+
+  public static void addExternalMethodForDeclaration(ExternalMethod m){
+    nonHardcodedExternalMethods.add(m);
+  }
+
+  public static void writeExternalMethodDeclarations(StringBuilder sb){
+
+    for (ExternalMethod m : nonHardcodedExternalMethods){
+      sb.append("// external method translated as non deterministic - exception variable is not modified.");
+      sb.append(m.getTranslatedProcedure());
+    }
+
+  }
 
   private static final Set<String> hardCodedMethodsTranslatedNames =
       Sets.newHashSet(
@@ -28,8 +44,8 @@ public class ExternalMethod extends Method {
           "java.util.Arrays.copyOf$Ref$int");
 
   private Set<String> methodsWithHardcodedIntReturnType =
-      Sets.newHashSet(
-          //"java.util.Map#size"
+          Sets.newHashSet(
+                  //"java.util.Map#size"
           );
 
   private Set<String> methodsWithHardcodedBooleanReturnType =
@@ -44,14 +60,13 @@ public class ExternalMethod extends Method {
           "java.util.LinkedList#add$java.lang.Object",
           "java.util.LinkedList#remove$java.lang.Object",
           "java.util.ArrayList#remove$int",
-          "java.util.ArrayList#add$java.lang.Object",
-          "java.util.ArrayList#remove$java.lang.Object");
-  //"java.util.Enumeration#hasMoreElements"*/);
+          "java.util.ArrayList#add$java.lang.Object");
 
   private Set<String> methodsWithHardcodedRefReturnType =
-      Sets.newHashSet( //"java.util.Map#get$java.lang.Object",
-          // "java.util.Enumeration#nextElement",
-          // "java.util.Map#put$java.lang.Object$java.lang.Object"
+          Sets.newHashSet(//"java.util.Map#get$java.lang.Object",
+                // "java.util.Enumeration#nextElement",
+                 //"java.util.Iterator#next"
+                 // "java.util.Map#put$java.lang.Object$java.lang.Object"
           );
 
   public ExternalMethod(Class theClass, SootMethod sootMethod) {
@@ -61,6 +76,7 @@ public class ExternalMethod extends Method {
 
   public boolean isHardCoded() {
     final String translatedName = getTranslatedName();
+
     return hardCodedMethodsTranslatedNames.contains(translatedName)
         || methodsWithHardcodedBooleanReturnType.contains(translatedName)
         || methodsWithHardcodedRefReturnType.contains(translatedName)

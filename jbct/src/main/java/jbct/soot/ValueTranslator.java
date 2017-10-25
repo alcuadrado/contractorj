@@ -3,12 +3,12 @@ package jbct.soot;
 import com.google.common.base.Joiner;
 import java.util.ArrayList;
 import java.util.List;
+
 import jbct.model.*;
 import jbct.model.Class;
 import jbct.utils.StringUtils;
 import soot.*;
 import soot.jimple.*;
-import soot.jimple.internal.*;
 
 public class ValueTranslator extends AbstractJimpleValueSwitch {
 
@@ -111,14 +111,14 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
 
     // int = double you're forced to cast the double to int
     // double = int the cast is done at compile time.
-    if (TypeTranslator.translate(op1.getType()) == "Real"
-        && TypeTranslator.translate(op1.getType()) == "Real") {
-      stringBuilder.append("RealPlus(");
-      op1.apply(this);
-      stringBuilder.append(",");
-      op2.apply(this);
-      stringBuilder.append(")");
-      return;
+    if (TypeTranslator.translate(op1.getType()) == "Real" &&
+        TypeTranslator.translate(op1.getType()) == "Real" ){
+        stringBuilder.append("RealPlus(");
+        op1.apply(this);
+        stringBuilder.append(",");
+        op2.apply(this);
+        stringBuilder.append(")");
+        return;
     }
 
     op1.apply(this);
@@ -134,8 +134,8 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
 
     // int = double you're forced to cast the double to int
     // double = int the cast is done at compile time.
-    if (TypeTranslator.translate(op1.getType()) == "Real"
-        && TypeTranslator.translate(op1.getType()) == "Real") {
+    if (TypeTranslator.translate(op1.getType()) == "Real" &&
+            TypeTranslator.translate(op1.getType()) == "Real" ){
       stringBuilder.append("RealMinus(");
       op1.apply(this);
       stringBuilder.append(",");
@@ -157,8 +157,8 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
 
     // int = double you're forced to cast the double to int
     // double = int the cast is done at compile time.
-    if (TypeTranslator.translate(op1.getType()) == "Real"
-        && TypeTranslator.translate(op1.getType()) == "Real") {
+    if (TypeTranslator.translate(op1.getType()) == "Real" &&
+            TypeTranslator.translate(op1.getType()) == "Real" ){
       stringBuilder.append("RealTimes(");
       op1.apply(this);
       stringBuilder.append(",");
@@ -180,8 +180,8 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
 
     // int = double you're forced to cast the double to int
     // double = int the cast is done at compile time.
-    if (TypeTranslator.translate(op1.getType()) == "Real"
-        && TypeTranslator.translate(op1.getType()) == "Real") {
+    if (TypeTranslator.translate(op1.getType()) == "Real" &&
+            TypeTranslator.translate(op1.getType()) == "Real" ){
       stringBuilder.append("RealDivide(");
       op1.apply(this);
       stringBuilder.append(",");
@@ -375,13 +375,13 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
       return;
     }
 
-    if (translatedType.equals("Real")) {
+    if (translatedType.equals("Real")){
       stringBuilder
-          .append("Union2Real(Read($Heap, ")
-          .append(refTranslation)
-          .append(", ")
-          .append(instanceField.getTranslatedName())
-          .append("))");
+              .append("Union2Real(Read($Heap, ")
+              .append(refTranslation)
+              .append(", ")
+              .append(instanceField.getTranslatedName())
+              .append("))");
       return;
     }
 
@@ -414,14 +414,14 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
     String castType = TypeTranslator.translate(v.getCastType());
     String opType = TypeTranslator.translate(v.getOp().getType());
 
-    if (castType == "Real" && opType == "int") {
+    if (castType == "Real" && opType == "int"){
       stringBuilder.append("Int2Real(");
       v.getOp().apply(this);
       stringBuilder.append(")");
       return;
     }
 
-    if (castType == "int" && opType == "Real") {
+    if (castType == "int" && opType == "Real"){
       stringBuilder.append("Real2Int(");
       v.getOp().apply(this);
       stringBuilder.append(")");
@@ -435,6 +435,7 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
     stringBuilder.append("InstanceOfTemp()");
   }
 
+
   @Override
   public void defaultCase(Object v) {
 
@@ -446,8 +447,7 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
     Value op1 = v.getOp1();
     Value op2 = v.getOp2();
 
-    if (TypeTranslator.translate(op1.getType()) == "Real"
-        || TypeTranslator.translate(op2.getType()) == "Real") {
+    if (TypeTranslator.translate(op1.getType()) == "Real" || TypeTranslator.translate(op2.getType()) == "Real"){
 
       stringBuilder.append("RealModulus(");
       op1.apply(this);
@@ -480,10 +480,21 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
     final Method theMethod = Method.create(methodClass, v.getMethod());
 
     if (theMethod instanceof ExternalMethod) {
-      if (((ExternalMethod) theMethod).isHardCoded()) {
-        translateInvokeExpr(v);
+      ExternalMethod externalMethod = (ExternalMethod) theMethod;
+      if (externalMethod.isHardCoded()) {
+        translateInvokeExpr(v); // make boogie call
+        return;
+      } else{
+        ExternalMethod.addExternalMethodForDeclaration(externalMethod); // this method will be declared as non deterministic.
+        translateInvokeExpr(v); // make boogie call
         return;
       }
+    }
+
+    if (theMethod instanceof AbstractMethod){
+      // this code is a workaround for dynamic dispatch.
+      translateInvokeExpr(v);
+      return;
     }
 
     super.caseInterfaceInvokeExpr(v);
@@ -503,11 +514,28 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
       translatedArgumentsList.add(translateValue(instance));
     }
 
+    final SootMethod sootMethod = invokeExpr.getMethod();
+
+    // workaround: 1 or 0 if argument type is boolean must be translated to true or false.
+    int paramIdx = 0;
     for (final Value argument : invokeExpr.getArgs()) {
-      translatedArgumentsList.add(translateValue(argument));
+
+      String valueTranslated = translateValue(argument);
+
+      if (sootMethod.getParameterCount() > 0 &&
+          sootMethod.getParameterType(paramIdx).toString().contentEquals("boolean") &&
+          argument.getType().toString().contentEquals("int")){
+
+          if (valueTranslated.contentEquals("1"))
+            translatedArgumentsList.add("true");
+          else if (valueTranslated.contentEquals("0"))
+            translatedArgumentsList.add("false");
+      } else
+          translatedArgumentsList.add(valueTranslated);
+
+      paramIdx++;
     }
 
-    final SootMethod sootMethod = invokeExpr.getMethod();
     final Method calledMethod = JbctTransformer.getInstance().getMethod(sootMethod);
 
     stringBuilder
@@ -548,7 +576,7 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
     final String op2 = translateValue(v.getOp2());
 
     // this could be a double subtraction
-    if (TypeTranslator.translate(v.getOp1().getType()) == "Real") {
+    if (TypeTranslator.translate(v.getOp1().getType()) == "Real"){
 
       stringBuilder.append("RealCompare(");
       stringBuilder.append(op1);
@@ -560,6 +588,8 @@ public class ValueTranslator extends AbstractJimpleValueSwitch {
     }
 
     stringBuilder.append("(").append(op1).append(" - ").append(op2).append(")");
+
+
   }
 
   public String getTranslation() {

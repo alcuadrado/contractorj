@@ -223,3 +223,14 @@ procedure java.util.LinkedList#remove$java.lang.Object($this : Ref, o : Ref) ret
 procedure java.util.LinkedList#add$java.lang.Object($this : Ref, o : Ref) returns (r : bool) {
     call r := java.util.Collection#add$java.lang.Object($this, o);
 }
+
+// static variables from classes that are not "parsed" by soot, therefore they are not translated to boogie
+// these variables are used within the translated code
+
+// Socket example - these variables are used in java.net package
+const unique sun.security.util.SecurityConstants.GET_PROXYSELECTOR_PERMISSION : Ref;
+const unique sun.security.util.SecurityConstants.SET_PROXYSELECTOR_PERMISSION : Ref;
+const unique java.nio.charset.CodingErrorAction.REPLACE : Ref;
+const unique java.text.Normalizer$Form.NFC : Ref;
+const unique sun.security.util.SecurityConstants.SPECIFY_HANDLER_PERMISSION : Ref;
+const unique sun.security.util.SecurityConstants.ALL_PERMISSION : Ref;

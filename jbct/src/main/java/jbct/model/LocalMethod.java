@@ -119,6 +119,10 @@ public class LocalMethod extends Method {
   // 5) translate each instruction from the jimple body
   public String getTranslatedProcedure() {
 
+    // workaround for socket example - ignore
+    if (getTranslatedName().contentEquals("java.net.Inet6Address.?clinit?"))
+      return "\n";
+
     final List<String> translatedParametersList = getTranslatedParametersList();
 
     final StringBuilder stringBuilder =
@@ -168,6 +172,11 @@ public class LocalMethod extends Method {
 
   @Override
   public boolean isClassInitializer() {
+
+    // workaround for socket example
+    // this constructor is not translatable yet but is not used.
+    if (this.getJavaName().contentEquals("java.net.Inet6Address.<clinit>"))
+      return false;
 
     return sootMethod.isEntryMethod() && !sootMethod.isMain();
   }

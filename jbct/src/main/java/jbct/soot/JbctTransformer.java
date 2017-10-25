@@ -29,8 +29,15 @@ public class JbctTransformer extends BodyTransformer {
 
   private final Map<SootMethod, Method> methodsMap = new HashMap<>();
 
-  private boolean skippedMethods(SootMethod sootMethod) {
-    if (sootMethod.getDeclaration().contentEquals("public volatile java.lang.Object array()"))
+  private boolean skippedMethods(SootMethod sootMethod){
+
+    // workaround for socket example
+    if (sootMethod.getDeclaration().contentEquals("public volatile java.lang.Object run() throws java.lang.Exception") &&
+            sootMethod.getDeclaringClass().getName().contentEquals("java.net.InetAddress$2")  )
+      return true;
+
+    // workaround: there are methods translated by soot with volatile keyword. AFAIK that's wrong syntax.
+    if (sootMethod.getDeclaration().contains("volatile"))
       return true;
 
     return false;
@@ -40,10 +47,10 @@ public class JbctTransformer extends BodyTransformer {
   protected void internalTransform(Body abstractBody, String phaseName, Map options) {
     final SootMethod sootMethod = abstractBody.getMethod();
 
-    if (skippedMethods(sootMethod)) return;
+    if (skippedMethods(sootMethod))
+      return;
 
     final SootClass sootClass = sootMethod.getDeclaringClass();
-
     final Class theClass = Class.create(sootClass);
     final Method method = Method.create(theClass, sootMethod);
 
@@ -74,7 +81,8 @@ public class JbctTransformer extends BodyTransformer {
   private void addCalledMethod(InvokeExpr invokeExpr) {
     final SootMethod sootMethod = invokeExpr.getMethod();
 
-    if (skippedMethods(sootMethod)) return;
+    if (skippedMethods(sootMethod))
+      return;
 
     final SootClass sootClass = sootMethod.getDeclaringClass();
     final Class theClass = Class.create(sootClass);
@@ -108,6 +116,8 @@ public class JbctTransformer extends BodyTransformer {
     final StringBuilder stringBuilder = new StringBuilder();
 
     stringBuilder.append(getPrelude());
+
+    ExternalMethod.writeExternalMethodDeclarations(stringBuilder);
     stringBuilder.append(RealConstants.getInstance().realConstantDefinitions());
     final ArrayList<Class> classes = Lists.newArrayList(this.classes);
 

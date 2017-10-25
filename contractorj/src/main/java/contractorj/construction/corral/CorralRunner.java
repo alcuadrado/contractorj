@@ -12,7 +12,7 @@ public class CorralRunner {
 
   public CorralRunner(String pathToCorral) {
 
-    this(pathToCorral, 3);
+    this(pathToCorral, 2);
   }
 
   public CorralRunner(String pathToCorral, int recursionBound) {

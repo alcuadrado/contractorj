@@ -13,6 +13,7 @@ import jbct.model.Class;
 import jbct.utils.StringUtils;
 import soot.*;
 import soot.jimple.*;
+import soot.tagkit.VisibilityAnnotationTag;
 
 public class JbctTransformer extends BodyTransformer {
 
@@ -40,14 +41,29 @@ public class JbctTransformer extends BodyTransformer {
     if (sootMethod.getDeclaration().contains("volatile"))
       return true;
 
+    if (sootMethod.toString().contentEquals("<contractor.java.nio.Bits: void <clinit>()>"))
+      return true;
+
     return false;
   }
 
+  private boolean hasIgnoredAnnotation(SootMethod sootMethod){
+    if (sootMethod.getTag("VisibilityAnnotationTag") != null){
+      VisibilityAnnotationTag vat = (VisibilityAnnotationTag) sootMethod.getTag("VisibilityAnnotationTag");
+      if (vat.getAnnotations().stream().filter(at -> at.getType().contains("ContractorIgnored")).count() > 0)
+        return true;
+    }
+    return false;
+  }
   @Override
   protected void internalTransform(Body abstractBody, String phaseName, Map options) {
+
     final SootMethod sootMethod = abstractBody.getMethod();
 
     if (skippedMethods(sootMethod))
+      return;
+
+    if (hasIgnoredAnnotation(sootMethod))
       return;
 
     final SootClass sootClass = sootMethod.getDeclaringClass();
@@ -164,7 +180,6 @@ public class JbctTransformer extends BodyTransformer {
     for (Method method : getMethodsInOrder()) {
 
       if (method.isClassInitializer()) {
-
         stringBuilder
             .append(StringUtils.indent("call "))
             .append(method.getTranslatedName())

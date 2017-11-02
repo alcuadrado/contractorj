@@ -77,7 +77,8 @@ public abstract class Method {
             + (sootMethod.isStatic() ? "." : "#")
             + StringUtils.scapeIllegalIdentifierCharacters(sootMethod.getName());
 
-    return mangleMethodName(sootMethod, baseName);
+    final String mangledMethodName = mangleMethodName(sootMethod, baseName);
+    return mangledMethodName;
   }
 
   /** Mangles the name of a method. */
@@ -90,17 +91,12 @@ public abstract class Method {
 
     for (final Type parameterType : parameterTypes) {
 
-      final String paramTypeName;
-
-      if (parameterType instanceof RefType) {
-
-        final RefType refType = (RefType) parameterType;
-        final Class aClass = Class.create(refType.getSootClass());
-        paramTypeName = aClass.getQualifiedJavaName();
-
-      } else {
-        paramTypeName = TypeTranslator.translate(parameterType);
-      }
+      // there could be 2 methods with different arity
+      // void foo(int i) & void foo(byte i)
+      // if we use the translated type for procedure name they will collide
+      // int is translated to int and byte is translated to int
+      // in this way we use the type name given by soot.
+      final String paramTypeName = parameterType.toString();
 
       stringBuilder.append("$").append(StringUtils.scapeIllegalIdentifierCharacters(paramTypeName));
     }

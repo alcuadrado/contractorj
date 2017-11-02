@@ -77,6 +77,8 @@ axiom (forall r1: Real, r2 :Real :: RealLessThanOrEqual(r1,r2) ==>  RealCompare(
 function BitwiseAnd(int, int) : int;
 
 function BitwiseOr(int, int) : int;
+axiom (forall i1: int, i2 :int :: i1 < 0 || i2 < 0 <==> BitwiseOr(i1,i2) < 0 );
+axiom (forall i1: int, i2 :int :: i1 >= 0 && i2 >= 0 <==> BitwiseOr(i1,i2) >= 0 );
 
 function BitwiseExclusiveOr(int, int) : int;
 

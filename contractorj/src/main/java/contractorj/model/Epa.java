@@ -24,15 +24,8 @@ public class Epa {
   }
 
   public synchronized void addTransition(Transition transition) {
-
-    if (transition.getSource().isConstructorsState() && transition.isThrowing()){
-      // if there is a throwing transition from the constructor, we return to the constructor.
-      transition = new Transition(transition.getSource(),transition.getAction(),transition.getSource(),transition.isUncertain(), transition.isThrowing());
-    } else {
-      states.add(transition.getSource());
-      states.add(transition.getTarget());
-    }
-
+    states.add(transition.getSource());
+    states.add(transition.getTarget());
     transitions.add(transition);
   }
 

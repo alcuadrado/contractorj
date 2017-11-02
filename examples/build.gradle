@@ -9,7 +9,8 @@ project.tasks.withType(AbstractCompile, { AbstractCompile ac ->
 })
 
 dependencies {
- 	compile files("socket_lib")
- 	compile files('libs/dnsjava-1.4.1.jar')
- 	compile files('libs/commons-codec-1.10.jar')
+    compile files("socket_lib")
+    compile files('libs/dnsjava-1.4.1.jar')
+    compile files('libs/commons-codec-1.10.jar')
+    compile fileTree(dir: 'libs', include: ['*.jar', '*.class'])
 }

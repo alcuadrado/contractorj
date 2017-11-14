@@ -92,6 +92,8 @@ var $ArrayContents: [Ref][int]Union;
 
 function $ArrayLength(Ref) : int;
 
+function $StringLength(Ref) : int;
+
 function Union2Bool(u: Union) : bool;
 
 function Union2Int(u: Union) : int;
@@ -118,6 +120,11 @@ procedure java.util.Arrays.copyOf$Ref$int(param00 : Ref, param01 : int) returns 
     assume $ArrayLength(r) == param01;
 }
 
+// String length mock
+
+procedure java.lang.String#length($this : Ref) returns (r : int) {
+    r := $StringLength($this);
+}
 
 // Collections' length mock
 

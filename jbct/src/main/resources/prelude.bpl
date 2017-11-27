@@ -115,7 +115,7 @@ procedure InstanceOfTemp() returns ($result: bool);
 
 // Array hardcoded methods
 
-procedure java.util.Arrays.copyOf$Ref$int(param00 : Ref, param01 : int) returns (r : Ref) {
+procedure java.util.Arrays.copyOf$java.lang.Object??$int(param00 : Ref, param01 : int) returns (r : Ref) {
     call r := Alloc();
     assume $ArrayLength(r) == param01;
 }

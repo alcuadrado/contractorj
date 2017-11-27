@@ -11,13 +11,14 @@ public class ListIterator<E> {
   public int lastRet = -1; // index of last element returned; -1 if no such
   public int expectedModCount;
 
-  public boolean hasNext() {
-    return cursor != arrayList.size;
-  }
+  //public boolean hasNext() {
+  //  return cursor != arrayList.size;
+  //}
 
   @SuppressWarnings("unchecked")
   public E next() {
-    checkForComodification();
+    //checkForComodification();
+    if (arrayList.modCount != expectedModCount) throw new ConcurrentModificationException();
     int i = cursor;
     if (i >= arrayList.size) throw new NoSuchElementException();
     Object[] elementData = arrayList.elementData;
@@ -28,7 +29,8 @@ public class ListIterator<E> {
 
   public void remove() {
     if (lastRet < 0) throw new IllegalStateException();
-    checkForComodification();
+    //checkForComodification();
+    if (arrayList.modCount != expectedModCount) throw new ConcurrentModificationException();
 
     try {
       arrayList.remove(lastRet);
@@ -40,9 +42,9 @@ public class ListIterator<E> {
     }
   }
 
-  final void checkForComodification() {
-    if (arrayList.modCount != expectedModCount) throw new ConcurrentModificationException();
-  }
+  //final void checkForComodification() {
+  //  if (arrayList.modCount != expectedModCount) throw new ConcurrentModificationException();
+  //}
 
   public ListIterator(ArrayList<E> arrayList, int index) {
     super();
@@ -51,21 +53,27 @@ public class ListIterator<E> {
     expectedModCount = arrayList.modCount;
   }
 
-  public boolean hasPrevious() {
-    return cursor != 0;
-  }
+  //public boolean hasPrevious() {
+  //  return cursor != 0;
+  //}
 
-  public int nextIndex() {
+  /*public int nextIndex() {
     return cursor;
   }
 
   public int previousIndex() {
     return cursor - 1;
+  }*/
+
+  public boolean previous_pre() {
+    //return hasPrevious();
+    return cursor != 0;
   }
 
   @SuppressWarnings("unchecked")
   public E previous() {
-    checkForComodification();
+    //checkForComodification();
+    if (arrayList.modCount != expectedModCount) throw new ConcurrentModificationException();
     int i = cursor - 1;
     if (i < 0) throw new NoSuchElementException();
     Object[] elementData = arrayList.elementData;
@@ -74,9 +82,11 @@ public class ListIterator<E> {
     return (E) elementData[lastRet = i];
   }
 
+
   public void set(E e) {
     if (lastRet < 0) throw new IllegalStateException();
-    checkForComodification();
+    //checkForComodification();
+    if (arrayList.modCount != expectedModCount) throw new ConcurrentModificationException();
 
     try {
       arrayList.set(lastRet, e);
@@ -86,7 +96,8 @@ public class ListIterator<E> {
   }
 
   public void add(E e) {
-    checkForComodification();
+    //checkForComodification();
+    if (arrayList.modCount != expectedModCount) throw new ConcurrentModificationException();
 
     try {
       int i = cursor;
@@ -108,6 +119,21 @@ public class ListIterator<E> {
         && arrayList.listiterator_pre(index);
   }
 
+ /* public boolean inv_1(){
+    return 	(
+
+            LI_cursor <= AL_size &&  0<= LI_cursor
+            && (-1 == LI_lastRet
+                    || (LI_cursor < AL_size && LI_lastRet == LI_cursor)
+                    || (LI_cursor > 0 && LI_lastRet == LI_cursor - 1)
+            )
+
+            && 0 <= LI_expectedModCount && 0 <= AL_modCount
+
+            && 0 <= AL_size && AL_size <= AL_elementData_length
+            && 10 <= AL_elementData_length;
+  }*/
+
   public boolean inv() {
     return arrayList != null
         && arrayList.inv()
@@ -120,14 +146,25 @@ public class ListIterator<E> {
             || (cursor > 0 && lastRet == cursor - 1));
   }
 
+
   public boolean next_pre() {
-    return hasNext();
+    if (arrayList.modCount != expectedModCount)
+      return false;
+
+    // hasNext()
+    if (!(cursor != arrayList.size))
+      return false;
+
+    return true;
+
   }
 
-  public boolean previous_pre() {
-    return hasPrevious();
-  }
+  public boolean add_pre(){
+    if (arrayList.modCount != expectedModCount)
+      return false;
 
+    return true;
+  }
   public boolean set_pre() {
     return lastRet >= 0 && lastRet < arrayList.size; // Inline part of ArrayList#set_pre
   }

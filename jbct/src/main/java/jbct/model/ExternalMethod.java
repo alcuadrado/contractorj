@@ -41,7 +41,8 @@ public class ExternalMethod extends Method {
           "java.util.ArrayList#?init?$int",
           "java.util.ArrayList#size",
           "java.util.ArrayList#clear",
-          "java.util.Arrays.copyOf$Ref$int",
+          //"java.util.Arrays.copyOf$Ref$int",
+          "java.util.Arrays.copyOf$java.lang.Object??$int",
           "java.lang.String#length");
 
   private Set<String> methodsWithHardcodedIntReturnType =

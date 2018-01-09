@@ -110,6 +110,7 @@ public class LocalMethod extends Method {
         .collect(Collectors.toList());
   }
 
+
   @Override
   // returns the boogie code of the procedure
   // 1) procedure's parameters are calculated and used in the procedure declaration
@@ -118,6 +119,10 @@ public class LocalMethod extends Method {
   // 4) write assignments of parameters to local variables
   // 5) translate each instruction from the jimple body
   public String getTranslatedProcedure() {
+
+    if (isHardCoded()) {
+      return "// Skipping hardcoded method " + getTranslatedName();
+    }
 
     // workaround for socket example - ignore
     if (getTranslatedName().contentEquals("java.net.Inet6Address.?clinit?"))

@@ -28,7 +28,7 @@ public class ExternalMethod extends Method {
 
   }
 
-  private static final Set<String> hardCodedMethodsTranslatedNames =
+  /*private static final Set<String> hardCodedMethodsTranslatedNames =
       Sets.newHashSet(
           "java.util.Collection#size",
           "java.util.Collection#clear",
@@ -47,7 +47,10 @@ public class ExternalMethod extends Method {
 
   private Set<String> methodsWithHardcodedIntReturnType =
           Sets.newHashSet(
-                  //"java.util.Map#size"
+                  "java.lang.String#charAt$int", // for stringtokenizer example
+                  "java.lang.String#indexOf$int", // for stringtokenizer example
+                  "java.lang.String#codePointAt$int",// for stringtokenizer example
+                  "java.lang.Character.charCount$int" // for stringtokenizer example
           );
 
   private Set<String> methodsWithHardcodedBooleanReturnType =
@@ -71,19 +74,21 @@ public class ExternalMethod extends Method {
                  // "java.util.Map#put$java.lang.Object$java.lang.Object"
           );
 
+  public boolean isHardCoded() {
+    final String translatedName = getTranslatedName();
+
+    return hardCodedMethodsTranslatedNames.contains(translatedName)
+            || methodsWithHardcodedBooleanReturnType.contains(translatedName)
+            || methodsWithHardcodedRefReturnType.contains(translatedName)
+            || methodsWithHardcodedIntReturnType.contains(translatedName);
+  }*/
+
   public ExternalMethod(Class theClass, SootMethod sootMethod) {
 
     super(theClass, sootMethod);
   }
 
-  public boolean isHardCoded() {
-    final String translatedName = getTranslatedName();
 
-    return hardCodedMethodsTranslatedNames.contains(translatedName)
-        || methodsWithHardcodedBooleanReturnType.contains(translatedName)
-        || methodsWithHardcodedRefReturnType.contains(translatedName)
-        || methodsWithHardcodedIntReturnType.contains(translatedName);
-  }
 
   @Override
   public String getTranslatedReturnType() {

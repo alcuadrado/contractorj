@@ -243,3 +243,58 @@ const unique java.nio.charset.CodingErrorAction.REPLACE : Ref;
 const unique java.text.Normalizer$Form.NFC : Ref;
 const unique sun.security.util.SecurityConstants.SPECIFY_HANDLER_PERMISSION : Ref;
 const unique sun.security.util.SecurityConstants.ALL_PERMISSION : Ref;
+
+// mock for StringTokenizer
+
+/*
+// Estos mocks los use para cuando seteabamos un limite al tamaño del maxPosition
+
+//function java.lang.String#charAt$int_function($this : Ref, param00 : int) returns (r : int);
+//function java.lang.String#indexOf$int_function($this : Ref, param00 : int) returns (r : int);
+//function java.lang.String#codePointAt$int_function($this : Ref, param00 : int) returns (r : int);
+//function java.lang.Character.charCount$int_function(param00 : int) returns (r : int);
+
+procedure java.lang.Character.charCount$int(param00 : int) returns (r : int){
+  assume java.lang.Character.charCount$int_function(param00) == 1 || java.lang.Character.charCount$int_function(param00) == 2 ;
+  r := java.lang.Character.charCount$int_function(param00);
+}
+
+procedure java.lang.String#codePointAt$int($this : Ref, param00 : int) returns (r : int){
+  r := java.lang.String#codePointAt$int_function($this, param00);
+}
+
+procedure java.lang.String#charAt$int($this : Ref, param00 : int) returns (r : int){
+  assume java.lang.String#charAt$int_function($this, param00) >= 0;
+  r := java.lang.String#charAt$int_function($this, param00);
+}
+
+procedure java.lang.String#indexOf$int($this : Ref, param00 : int) returns (r : int){
+  //assume java.lang.String#indexOf$int$int_function($this, param00 >= 0;
+  r := java.lang.String#indexOf$int_function($this, param00);
+}
+
+//procedure examples.StringTokenizer.StringTokenizer#isDelimiter$int($this : Ref, param00 : int) returns (r : bool){
+//    r := examples.StringTokenizer.StringTokenizer#isDelimiter$int_function($this, param00);
+//}
+
+//function examples.StringTokenizer.StringTokenizer#isDelimiter$int_function($this : Ref, param00 : int) returns (r : bool);
+
+*/
+
+procedure examples.StringTokenizer.StringTokenizer#skipDelimiters$int($this : Ref, param00 : int) returns (r : int){
+    r := examples.StringTokenizer.StringTokenizer#skipDelimiters$int_function($this, param00);
+}
+
+procedure examples.StringTokenizer.StringTokenizer#scanToken$int($this : Ref, param00 : int) returns (r : int){
+    r := examples.StringTokenizer.StringTokenizer#scanToken$int_function($this, param00);
+}
+
+axiom (forall $ref: Ref, param00 : int :: examples.StringTokenizer.StringTokenizer#scanToken$int_function($ref, param00) >= param00 &&
+            examples.StringTokenizer.StringTokenizer#scanToken$int_function($ref, param00) >= 0);
+
+function examples.StringTokenizer.StringTokenizer#skipDelimiters$int_function($this : Ref, param00 : int) returns (r : int);
+function examples.StringTokenizer.StringTokenizer#scanToken$int_function($this : Ref, param00 : int) returns (r : int);
+
+axiom (forall $ref: Ref, param00 : int :: examples.StringTokenizer.StringTokenizer#skipDelimiters$int_function($ref, param00) >= param00 &&
+            examples.StringTokenizer.StringTokenizer#skipDelimiters$int_function($ref, param00) >= 0);
+

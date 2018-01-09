@@ -1,12 +1,11 @@
 package jbct.model;
 
 import com.google.common.base.Joiner;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
+
+import java.util.*;
 import java.util.stream.Collectors;
+
+import com.google.common.collect.Sets;
 import jbct.soot.TypeTranslator;
 import jbct.utils.StringUtils;
 import soot.RefType;
@@ -108,6 +107,65 @@ public abstract class Method {
   public List<Type> getParameterTypes() {
 
     return sootMethod.getParameterTypes();
+  }
+
+  protected static final Set<String> hardCodedMethodsTranslatedNames =
+          Sets.newHashSet(
+                  "java.util.Collection#size",
+                  "java.util.Collection#clear",
+                  "java.util.List#size",
+                  "java.util.List#clear",
+                  "java.util.LinkedList#?init?",
+                  "java.util.LinkedList#size",
+                  "java.util.LinkedList#clear",
+                  "java.util.ArrayList#?init?",
+                  "java.util.ArrayList#?init?$int",
+                  "java.util.ArrayList#size",
+                  "java.util.ArrayList#clear",
+                  //"java.util.Arrays.copyOf$Ref$int",
+                  "java.util.Arrays.copyOf$java.lang.Object??$int",
+                  "java.lang.String#length",
+                  "examples.StringTokenizer.StringTokenizer#skipDelimiters$int",
+                  "examples.StringTokenizer.StringTokenizer#isDelimiter$int",
+                  "examples.StringTokenizer.StringTokenizer#scanToken$int");
+
+  protected Set<String> methodsWithHardcodedIntReturnType =
+          Sets.newHashSet(""
+                  //"java.lang.String#charAt$int", // for stringtokenizer example
+                  //"java.lang.String#indexOf$int", // for stringtokenizer example
+                  //"java.lang.String#codePointAt$int",// for stringtokenizer example
+                  //"java.lang.Character.charCount$int" // for stringtokenizer example
+          );
+
+  protected Set<String> methodsWithHardcodedBooleanReturnType =
+          Sets.newHashSet(
+                  "java.util.Collection#remove$int",
+                  "java.util.Collection#add$java.lang.Object",
+                  "java.util.Collection#remove$java.lang.Object",
+                  "java.util.List#remove$int",
+                  "java.util.List#add$java.lang.Object",
+                  "java.util.List#remove$java.lang.Object",
+                  "java.util.LinkedList#remove$int",
+                  "java.util.LinkedList#add$java.lang.Object",
+                  "java.util.LinkedList#remove$java.lang.Object",
+                  "java.util.ArrayList#remove$int",
+                  "java.util.ArrayList#add$java.lang.Object");
+
+  protected Set<String> methodsWithHardcodedRefReturnType =
+          Sets.newHashSet(//"java.util.Map#get$java.lang.Object",
+                  // "java.util.Enumeration#nextElement",
+                  //"java.util.Iterator#next"
+                  // "java.util.Map#put$java.lang.Object$java.lang.Object"
+          );
+
+
+  public boolean isHardCoded() {
+    final String translatedName = getTranslatedName();
+
+    return hardCodedMethodsTranslatedNames.contains(translatedName)
+            || methodsWithHardcodedBooleanReturnType.contains(translatedName)
+            || methodsWithHardcodedRefReturnType.contains(translatedName)
+            || methodsWithHardcodedIntReturnType.contains(translatedName);
   }
 
   public abstract String getTranslatedProcedure();

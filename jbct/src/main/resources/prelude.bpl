@@ -111,7 +111,7 @@ function Int2Real(int) : Real;
 function Real2Int(Real) : int;
 
 // this is temporary until types are implemented
-procedure InstanceOfTemp() returns ($result: bool);
+procedure InstanceOfTemp() returns ($result : bool) {}
 
 // Array hardcoded methods
 
@@ -244,6 +244,116 @@ const unique java.text.Normalizer$Form.NFC : Ref;
 const unique sun.security.util.SecurityConstants.SPECIFY_HANDLER_PERMISSION : Ref;
 const unique sun.security.util.SecurityConstants.ALL_PERMISSION : Ref;
 
+/*function java.net.InetSocketAddress#getAddress_function($this : Ref) returns (r : Ref);
+procedure java.net.InetSocketAddress#getAddress($this : Ref) returns (r : Ref) {
+    r := java.net.InetSocketAddress#getAddress_function($this);
+}*/
+
+procedure examples.Socket.MockSocket.bind$java.net.SocketImpl$java.net.InetAddress$int(param00 : Ref, param01 : Ref, param02 : int)
+{
+    var r0 : Ref;
+    var r1 : Ref;
+    var i0 : int;
+
+
+    r0 := param00;
+    r1 := param01;
+    i0 := param02;
+
+    examples.Socket.MockSocket.bind$java.net.SocketImpl$java.net.InetAddress$int_0:
+
+
+
+        call java.net.SocketImpl#bind$java.net.InetAddress$int(r0, r1, i0);
+        if ($Exception != null) {
+            return;
+        }
+        assume Union2Int(Int2Union(10)) == 10;
+        $Heap := Write($Heap, r0, java.net.SocketImpl#localport, Int2Union(10));
+        return;
+
+}
+
+procedure examples.Socket.MockSocket.connect$java.net.SocketImpl$java.lang.String$int(param00 : Ref, param01 : Ref, param02 : int)
+{
+    var r0 : Ref;
+    var r1 : Ref;
+    var i0 : int;
+
+
+    r0 := param00;
+    r1 := param01;
+    i0 := param02;
+
+    examples.Socket.MockSocket.connect$java.net.SocketImpl$java.lang.String$int_0:
+
+
+
+        call java.net.SocketImpl#connect$java.lang.String$int(r0, r1, i0);
+        if ($Exception != null) {
+            return;
+        }
+        assume Union2Int(Int2Union(10)) == 10;
+        $Heap := Write($Heap, r0, java.net.SocketImpl#localport, Int2Union(10));
+        assume Union2Int(Int2Union(10)) == 10;
+        $Heap := Write($Heap, r0, java.net.SocketImpl#port, Int2Union(10));
+        return;
+
+}
+
+procedure examples.Socket.MockSocket.connect$java.net.SocketImpl$java.net.InetAddress$int(param00 : Ref, param01 : Ref, param02 : int)
+{
+    var r0 : Ref;
+    var r1 : Ref;
+    var i0 : int;
+
+
+    r0 := param00;
+    r1 := param01;
+    i0 := param02;
+
+    examples.Socket.MockSocket.connect$java.net.SocketImpl$java.net.InetAddress$int_0:
+
+
+
+        call java.net.SocketImpl#connect$java.net.InetAddress$int(r0, r1, i0);
+        if ($Exception != null) {
+            return;
+        }
+        assume Union2Int(Int2Union(10)) == 10;
+        $Heap := Write($Heap, r0, java.net.SocketImpl#localport, Int2Union(10));
+        assume Union2Int(Int2Union(10)) == 10;
+        $Heap := Write($Heap, r0, java.net.SocketImpl#port, Int2Union(10));
+        return;
+
+}
+
+procedure examples.Socket.MockSocket.connect$java.net.SocketImpl$java.net.SocketAddress$int(param00 : Ref, param01 : Ref, param02 : int)
+{
+    var r0 : Ref;
+    var r1 : Ref;
+    var i0 : int;
+
+
+    r0 := param00;
+    r1 := param01;
+    i0 := param02;
+
+    examples.Socket.MockSocket.connect$java.net.SocketImpl$java.net.SocketAddress$int_0:
+
+
+
+        call java.net.SocketImpl#connect$java.net.SocketAddress$int(r0, r1, i0);
+        if ($Exception != null) {
+            return;
+        }
+        assume Union2Int(Int2Union(10)) == 10;
+        $Heap := Write($Heap, r0, java.net.SocketImpl#localport, Int2Union(10));
+        assume Union2Int(Int2Union(10)) == 10;
+        $Heap := Write($Heap, r0, java.net.SocketImpl#port, Int2Union(10));
+        return;
+
+}
 // mock for StringTokenizer
 
 /*
@@ -297,4 +407,10 @@ function examples.StringTokenizer.StringTokenizer#scanToken$int_function($this :
 
 axiom (forall $ref: Ref, param00 : int :: examples.StringTokenizer.StringTokenizer#skipDelimiters$int_function($ref, param00) >= param00 &&
             examples.StringTokenizer.StringTokenizer#skipDelimiters$int_function($ref, param00) >= 0);
+
+procedure java.net.SocketImpl#shutdownOutput($this : Ref) {
+}
+
+procedure java.net.SocketImpl#shutdownInput($this : Ref) {
+}
 

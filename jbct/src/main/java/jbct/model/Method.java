@@ -127,7 +127,14 @@ public abstract class Method {
                   "java.lang.String#length",
                   "examples.StringTokenizer.StringTokenizer#skipDelimiters$int",
                   "examples.StringTokenizer.StringTokenizer#isDelimiter$int",
-                  "examples.StringTokenizer.StringTokenizer#scanToken$int");
+                  "examples.StringTokenizer.StringTokenizer#scanToken$int",
+                  "java.net.SocketImpl#shutdownOutput",
+                  "java.net.SocketImpl#shutdownInput",
+                  "examples.Socket.MockSocket.connect$java.net.SocketImpl$java.lang.String$int",
+                  "examples.Socket.MockSocket.connect$java.net.SocketImpl$java.net.InetAddress$int",
+                  "examples.Socket.MockSocket.connect$java.net.SocketImpl$java.net.SocketAddress$int",
+                  "examples.Socket.MockSocket.bind$java.net.SocketImpl$java.net.InetAddress$int"
+                  /*"java.net.InetSocketAddress#getAddress"*/);
 
   protected Set<String> methodsWithHardcodedIntReturnType =
           Sets.newHashSet(""

@@ -743,31 +743,38 @@ public class MSocket implements java.io.Closeable {
 				&& !isGetOutputStreamEnabled() && !isShutdownInputEnabled() && !isShutdownOutputEnabled();
 	}*/
 
-	private boolean isShutdownInputEnabled() {
+	//private boolean isShutdownInputEnabled() {
+	private boolean shutdownInput_pre() {
 		return !isClosed() && isConnected() && !isInputShutdown();
 	}
 
-	private boolean isShutdownOutputEnabled() {
+	//private boolean isShutdownOutputEnabled() {
+	private boolean shutdownOutput_pre() {
 		return !isClosed() && isConnected() && !isOutputShutdown();
 	}
 
-	private boolean isConnectEnabled() {
+	//private boolean isConnectEnabled() {
+	private boolean connect_pre() {
 		return !isClosed() && (oldImpl || !isConnected());
 	}
 
-	private boolean isBindEnabled() {
+	//private boolean isBindEnabled() {
+	private boolean bind_pre() {
 		return !isClosed() && (oldImpl || !isBound());
 	}
 
-	private boolean isGetInputStreamEnabled() {
+	//private boolean isGetInputStreamEnabled() {
+	private boolean getInputStream_pre() {
 		return !isClosed() && isConnected() && !isInputShutdown() && !isClosedOrPending() && !shutIn;
 	}
 
-	private boolean isGetOutputStreamEnabled() {
+	//private boolean isGetOutputStreamEnabled() {
+	private boolean getOutputStream_pre() {
 		return !isClosed() && isConnected() && !isOutputShutdown() && !isClosedOrPending() && !shutOut;
 	}
 
-	private boolean isClosedEnabled() {
+	//private boolean isClosedEnabled() {
+	private boolean close_pre() {
 		return true;
 	}
 
@@ -778,4 +785,11 @@ public class MSocket implements java.io.Closeable {
 		return false;
 	}
 
+	private boolean inv(){
+
+		if (!isConnected() && (isInputShutdown() || isOutputShutdown()))
+			return false;
+
+		return true;
+	}
 }

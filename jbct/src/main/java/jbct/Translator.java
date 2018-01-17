@@ -48,8 +48,8 @@ public class Translator {
       final List<String> args =
           Lists.newArrayList(
               "-keep-line-number",
-                  "-i", // added for socket
-                  "java.net", // added for socket
+                  //"-i", // added for socket
+                  //"java.net", // added for socket
                   "-allow-phantom-refs",
               "-cp",
               completeClassPath,

@@ -232,3 +232,6 @@ procedure java.util.LinkedList#remove$java.lang.Object($this : Ref, o : Ref) ret
 procedure java.util.LinkedList#add$java.lang.Object($this : Ref, o : Ref) returns (r : bool) {
     call r := java.util.Collection#add$java.lang.Object($this, o);
 }
+
+const unique java.net.SocketAddress: Ref;
+const unique java.net.SocketImpl: Ref;

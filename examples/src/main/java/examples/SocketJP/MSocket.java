@@ -41,8 +41,8 @@ import java.security.PrivilegedAction;
 import java.security.PrivilegedExceptionAction;
 import java.util.Stack;
 
-import org.evosuite.epa.EpaAction;
-import org.evosuite.epa.EpaState;
+//import org.evosuite.epa.EpaAction;
+//import org.evosuite.epa.EpaState;
 
 /**
  * This class implements client sockets (also called just "sockets"). A socket
@@ -88,7 +88,7 @@ public class MSocket implements java.io.Closeable {
 	 * @since JDK1.1
 	 * @revised 1.4
 	 */
-	@EpaAction(name = "Socket")
+	//@EpaAction(name = "Socket")
 	public MSocket() {
 		setImpl();
 	}
@@ -192,7 +192,7 @@ public class MSocket implements java.io.Closeable {
 	 * @since 1.4
 	 * @spec JSR-51
 	 */
-	@EpaAction(name = "connect", enabledExceptionList = "java.io.Exception", notEnabledExceptionList = "java.net.SocketException,java.lang.IllegalArgumentException")
+	//@EpaAction(name = "connect", enabledExceptionList = "java.io.Exception", notEnabledExceptionList = "java.net.SocketException,java.lang.IllegalArgumentException")
 	public void connect(SocketAddress endpoint) throws IOException {
 		try {
 			internal_connect(endpoint, 0);
@@ -223,7 +223,7 @@ public class MSocket implements java.io.Closeable {
 	 * @since 1.4
 	 * @spec JSR-51
 	 */
-	@EpaAction(name = "connect", enabledExceptionList = "java.io.IOException", notEnabledExceptionList = "java.net.SocketException,java.lang.IllegalArgumentException")
+	//@EpaAction(name = "connect", enabledExceptionList = "java.io.IOException", notEnabledExceptionList = "java.net.SocketException,java.lang.IllegalArgumentException")
 	public void connect(SocketAddress endpoint, int timeout) throws IOException {
 		try {
 			internal_connect(endpoint, timeout);
@@ -321,7 +321,7 @@ public class MSocket implements java.io.Closeable {
 	 * @since 1.4
 	 * @see #isBound
 	 */
-	@EpaAction(name = "bind", enabledExceptionList = "java.io.Exception", notEnabledExceptionList = "java.net.SocketException,java.lang.IllegalArgumentException")
+	//@EpaAction(name = "bind", enabledExceptionList = "java.io.Exception", notEnabledExceptionList = "java.net.SocketException,java.lang.IllegalArgumentException")
 	public void bind(SocketAddress bindpoint) throws IOException {
 		try {
 			internal_bind(bindpoint);
@@ -416,7 +416,7 @@ public class MSocket implements java.io.Closeable {
 	 * @revised 1.4
 	 * @spec JSR-51
 	 */
-	@EpaAction(name = "getInputStream", enabledExceptionList = "java.io.Exception", notEnabledExceptionList = "java.net.SocketException")
+	//@EpaAction(name = "getInputStream", enabledExceptionList = "java.io.Exception", notEnabledExceptionList = "java.net.SocketException")
 	public InputStream getInputStream() throws IOException {
 		try {
 			return internal_getInputStream();
@@ -466,7 +466,7 @@ public class MSocket implements java.io.Closeable {
 	 * @revised 1.4
 	 * @spec JSR-51
 	 */
-	@EpaAction(name = "getOutputStream", enabledExceptionList = "java.io.Exception", notEnabledExceptionList = "java.net.SocketException")
+	//@EpaAction(name = "getOutputStream", enabledExceptionList = "java.io.Exception", notEnabledExceptionList = "java.net.SocketException")
 	public OutputStream getOutputStream() throws IOException {
 		try {
 			return internal_getOutputStream();
@@ -531,7 +531,7 @@ public class MSocket implements java.io.Closeable {
 		}
 	}
 
-	@EpaAction(name = "close", enabledExceptionList = "java.io.Exception" )
+	//@EpaAction(name = "close", enabledExceptionList = "java.io.Exception" )
 	public synchronized void close() throws IOException {
 		try {
 			this.internal_close();
@@ -558,7 +558,7 @@ public class MSocket implements java.io.Closeable {
 	 * @see java.net.Socket#setSoLinger(boolean, int)
 	 * @see #isInputShutdown
 	 */
-	@EpaAction(name = "shutdownInput", enabledExceptionList = "java.io.Exception", notEnabledExceptionList = "java.net.SocketException")
+	//@EpaAction(name = "shutdownInput", enabledExceptionList = "java.io.Exception", notEnabledExceptionList = "java.net.SocketException")
 	public void shutdownInput() throws IOException {
 		try {
 			internal_shutdownInput();
@@ -595,7 +595,7 @@ public class MSocket implements java.io.Closeable {
 	 * @see java.net.Socket#setSoLinger(boolean, int)
 	 * @see #isOutputShutdown
 	 */
-	@EpaAction(name = "shutdownOutput", enabledExceptionList = "java.io.Exception", notEnabledExceptionList = "java.net.SocketException")
+	//@EpaAction(name = "shutdownOutput", enabledExceptionList = "java.io.Exception", notEnabledExceptionList = "java.net.SocketException")
 	public void shutdownOutput() throws IOException {
 		try {
 			internal_shutdownOutput();
@@ -707,7 +707,7 @@ public class MSocket implements java.io.Closeable {
 	 * Instrumentation for state checking
 	 * -------------------------------------------------------------------------
 	 */
-	@EpaState(name = "S1")
+	/*@EpaState(name = "S1")
 	private boolean isS1() {
 		return isConnectEnabled() && isBindEnabled() && isClosedEnabled() && !isGetInputStreamEnabled()
 				&& !isGetOutputStreamEnabled() && !isShutdownInputEnabled() && !isShutdownOutputEnabled();
@@ -741,7 +741,7 @@ public class MSocket implements java.io.Closeable {
 	private boolean isS6() {
 		return !isConnectEnabled() && !isBindEnabled() && isClosedEnabled() && !isGetInputStreamEnabled()
 				&& !isGetOutputStreamEnabled() && !isShutdownInputEnabled() && !isShutdownOutputEnabled();
-	}
+	}*/
 
 	private boolean isShutdownInputEnabled() {
 		return !isClosed() && isConnected() && !isInputShutdown();

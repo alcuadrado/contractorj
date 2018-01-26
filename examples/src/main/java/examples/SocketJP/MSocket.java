@@ -787,8 +787,8 @@ public class MSocket implements java.io.Closeable {
 
 	private boolean inv(){
 
-		if (!isConnected() && (isInputShutdown() || isOutputShutdown()))
-			return false;
+		//if (!isConnected() && (isInputShutdown() || isOutputShutdown()))
+		//	return false;
 
 		return true;
 	}
